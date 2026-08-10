@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { requireSuperadmin } from '@/utils/auth/require-admin'
-import { updateAdminRole, removeAdmin } from './actions'
+import { removeAdminAction } from './actions'
 import { ShieldCheck, UserPlus } from 'lucide-react'
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button'
 import { TeamInviteForm } from './team-invite-form'
-import { PendingSubmitButton } from '@/components/pending-submit-button'
+import { RoleForm } from './role-form'
 
 export default async function TeamPage() {
   await requireSuperadmin()
@@ -52,23 +52,13 @@ export default async function TeamPage() {
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-5 py-3.5">
-                    <form action={updateAdminRole.bind(null, a.id, target)}>
-                      <PendingSubmitButton
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                          isSuperadmin
-                            ? 'bg-amber-50 text-amber-700 hover:bg-amber-100'
-                            : 'bg-fimo-navy/10 text-fimo-navy hover:bg-fimo-navy/20'
-                        }`}
-                        pendingText="Mengubah..."
-                      >
-                        {isSuperadmin ? 'Turunkan ke Staff' : 'Jadikan Superadmin'}
-                      </PendingSubmitButton>
-                    </form>
-                                        </td>
+                      <RoleForm adminId={a.id} target={target} isSuperadmin={isSuperadmin} />
+                    </td>
                     <td>
                       <ConfirmDeleteButton
-                        action={removeAdmin.bind(null, a.id)}
-                        confirmMessage={`Yakin hapus akun "${a.fullName}"? Dia tidak akan bisa login lagi.`}
+                        action={removeAdminAction.bind(null, a.id)}
+                        itemName={a.fullName}
+                        extraWarning="Dia tidak akan bisa login lagi."
                       />
                     </td>
                   </tr>

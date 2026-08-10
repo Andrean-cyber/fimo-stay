@@ -152,3 +152,11 @@ export async function removeAdmin(adminId: string) {
   revalidatePath('/admin/team')
   return { success: true }
 }
+
+
+export async function removeAdminAction(adminId: string): Promise<void | { error?: string }> {
+  const res = await removeAdmin(adminId)
+  if (res?.error) return { error: res.error }
+  return undefined
+}
+

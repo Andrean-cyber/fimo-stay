@@ -1,13 +1,5 @@
-import 'dotenv/config';
-import { defineConfig, env } from 'prisma/config';
+import type { NextConfig } from 'next'
 
-export default defineConfig({
-  schema: 'prisma/schema.prisma',
-  migrations: {
-    path: 'prisma/migrations',
-  },
-  datasource: {
-    provider: 'postgresql',
-    url: env('DATABASE_URL'),
-  },
-});
+const nextConfig: NextConfig = {}
+
+export default nextConfig
