@@ -13,6 +13,7 @@
     "@aws-sdk/client-s3": "^3.1104.0",
     "@aws-sdk/s3-request-presigner": "^3.1105.0",
     "@marsidev/react-turnstile": "^1.5.5",
+    "@opennextjs/cloudflare": "^1.20.2",
     "@prisma/client": "^6.19.3",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.8",
