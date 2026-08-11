@@ -42,4 +42,6 @@ next-env.d.ts
 
 .open-next
 .wrangler
+node_modules
+.next
 /app/generated/prisma
