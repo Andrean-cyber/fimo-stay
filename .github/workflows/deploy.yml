@@ -25,7 +25,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --allow-build=@prisma/client --allow-build=@prisma/engines --allow-build=esbuild --allow-build=prisma --allow-build=sharp --allow-build=workerd
 
       - name: Deploy to Cloudflare
         run: pnpm run deploy

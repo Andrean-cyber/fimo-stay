@@ -25,10 +25,10 @@ export default async function KosDetailPage({
       <main className="max-w-3xl mx-auto px-4 py-8">
         {kos.media.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mb-6">
-            {kos.media.map((m) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={m.id} src={m.url} alt={kos.name} className="w-full h-40 object-cover rounded" />
-            ))}
+            {kos.media.map((m: any) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={m.id} src={m.url} alt={kos.name} className="w-full h-40 object-cover rounded" />
+              ))}
           </div>
         )}
 
@@ -42,10 +42,10 @@ export default async function KosDetailPage({
           <div className="mt-4">
             <h2 className="font-semibold mb-2">Fasilitas</h2>
             <div className="flex flex-wrap gap-2">
-              {kos.facilities.map((f) => (
+            {kos.facilities.map((f: string) => (
                 <span key={f} className="text-sm bg-gray-100 px-3 py-1 rounded-full">{f}</span>
               ))}
-            </div>
+              </div>
           </div>
         )}
 
