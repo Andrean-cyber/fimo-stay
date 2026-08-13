@@ -17,16 +17,18 @@
   --color-fimo-gray: #EBEBEB;
 }
 
+/* HAPUS ATAU KOMENTARI BAGIAN INI AGAR TIDAK BERUBAH JADI GELAP
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
 }
+*/
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #ffffff; /* Paksa latar belakang body selalu putih */
+  color: #171717;      /* Paksa warna teks utama tetap gelap agar kontras */
   font-family: Arial, Helvetica, sans-serif;
 }
 
