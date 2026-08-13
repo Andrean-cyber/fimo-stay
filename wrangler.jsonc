@@ -1,13 +1,14 @@
 {
-    "$schema": "node_modules/wrangler/config-schema.json",
-    "main": ".open-next/worker.js",
-    "name": "fimo-stay",
-    "compatibility_date": "2026-08-10",
-    "compatibility_flags": [
-      "nodejs_compat"
-    ],
-    "assets": {
-      "directory": ".open-next/assets",
-      "binding": "ASSETS"
-    }
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "cloudflare",
+  "compatibility_date": "2026-08-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "limits": {
+    "cpu_ms": 30000
   }
+}
