@@ -45,3 +45,5 @@ next-env.d.ts
 node_modules
 .next
 /app/generated/prisma
+meilisearch.exe
+*.exe

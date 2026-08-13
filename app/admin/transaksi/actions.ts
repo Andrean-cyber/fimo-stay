@@ -11,15 +11,21 @@ export async function verifyTransaction(transactionId: string) {
   const admin = await requireAdmin()
   const existing = await prisma.transaction.findUniqueOrThrow({ where: { id: transactionId } })
 
-  await prisma.transaction.update({
-    where: { id: transactionId },
+  const recommendationToken = existing.type === 'RECOMMENDATION' ? randomUUID() : undefined
+
+  const result = await prisma.transaction.updateMany({
+    where: { id: transactionId, status: 'PENDING' },
     data: {
       status: 'VERIFIED',
       verifiedById: admin.id,
       verifiedAt: new Date(),
-      recommendationToken: existing.type === 'RECOMMENDATION' ? randomUUID() : undefined,
+      recommendationToken,
     },
   })
+
+  if (result.count === 0) {
+    return { error: 'Transaksi ini sudah diproses sebelumnya.' }
+  }
 
   await prisma.auditLog.create({
     data: { entityType: 'transaction', entityId: transactionId, action: 'verify', adminId: admin.id, transactionId },
@@ -30,7 +36,16 @@ export async function verifyTransaction(transactionId: string) {
 
 export async function rejectTransaction(transactionId: string) {
   const admin = await requireAdmin()
-  await prisma.transaction.update({ where: { id: transactionId }, data: { status: 'REJECTED' } })
+
+  const result = await prisma.transaction.updateMany({
+    where: { id: transactionId, status: 'PENDING' },
+    data: { status: 'REJECTED' },
+  })
+
+  if (result.count === 0) {
+    return { error: 'Transaksi ini sudah diproses sebelumnya.' }
+  }
+
   await prisma.auditLog.create({
     data: { entityType: 'transaction', entityId: transactionId, action: 'reject', adminId: admin.id, transactionId },
   })
