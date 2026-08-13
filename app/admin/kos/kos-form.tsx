@@ -84,6 +84,9 @@ export function KosForm({
             <option value="putra">Putra</option>
             <option value="putri">Putri</option>
             <option value="campur">Campur</option>
+            <option value="campur">LV</option>
+            <option value="campur">Campur/LV</option>
+            <option value="campur">Putra/Putri</option>
           </select>
         </Field>
 
