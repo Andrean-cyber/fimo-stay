@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Phone, ShieldCheck } from 'lucide-react'
 import { createSelfSearchTransaction } from './actions'
 import { TurnstileWidget } from '@/components/turnstile-widget'
 
@@ -15,6 +16,7 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
       return
     }
     setSubmitting(true)
+    setError(null)
     formData.set('turnstileToken', turnstileToken)
     const result = await createSelfSearchTransaction(kosId, formData)
     if (result?.error) {
@@ -24,16 +26,40 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
   }
 
   return (
-    <form action={handleSubmit} className="space-y-3 mt-4 border p-4 rounded max-w-sm">
+    <form action={handleSubmit} className="space-y-3">
       <p className="text-sm text-gray-600">
-        Isi nomor HP kamu dulu — instruksi transfer & konfirmasi WhatsApp muncul di langkah berikutnya.
+        Isi nomor HP kamu dulu — instruksi transfer &amp; konfirmasi WhatsApp muncul di langkah berikutnya.
       </p>
-      <input name="phone" placeholder="Nomor HP kamu" required className="border p-2 w-full rounded" />
+
+      <div className="relative">
+        <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <input
+          name="phone"
+          type="tel"
+          inputMode="numeric"
+          pattern="[0-9+ ]*"
+          placeholder="08xxxxxxxxxx"
+          required
+          className="w-full rounded-lg border border-fimo-gray bg-white p-2.5 pl-10 text-sm outline-none transition-colors focus:border-fimo-navy focus:ring-1 focus:ring-fimo-navy"
+        />
+      </div>
+
       <TurnstileWidget onVerify={setTurnstileToken} />
+
       {error && <p className="text-sm text-red-500">{error}</p>}
-      <button type="submit" disabled={submitting} className="bg-black text-white px-4 py-2 rounded w-full disabled:opacity-50">
+
+      <button
+        type="submit"
+        disabled={submitting || !turnstileToken}
+        className="w-full rounded-lg bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:opacity-50 disabled:hover:bg-fimo-navy"
+      >
         {submitting ? 'Memproses...' : `Lanjutkan — Rp${(30000).toLocaleString('id-ID')}`}
       </button>
+
+      <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
+        <ShieldCheck className="h-3.5 w-3.5" />
+        Pembayaran diverifikasi manual, kontak owner terbuka setelah dikonfirmasi
+      </p>
     </form>
   )
 }
