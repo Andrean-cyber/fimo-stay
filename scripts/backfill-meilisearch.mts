@@ -36,6 +36,9 @@ const client = new Meilisearch({
 
 const INDEX_NAME = 'kos'
 
+// Satu dokumen Meilisearch = satu Kos.
+// roomType & priceMonthly sekarang berasal dari relasi segments -> roomTypes,
+// jadi diringkas jadi array (roomTypes) dan range harga (priceMin/priceMax).
 type KosDocument = {
   id: string
   slug: string
@@ -45,10 +48,15 @@ type KosDocument = {
   city: string
   latitude: number | null
   longitude: number | null
-  priceMonthly: number
-  roomType: string | null
   facilities: string[]
   coverImageUrl: string | null
+
+  // hasil ringkasan dari segments & roomTypes
+  kosTypes: string[]      // contoh: ["Putra", "Campur"] — dari KosType.name
+  roomTypes: string[]     // contoh: ["Standard", "Deluxe"] — dari KosRoomType.name
+  priceMin: number | null
+  priceMax: number | null
+  totalAvailableRooms: number
 }
 
 async function main() {
@@ -61,25 +69,45 @@ async function main() {
         where: { isCover: true },
         take: 1,
       },
+      segments: {
+        include: {
+          kosType: true,
+          roomTypes: {
+            where: { isActive: true },
+          },
+        },
+      },
     },
   })
 
   console.log(`📦 Ditemukan ${kosList.length} kos aktif.`)
 
-  const documents: KosDocument[] = kosList.map((kos) => ({
-    id: kos.id,
-    slug: kos.slug,
-    name: kos.name,
-    description: kos.description,
-    address: kos.address,
-    city: kos.city,
-    latitude: kos.latitude,
-    longitude: kos.longitude,
-    priceMonthly: kos.priceMonthly,
-    roomType: kos.roomType,
-    facilities: kos.facilities,
-    coverImageUrl: kos.media[0]?.url ?? null,
-  }))
+  const documents: KosDocument[] = kosList.map((kos) => {
+    const allRoomTypes = kos.segments.flatMap((seg) => seg.roomTypes)
+    const prices = allRoomTypes.map((rt) => rt.priceMonthly)
+
+    return {
+      id: kos.id,
+      slug: kos.slug,
+      name: kos.name,
+      description: kos.description,
+      address: kos.address,
+      city: kos.city,
+      latitude: kos.latitude,
+      longitude: kos.longitude,
+      facilities: kos.facilities,
+      coverImageUrl: kos.media[0]?.url ?? null,
+
+      kosTypes: [...new Set(kos.segments.map((seg) => seg.kosType.name))],
+      roomTypes: [...new Set(allRoomTypes.map((rt) => rt.name))],
+      priceMin: prices.length > 0 ? Math.min(...prices) : null,
+      priceMax: prices.length > 0 ? Math.max(...prices) : null,
+      totalAvailableRooms: allRoomTypes.reduce(
+        (sum, rt) => sum + (rt.availableRooms ?? 0),
+        0
+      ),
+    }
+  })
 
   console.log(`⚙️  Memastikan index "${INDEX_NAME}" ada...`)
   await client.createIndex(INDEX_NAME, { primaryKey: 'id' }).catch((err) => {
@@ -92,8 +120,8 @@ async function main() {
   console.log('⚙️  Mengatur attribute pencarian & filter...')
   await index.updateSettings({
     searchableAttributes: ['name', 'description', 'address', 'city'],
-    filterableAttributes: ['city', 'roomType', 'facilities', 'priceMonthly'],
-    sortableAttributes: ['priceMonthly'],
+    filterableAttributes: ['city', 'kosTypes', 'roomTypes', 'facilities', 'priceMin', 'priceMax'],
+    sortableAttributes: ['priceMin', 'priceMax'],
   })
 
   console.log('🚀 Mengirim data ke Meilisearch...')

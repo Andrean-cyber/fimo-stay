@@ -13,21 +13,35 @@ import {
   MapPin,
   GraduationCap,
 } from 'lucide-react'
+import type { Prisma } from '@prisma/client'
 
-const KATEGORI = [
-  { label: 'Kos Putri', filter: { roomType: 'putri' } },
-  { label: 'Kos Putra', filter: { roomType: 'putra' } },
-  { label: 'Kos Campur', filter: { roomType: 'campur' } },
+// ⚠️ Filter kategori sekarang lewat relasi segments -> kosType,
+// karena roomType/kosType bukan lagi field langsung di Kos.
+// Pastikan value 'Putri' / 'Putra' / 'Campur' di bawah ini SAMA PERSIS
+// (atau setidaknya cocok case-insensitive) dengan KosType.name di database.
+const KATEGORI: { label: string; filter: Prisma.KosWhereInput }[] = [
+  {
+    label: 'Kos Putri',
+    filter: { segments: { some: { kosType: { name: { equals: 'Putri', mode: 'insensitive' } } } } },
+  },
+  {
+    label: 'Kos Putra',
+    filter: { segments: { some: { kosType: { name: { equals: 'Putra', mode: 'insensitive' } } } } },
+  },
+  {
+    label: 'Kos Campur',
+    filter: { segments: { some: { kosType: { name: { equals: 'Campur', mode: 'insensitive' } } } } },
+  },
   // ⚠️ ASUMSI: "Harian" & "Pet Friendly" ditandai lewat facilities, sesuaikan string-nya
   { label: 'Kos Harian', filter: { facilities: { has: 'Harian' } } },
   { label: 'Kos Pet Friendly', filter: { facilities: { has: 'Pet Friendly' } } },
-] as const
+]
 
 // ⚠️ ASUMSI: belum ada model Campus, jadi kampus ditandai lewat tag di facilities
 const KAMPUS_POPULER = ['UGM', 'ITB', 'UI', 'UB', 'ITS', 'UNDIP']
 
 export default async function HomePage() {
-  const [kosRekomendasi, lokasiPopuler, jumlahPerKategori] = await Promise.all([
+  const [kosRekomendasiRaw, lokasiPopuler, jumlahPerKategori] = await Promise.all([
     prisma.kos.findMany({
       where: { status: 'ACTIVE' },
       orderBy: { lastUpdatedAt: 'desc' },
@@ -37,9 +51,16 @@ export default async function HomePage() {
         slug: true,
         name: true,
         city: true,
-        priceMonthly: true,
-        roomType: true,
         facilities: true,
+        segments: {
+          select: {
+            kosType: { select: { name: true } },
+            roomTypes: {
+              where: { isActive: true },
+              select: { priceMonthly: true },
+            },
+          },
+        },
         media: {
           where: { isCover: true },
           take: 1,
@@ -60,6 +81,23 @@ export default async function HomePage() {
       )
     ),
   ])
+
+  // Ringkas hasil query: priceMonthly diambil dari harga TERMURAH antar
+  // semua roomType aktif kos tsb, roomType (label jenis kos) diambil dari
+  // kosType segment pertama.
+  const kosRekomendasi = kosRekomendasiRaw.map((k) => {
+    const allPrices = k.segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
+    return {
+      id: k.id,
+      slug: k.slug,
+      name: k.name,
+      city: k.city,
+      facilities: k.facilities,
+      priceMonthly: allPrices.length > 0 ? Math.min(...allPrices) : 0,
+      roomType: k.segments[0]?.kosType.name ?? null,
+      imageUrl: k.media[0]?.url,
+    }
+  })
 
   return (
     <div>
@@ -215,7 +253,7 @@ export default async function HomePage() {
                 priceMonthly={k.priceMonthly}
                 roomType={k.roomType}
                 facilities={k.facilities}
-                imageUrl={k.media[0]?.url}
+                imageUrl={k.imageUrl}
               />
             ))}
           </div>

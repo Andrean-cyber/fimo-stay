@@ -10,8 +10,16 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
   await requireAdmin()
   const { id } = await params
 
-  const [kos, owners] = await Promise.all([
-    prisma.kos.findUnique({ where: { id }, include: { media: true } }),
+  const [kos, kosTypes, owners] = await Promise.all([
+    prisma.kos.findUnique({
+      where: { id },
+      include: {
+        segments: { include: { roomTypes: { orderBy: { order: 'asc' } } }, orderBy: { order: 'asc' } },
+        nearby: { orderBy: { order: 'asc' } },
+        media: true,
+      },
+    }),
+    prisma.kosType.findMany({ orderBy: { name: 'asc' } }),
     prisma.owner.findMany({ orderBy: { name: 'asc' } }),
   ])
 
@@ -24,7 +32,7 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
         <p className="mt-1 text-sm text-gray-500">Perbarui detail {kos.name}.</p>
       </div>
 
-      <KosForm action={updateKos.bind(null, kos.id)} owners={owners} defaults={kos} submitLabel="Simpan Perubahan" />
+      <KosForm action={updateKos.bind(null, kos.id)} owners={owners} kosTypes={kosTypes} defaults={kos} submitLabel="Simpan Perubahan" />
 
       <div className="rounded-2xl border border-fimo-gray bg-white p-6 shadow-sm">
         <h2 className="mb-4 font-semibold text-gray-900">Foto Kos</h2>

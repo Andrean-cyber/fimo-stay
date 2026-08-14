@@ -1,5 +1,5 @@
 // ============================================================
-// FimoStay — schema.prisma (MVP)
+// FimoStay — schema.prisma (MVP + Segment/RoomType structure)
 // Database: Supabase Postgres
 // Catatan: AdminProfile.id harus sama dengan id di auth.users
 // (Supabase Auth) — dibuat lewat trigger/hook saat admin dibuat,
@@ -8,7 +8,6 @@
 
 generator client {
   provider = "prisma-client-js"
-
 }
 
 datasource db {
@@ -80,25 +79,26 @@ model Owner {
 }
 
 model Kos {
-  id            String    @id @default(uuid())
-  slug          String    @unique
-  name          String
-  description   String?
-  address       String
-  city          String
-  latitude      Float?
-  longitude     Float?
-  priceMonthly  Int       // dalam rupiah
-  roomType      String?   // "putra" | "putri" | "campur"
-  facilities    String[]  @default([])
-  status        KosStatus @default(ACTIVE)
+  id           String    @id @default(uuid())
+  slug         String    @unique
+  name         String
+  description  String?
+  city         String    // tampil publik sebelum bayar
+  address      String    // alamat lengkap — TIDAK pernah di-select di query publik,
+                          // baru boleh diambil setelah ada Transaction VERIFIED milik searcher utk kos ini
+  latitude     Float?
+  longitude    Float?
+  facilities   String[]  @default([])
+  status       KosStatus @default(ACTIVE)
 
   ownerId String
   owner   Owner  @relation(fields: [ownerId], references: [id])
 
-  media KosMedia[]
+  media    KosMedia[]
+  segments KosSegment[]
+  nearby   KosNearby[]
 
-  lastUpdatedAt DateTime @default(now()) // dipakai cron auto-hide 7 hari
+  lastUpdatedAt DateTime @default(now()) // dibump manual tiap kali segment/roomtype/nearby berubah — dipakai cron auto-hide 7 hari
   updatedById   String?
   updatedBy     AdminProfile? @relation("KosUpdatedBy", fields: [updatedById], references: [id])
 
@@ -126,6 +126,104 @@ model KosMedia {
 
   @@index([kosId])
   @@map("kos_media")
+}
+
+// ------------------------------------------------------------
+// JENIS KOS (master, dipakai filter pencarian publik)
+// Putra | Putri | Campur | Putra & Putri | LV | Pasutri, dst
+// ------------------------------------------------------------
+
+model KosType {
+  id   String @id @default(uuid())
+  name String @unique
+
+  segments KosSegment[]
+
+  createdAt DateTime @default(now())
+
+  @@map("kos_types")
+}
+
+// ------------------------------------------------------------
+// SEGMENT — mewakili "gedung" / bagian kos dengan 1 jenis kos.
+// 1 Kos bisa punya 1 segment (kasus umum) atau lebih (mis. Kos A
+// gedung Putra terpisah dari gedung Putri).
+// Sengaja TIDAK @@unique([kosId, kosTypeId]) supaya bisa ada
+// 2 segment dengan kosType sama kalau memang dibutuhkan.
+// ------------------------------------------------------------
+
+model KosSegment {
+  id String @id @default(uuid())
+
+  kosId String
+  kos   Kos    @relation(fields: [kosId], references: [id], onDelete: Cascade)
+
+  kosTypeId String
+  kosType   KosType @relation(fields: [kosTypeId], references: [id])
+
+  name String? // opsional, misal "Gedung Putra" — null kalau cuma 1 segment
+
+  roomTypes KosRoomType[]
+
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([kosId])
+  @@index([kosTypeId])
+  @@map("kos_segments")
+}
+
+// ------------------------------------------------------------
+// TIPE KAMAR — bebas per kos/segment, TANPA master (admin bisa
+// bikin nama custom, edit, hapus kapan saja). Harga & availability
+// nempel di sini, bukan di Kos.
+// ------------------------------------------------------------
+
+model KosRoomType {
+  id String @id @default(uuid())
+
+  segmentId String
+  segment   KosSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  name           String   // bebas: "Standard", "Deluxe", "VIP", "Kamar Belakang", dst
+  priceMonthly   Int      // dalam rupiah
+  totalRooms     Int?
+  availableRooms Int?
+  description    String?
+  facilities     String[] @default([])
+  isActive       Boolean  @default(true)
+  order          Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([segmentId])
+  @@index([isActive])
+  @@map("kos_room_types")
+}
+
+// ------------------------------------------------------------
+// NEARBY — diinput manual per kos (mis. "2 menit ke UB").
+// Tidak ada tabel master kampus/tempat untuk MVP.
+// ------------------------------------------------------------
+
+model KosNearby {
+  id String @id @default(uuid())
+
+  kosId String
+  kos   Kos    @relation(fields: [kosId], references: [id], onDelete: Cascade)
+
+  name         String  // "Universitas Brawijaya", "Indomaret", dst
+  distanceText String  // teks bebas: "2 menit", "1.2 km"
+  category     String? // opsional: "kampus" | "minimarket" | dst, buat filter nanti
+  isActive     Boolean @default(true)
+  order        Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([kosId])
+  @@map("kos_nearby")
 }
 
 // ------------------------------------------------------------
@@ -159,7 +257,7 @@ model Transaction {
   searcherId String
   searcher   Searcher @relation(fields: [searcherId], references: [id])
 
-  // dipakai kalau type = SELF_SEARCH (kos yang mau dibuka kontaknya)
+  // dipakai kalau type = SELF_SEARCH (kos yang mau dibuka kontaknya/alamatnya)
   targetKosId String?
   targetKos   Kos?    @relation("TransactionTargetKos", fields: [targetKosId], references: [id])
 
@@ -200,9 +298,9 @@ model RecommendationItem {
 
 model AuditLog {
   id         String   @id @default(uuid())
-  entityType String   // "kos" | "owner" | "transaction"
+  entityType String   // "kos" | "owner" | "transaction" | "kos_segment" | "kos_room_type"
   entityId   String
-  action     String   // "create" | "update" | "hide" | "verify" | "reject"
+  action     String   // "create" | "update" | "hide" | "verify" | "reject" | "delete"
   changes    Json?    // simpan diff sebelum/sesudah kalau perlu
 
   kosId String?

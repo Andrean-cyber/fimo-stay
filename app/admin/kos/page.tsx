@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
 import Link from 'next/link'
 import { SyncSearchButton } from './sync-search-button'
-import { Plus, AlertTriangle, Home } from 'lucide-react'
+import { Plus, AlertTriangle, Home, Settings } from 'lucide-react'
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button'
 import { deleteKos } from './actions'
 import { EmptyState } from '@/components/empty-state'
@@ -32,6 +32,13 @@ export default async function KosListPage() {
         </div>
         <div className="flex items-center gap-3">
           <SyncSearchButton />
+          <Link
+            href="/admin/kos/pengaturan/jenis-kos"
+            className="flex items-center gap-1.5 rounded-xl border border-fimo-gray px-4 py-2.5 text-sm font-medium text-fimo-navy transition-colors hover:bg-fimo-gray/30"
+          >
+            <Settings className="h-4 w-4" />
+            Jenis Kos
+          </Link>
           <Link
             href="/admin/kos/new"
             className="flex items-center gap-1.5 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90"

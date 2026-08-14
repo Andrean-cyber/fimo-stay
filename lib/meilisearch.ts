@@ -15,29 +15,71 @@ export async function setupKosIndex() {
   }
 
   await kosIndex.updateSettings({
-    searchableAttributes: ['name', 'city', 'address', 'description'],
-    filterableAttributes: ['status', 'city', 'roomType', 'priceMonthly'],
-    sortableAttributes: ['priceMonthly', 'createdAt'],
+    // address sengaja TIDAK masuk sini — belum boleh publik sebelum transaksi VERIFIED
+    searchableAttributes: ['name', 'city', 'description'],
+    filterableAttributes: ['status', 'city', 'kosTypes', 'priceMin', 'priceMax', 'facilities'],
+    sortableAttributes: ['priceMin', 'priceMax', 'createdAt'],
   })
 }
 
-export async function syncKosToIndex(kos: {
+// Bentuk data yang dibutuhkan fungsi ini — ambil dari Prisma dengan
+// include segments -> kosType & roomTypes
+type KosForIndex = {
   id: string
   name: string
   slug: string
   description: string | null
-  address: string
   city: string
-  priceMonthly: number
-  roomType: string | null
   facilities: string[]
   status: string
-}) {
+  createdAt: Date
+  segments: {
+    kosType: { name: string }
+    roomTypes: {
+      priceMonthly: number
+      isActive: boolean
+      availableRooms: number | null
+    }[]
+  }[]
+}
+
+export async function syncKosToIndex(kos: KosForIndex) {
   if (kos.status !== 'ACTIVE') {
     await kosIndex.deleteDocument(kos.id)
     return
   }
-  await kosIndex.addDocuments([kos])
+
+  const activeRoomTypes = kos.segments
+    .flatMap((s) => s.roomTypes)
+    .filter((rt) => rt.isActive)
+
+  const prices = activeRoomTypes.map((rt) => rt.priceMonthly)
+
+  // Kos tanpa room type aktif = tidak ada harga valid untuk difilter,
+  // jadi lebih aman dikeluarkan dulu dari index daripada tampil dengan
+  // priceMin/priceMax kosong/ngaco
+  if (prices.length === 0) {
+    await kosIndex.deleteDocument(kos.id)
+    return
+  }
+
+  const kosTypes = [...new Set(kos.segments.map((s) => s.kosType.name))]
+
+  await kosIndex.addDocuments([
+    {
+      id: kos.id,
+      name: kos.name,
+      slug: kos.slug,
+      description: kos.description,
+      city: kos.city,
+      facilities: kos.facilities,
+      status: kos.status,
+      kosTypes,          // array, karena 1 kos bisa punya beberapa segment/jenis
+      priceMin: Math.min(...prices),
+      priceMax: Math.max(...prices),
+      createdAt: kos.createdAt.getTime(),
+    },
+  ])
 }
 
 export async function searchKos(query: string, filter?: string) {
