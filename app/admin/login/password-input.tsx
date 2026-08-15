@@ -10,7 +10,7 @@ export function PasswordInput() {
     <div className="relative">
       <input
         id="password"
-        className="w-full rounded-xl border border-fimo-gray px-4 py-2.5 pr-11 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30"
+        className="w-full rounded-xl border border-fimo-gray px-4 py-2.5 pr-11 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30 lg:py-3 lg:text-[15px]"
         type={show ? 'text' : 'password'}
         name="password"
         placeholder="••••••••"
@@ -20,11 +20,11 @@ export function PasswordInput() {
       <button
         type="button"
         onClick={() => setShow((s) => !s)}
-        className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-fimo-navy"
+        className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-fimo-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fimo-navy/40"
         aria-label={show ? 'Sembunyikan password' : 'Tampilkan password'}
         tabIndex={-1}
       >
-        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        {show ? <EyeOff className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> : <Eye className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />}
       </button>
     </div>
   )

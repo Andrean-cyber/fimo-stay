@@ -27,10 +27,10 @@ export function RecommendationForm() {
   return (
     <form
       action={handleSubmit}
-      className="space-y-4 rounded-2xl border border-fimo-gray bg-white p-5 shadow-sm"
+      className="space-y-4 rounded-2xl border border-fimo-gray bg-white p-5 shadow-sm md:p-6"
     >
       <div>
-        <label htmlFor="phone" className="mb-1 block text-sm font-medium text-gray-700">
+        <label htmlFor="phone" className="mb-1 block text-sm font-medium text-gray-700 md:text-base">
           Nomor HP
         </label>
         <input
@@ -38,12 +38,12 @@ export function RecommendationForm() {
           name="phone"
           placeholder="08xxxxxxxxxx"
           required
-          className="w-full rounded-xl border border-fimo-gray p-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-fimo-blue focus:outline-none focus:ring-2 focus:ring-fimo-blue/30"
+          className="w-full rounded-xl border border-fimo-gray p-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-fimo-blue focus:outline-none focus:ring-2 focus:ring-fimo-blue/30 md:p-3 md:text-base"
         />
       </div>
 
       <div>
-        <label htmlFor="preferenceNotes" className="mb-1 block text-sm font-medium text-gray-700">
+        <label htmlFor="preferenceNotes" className="mb-1 block text-sm font-medium text-gray-700 md:text-base">
           Preferensi kamu
         </label>
         <textarea
@@ -52,14 +52,14 @@ export function RecommendationForm() {
           placeholder="Ceritakan preferensimu: lokasi, budget, tipe kamar, dll"
           required
           rows={4}
-          className="w-full rounded-xl border border-fimo-gray p-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-fimo-blue focus:outline-none focus:ring-2 focus:ring-fimo-blue/30"
+          className="w-full rounded-xl border border-fimo-gray p-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-fimo-blue focus:outline-none focus:ring-2 focus:ring-fimo-blue/30 md:p-3 md:text-base"
         />
       </div>
 
       <TurnstileWidget onVerify={setTurnstileToken} />
 
       {error && (
-        <p className="flex items-center gap-1.5 text-sm text-red-500">
+        <p className="flex items-center gap-1.5 text-sm text-red-500 md:text-base">
           <AlertCircle className="h-4 w-4 shrink-0" />
           {error}
         </p>
@@ -68,7 +68,7 @@ export function RecommendationForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-fimo-navy/90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-fimo-navy/90 disabled:cursor-not-allowed disabled:opacity-50 md:py-3 md:text-base"
       >
         {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
         {submitting ? 'Memproses...' : 'Lanjutkan — Rp90.000'}

@@ -1,17 +1,20 @@
-import Link from 'next/link'
-import { MapPin } from 'lucide-react'
 import { PublicHeader } from '@/components/public-header'
 import { SearchForm } from './search-form'
 import { searchKos } from '@/lib/meilisearch'
 import { EmptyState } from '@/components/empty-state'
 import { SearchX } from 'lucide-react'
+import { KosCard } from '@/components/kos-card'
 
 type KosHit = {
   id: string
   name: string
   slug: string
   city: string
-  priceMonthly: number
+  priceMin: number
+  priceMax: number
+  coverImageUrl: string | null
+  kosTypes?: string[]
+  facilities?: string[]
 }
 
 export default async function KosSearchPage({
@@ -31,7 +34,7 @@ export default async function KosSearchPage({
           <SearchForm defaultQuery={q} />
         </div>
 
-        <p className="mb-4 text-sm text-gray-500">
+        <p className="mb-4 text-sm text-gray-500 md:text-base">
           {results.estimatedTotalHits} kos ditemukan
           {q && (
             <>
@@ -49,27 +52,19 @@ export default async function KosSearchPage({
             actionHref="/rekomendasi/mulai"
           />
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
             {hits.map((kos) => (
-              <Link
+              <KosCard
                 key={kos.id}
-                href={`/kos/${kos.slug}`}
-                className="group overflow-hidden rounded-2xl border border-fimo-gray bg-white transition-all hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="p-4">
-                  <h2 className="font-semibold text-gray-900 group-hover:text-fimo-navy">
-                    {kos.name}
-                  </h2>
-                  <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
-                    <MapPin className="h-3.5 w-3.5 shrink-0" />
-                    {kos.city}
-                  </p>
-                  <p className="mt-3 text-base font-bold text-fimo-navy">
-                    Rp{kos.priceMonthly.toLocaleString('id-ID')}
-                    <span className="text-xs font-normal text-gray-500"> / bulan</span>
-                  </p>
-                </div>
-              </Link>
+                slug={kos.slug}
+                name={kos.name}
+                city={kos.city}
+                priceMonthly={kos.priceMin}
+                priceMax={kos.priceMax}
+                roomType={kos.kosTypes?.[0]}
+                facilities={kos.facilities}
+                imageUrl={kos.coverImageUrl}
+              />
             ))}
           </div>
         )}

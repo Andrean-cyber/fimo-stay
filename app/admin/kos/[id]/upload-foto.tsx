@@ -2,18 +2,25 @@
 
 import { useRef, useState } from 'react'
 import { attachKosMedia } from '../actions'
+import { compressImage } from '@/lib/compress-image'
 import { Upload, Loader2 } from 'lucide-react'
 
 export function UploadFoto({ kosId }: { kosId: string }) {
-  const [uploading, setUploading] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'compressing' | 'uploading'>('idle')
   const inputRef = useRef<HTMLInputElement>(null)
+  const uploading = status !== 'idle'
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
+    const rawFile = e.target.files?.[0]
+    if (!rawFile) return
 
     try {
+      // Compress & resize dulu di browser sebelum dikirim — mengurangi ukuran
+      // upload signifikan (foto kamera HP bisa 4-8MB, hasil compress biasanya <500KB)
+      setStatus('compressing')
+      const file = await compressImage(rawFile, { maxWidth: 1600, quality: 0.8 })
+
+      setStatus('uploading')
       const res = await fetch('/api/admin/r2-upload-url', {
         method: 'POST',
         body: JSON.stringify({ filename: file.name, contentType: file.type, kosId }),
@@ -23,19 +30,26 @@ export function UploadFoto({ kosId }: { kosId: string }) {
       await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
       await attachKosMedia(kosId, publicUrl)
     } finally {
-      setUploading(false)
+      setStatus('idle')
       if (inputRef.current) inputRef.current.value = ''
     }
   }
 
+  const label =
+    status === 'compressing' ? 'Mengompres foto...' : status === 'uploading' ? 'Mengunggah...' : 'Unggah Foto'
+
   return (
     <label
-      className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-fimo-gray px-4 py-3 text-sm font-medium transition-colors ${
+      className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-fimo-gray px-4 py-3 text-sm font-medium transition-colors lg:py-3.5 lg:text-[15px] ${
         uploading ? 'text-gray-400' : 'text-fimo-navy hover:bg-fimo-gray/40'
       }`}
     >
-      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-      {uploading ? 'Mengunggah...' : 'Unggah Foto'}
+      {uploading ? (
+        <Loader2 className="h-4 w-4 animate-spin lg:h-[18px] lg:w-[18px]" />
+      ) : (
+        <Upload className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+      )}
+      {label}
       <input
         ref={inputRef}
         type="file"

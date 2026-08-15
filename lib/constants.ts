@@ -1,6 +1,6 @@
 export const FACILITIES = [
-  'AC', 'WiFi', 'Kamar Mandi Dalam', 'Kasur', 'Lemari', 'Meja Belajar',
-  'Dapur Bersama', 'Parkir Motor', 'Parkir Mobil', 'Laundry', 'CCTV', 'Security 24 Jam',
+  'AC', 'WiFi', 'Kamar Mandi Dalam', 'Kamar Mandi Luar', 'Dispenser', 'Kulkas',
+  'Dapur Bersama', 'Parkir Motor', 'Parkir Mobil', 'Jemuran', 'CCTV', 'Security 24 Jam',
 ]
 
 export const ROOM_FACILITIES = [

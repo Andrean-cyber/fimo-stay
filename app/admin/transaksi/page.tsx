@@ -38,27 +38,27 @@ export default async function TransaksiPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-fimo-navy">Verifikasi Transaksi</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-xl font-bold text-fimo-navy sm:text-2xl lg:text-3xl">Verifikasi Transaksi</h1>
+        <p className="mt-1 text-xs text-gray-500 sm:text-sm">
           {pendingAll.length > 0
             ? `${pendingAll.length} transaksi menunggu verifikasi`
             : 'Tidak ada transaksi yang menunggu verifikasi'}
         </p>
       </div>
 
-      <form className="flex gap-2 max-w-lg">
+      <form className="flex max-w-lg gap-2">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             name="q"
             defaultValue={q}
             placeholder="Cari kode referensi atau nomor HP..."
-            className="w-full rounded-xl border border-fimo-gray py-2.5 pl-10 pr-4 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30"
+            className="w-full rounded-xl border border-fimo-gray py-2.5 pl-10 pr-4 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30 lg:py-3 lg:text-[15px]"
           />
         </div>
         <button
           type="submit"
-          className="shrink-0 rounded-xl bg-fimo-navy px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90"
+          className="shrink-0 rounded-xl bg-fimo-navy px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 lg:py-3 lg:text-[15px]"
         >
           Cari
         </button>
@@ -91,7 +91,7 @@ export default async function TransaksiPage({
           </div>
         ) : (
           pending.map((t) => (
-            <div key={t.id} className="rounded-2xl border border-fimo-gray bg-white p-5 shadow-sm">
+            <div key={t.id} className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-5">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span
@@ -103,12 +103,12 @@ export default async function TransaksiPage({
                   </span>
                   <span className="font-mono text-xs text-gray-400">{getReferenceCode(t.id)}</span>
                 </div>
-                <span className="text-lg font-bold text-fimo-navy">
+                <span className="text-lg font-bold text-fimo-navy sm:text-xl lg:text-2xl">
                   Rp{t.amount.toLocaleString('id-ID')}
                 </span>
               </div>
 
-              <div className="space-y-1 text-sm text-gray-700">
+              <div className="space-y-1 text-sm text-gray-700 lg:text-[15px]">
                 <p>
                   <span className="text-gray-400">Pencari:</span> {t.searcher.phone}
                 </p>
@@ -132,18 +132,18 @@ export default async function TransaksiPage({
                 <form action={verifyTransaction.bind(null, t.id)}>
                   <button
                     type="submit"
-                    className="flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                    className="flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 lg:px-5 lg:py-2.5 lg:text-[15px]"
                   >
-                    <Check className="h-4 w-4" />
+                    <Check className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                     Verifikasi
                   </button>
                 </form>
                 <form action={rejectTransaction.bind(null, t.id)}>
                   <button
                     type="submit"
-                    className="flex items-center gap-1.5 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                    className="flex items-center gap-1.5 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 lg:px-5 lg:py-2.5 lg:text-[15px]"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                     Tolak
                   </button>
                 </form>
@@ -156,8 +156,8 @@ export default async function TransaksiPage({
       {/* Perlu dipilihkan rekomendasi */}
       {verifiedNeedPick.length > 0 && (
         <div className="rounded-2xl border border-fimo-gray bg-white shadow-sm">
-          <div className="border-b border-fimo-gray px-5 py-4">
-            <h2 className="font-semibold text-gray-900">Perlu Dipilihkan Rekomendasi</h2>
+          <div className="border-b border-fimo-gray px-4 py-3.5 sm:px-5 sm:py-4">
+            <h2 className="text-sm font-semibold text-gray-900 sm:text-base">Perlu Dipilihkan Rekomendasi</h2>
             <p className="text-xs text-gray-500">{verifiedNeedPick.length} transaksi menunggu dipilihkan kos</p>
           </div>
           <ul className="divide-y divide-fimo-gray">
@@ -165,15 +165,15 @@ export default async function TransaksiPage({
               <li key={t.id}>
                 <Link
                   href={`/admin/transaksi/${t.id}/pilih-rekomendasi`}
-                  className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-fimo-gray/40"
+                  className="flex items-center justify-between gap-3 px-4 py-3.5 transition-colors hover:bg-fimo-gray/40 sm:px-5"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-gray-800">{t.searcher.phone}</p>
+                    <p className="truncate text-sm font-medium text-gray-800 lg:text-[15px]">{t.searcher.phone}</p>
                     <p className="truncate text-xs text-gray-500">{t.preferenceNotes}</p>
                   </div>
-                  <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-fimo-navy">
+                  <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-fimo-navy lg:text-[15px]">
                     Pilih 3 Kos
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                   </span>
                 </Link>
               </li>

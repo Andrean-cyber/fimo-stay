@@ -33,11 +33,11 @@ export function NameSlugFields({
   return (
     <>
       <div>
-        <label className="mb-1 block text-sm font-medium">Nama kos</label>
+        <label className="mb-1 block text-sm font-medium lg:text-[15px]">Nama kos</label>
         <input name="name" value={name} onChange={handleNameChange} required className={inputClass} />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">Slug</label>
+        <label className="mb-1 block text-sm font-medium lg:text-[15px]">Slug</label>
         <input
           name="slug"
           value={slug}

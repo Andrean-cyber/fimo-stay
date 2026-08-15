@@ -26,7 +26,7 @@ export function SearchForm({ defaultQuery = '' }: { defaultQuery?: string }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Cari nama kos, kota, atau alamat..."
-          className="w-full rounded-lg border border-fimo-gray bg-white p-3 pl-10 pr-9 text-sm outline-none transition-colors focus:border-fimo-navy focus:ring-1 focus:ring-fimo-navy"
+          className="w-full rounded-lg border border-fimo-gray bg-white p-3 pl-10 pr-9 text-sm outline-none transition-colors focus:border-fimo-navy focus:ring-1 focus:ring-fimo-navy md:text-base"
         />
         {query && (
           <button
@@ -41,7 +41,7 @@ export function SearchForm({ defaultQuery = '' }: { defaultQuery?: string }) {
       </div>
       <button
         type="submit"
-        className="rounded-lg bg-fimo-navy px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90"
+        className="rounded-lg bg-fimo-navy px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 md:text-base"
       >
         Cari
       </button>

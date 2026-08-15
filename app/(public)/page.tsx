@@ -62,7 +62,7 @@ export default async function HomePage() {
           },
         },
         media: {
-          where: { isCover: true },
+          orderBy: [{ isCover: 'desc' }, { order: 'asc' }],
           take: 1,
           select: { url: true },
         },
@@ -108,10 +108,9 @@ export default async function HomePage() {
         <div className="mx-auto max-w-6xl px-4 py-4">
           <div className="flex flex-col gap-3 rounded-xl border border-fimo-gray p-3 md:flex-row md:items-center">
             <SearchForm />
-            <div className="hidden shrink-0 items-center gap-6 border-l border-fimo-gray pl-6 text-xs text-gray-500 lg:flex">
+            <div className="hidden shrink-0 items-center gap-6 border-l border-fimo-gray pl-6 text-xs text-gray-500 lg:flex lg:text-sm">
               <span>
-              📅 Ketersediaan Kos
-              
+                📅 Ketersediaan Kos
                 <br />
                 <b className="text-gray-700">Selalu Diperbarui Setiap Minggu</b>
               </span>
@@ -130,7 +129,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl space-y-16 px-4 py-14">
+      <main className="mx-auto max-w-6xl space-y-10 px-4 py-10 sm:space-y-16 sm:py-14">
         {/* SIDEBAR KATEGORI + HERO */}
         <section>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
@@ -167,21 +166,21 @@ export default async function HomePage() {
 
             {/* HERO */}
             <div className="relative overflow-hidden rounded-2xl bg-fimo-navy/5">
-              <div className="grid grid-cols-1 items-center gap-6 p-8 md:grid-cols-2 md:p-10">
+              <div className="grid grid-cols-1 items-center gap-6 p-8 md:grid-cols-2 md:p-10 lg:p-12">
                 <div>
-                  <h1 className="text-3xl font-bold leading-tight text-fimo-navy md:text-4xl">
+                  <h1 className="text-3xl font-bold leading-[1.1] text-fimo-navy md:text-4xl lg:text-5xl">
                     Temukan
                     <br />
                     <span className="text-fimo-blue">Kos Nyaman,</span>
                     <br />
                     Dekat Kampus
                   </h1>
-                  <p className="mt-3 text-sm text-gray-500">
+                  <p className="mt-3 text-sm text-gray-500 md:mt-4 md:text-base lg:max-w-sm">
                     Cari kos terbaik sesuai kebutuhanmu. Mudah, aman, dan terpercaya.
                   </p>
                   <Link
                     href="/kos"
-                    className="mt-6 inline-flex items-center gap-2 rounded-full bg-fimo-navy px-6 py-3 text-sm font-semibold text-white hover:bg-fimo-navy/90"
+                    className="mt-6 inline-flex items-center gap-2 rounded-full bg-fimo-navy px-6 py-3 text-sm font-semibold text-white hover:bg-fimo-navy/90 md:px-8 md:py-3.5 md:text-base"
                   >
                     Cari Kos Sekarang
                   </Link>
@@ -197,8 +196,8 @@ export default async function HomePage() {
         {/* LOKASI POPULER */}
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-fimo-navy">Lokasi Populer</h2>
-            <Link href="/kos" className="text-sm font-medium text-fimo-navy hover:text-fimo-blue">
+            <h2 className="text-lg font-semibold text-fimo-navy md:text-xl">Lokasi Populer</h2>
+            <Link href="/kos" className="text-sm font-medium text-fimo-navy hover:text-fimo-blue md:text-base">
               Lihat semua
             </Link>
           </div>
@@ -207,7 +206,7 @@ export default async function HomePage() {
               <Link
                 key={l.city}
                 href={`/kos?city=${encodeURIComponent(l.city)}`}
-                className="flex items-center gap-1.5 rounded-full border border-fimo-gray bg-white px-4 py-2 text-sm text-gray-700 hover:border-fimo-blue"
+                className="flex items-center gap-1.5 rounded-full border border-fimo-gray bg-white px-4 py-2 text-sm text-gray-700 hover:border-fimo-blue md:text-base"
               >
                 <MapPin className="h-3.5 w-3.5 text-fimo-blue" />
                 {l.city}
@@ -218,7 +217,7 @@ export default async function HomePage() {
 
         {/* KAMPUS POPULER */}
         <section>
-          <h2 className="mb-4 text-lg font-semibold text-fimo-navy">Dekat Kampus Populer</h2>
+          <h2 className="mb-4 text-lg font-semibold text-fimo-navy md:text-xl">Dekat Kampus Populer</h2>
           <div className="flex flex-wrap gap-4">
             {KAMPUS_POPULER.map((kampus) => (
               <Link
@@ -229,7 +228,7 @@ export default async function HomePage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-fimo-navy/5 text-fimo-navy">
                   <GraduationCap className="h-5 w-5" />
                 </div>
-                <span className="text-sm font-medium text-gray-700">{kampus}</span>
+                <span className="text-sm font-medium text-gray-700 md:text-base">{kampus}</span>
               </Link>
             ))}
           </div>
@@ -238,8 +237,8 @@ export default async function HomePage() {
         {/* REKOMENDASI KOS */}
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-fimo-navy">Rekomendasi Kos</h2>
-            <Link href="/kos" className="text-sm font-medium text-fimo-navy hover:text-fimo-blue">
+            <h2 className="text-lg font-semibold text-fimo-navy md:text-xl">Rekomendasi Kos</h2>
+            <Link href="/kos" className="text-sm font-medium text-fimo-navy hover:text-fimo-blue md:text-base">
               Lihat semua
             </Link>
           </div>
@@ -261,17 +260,17 @@ export default async function HomePage() {
 
         {/* PROMO BANNER */}
         <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="flex flex-col justify-center rounded-2xl bg-fimo-navy p-6 text-white md:col-span-1">
-            <p className="text-lg font-bold">Booking Kos Sekarang Lebih Hemat!</p>
-            <p className="mt-1 text-sm text-white/70">Diskon hingga 20% untuk booking 3 bulan ke atas.</p>
+          <div className="flex flex-col justify-center rounded-2xl bg-fimo-navy p-6 text-white md:col-span-1 md:p-8">
+            <p className="text-lg font-bold md:text-xl">Booking Kos Sekarang Lebih Hemat!</p>
+            <p className="mt-1 text-sm text-white/70 md:text-base">Diskon hingga 20% untuk booking 3 bulan ke atas.</p>
             <Link
               href="/promo"
-              className="mt-4 inline-flex w-fit items-center gap-1 rounded-full bg-fimo-blue px-4 py-2 text-sm font-medium text-fimo-navy"
+              className="mt-4 inline-flex w-fit items-center gap-1 rounded-full bg-fimo-blue px-4 py-2 text-sm font-medium text-fimo-navy md:text-base"
             >
               Lihat Promo <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-4 rounded-2xl border border-fimo-gray bg-white p-6 sm:grid-cols-3 md:col-span-2">
+          <div className="grid grid-cols-1 gap-4 rounded-2xl border border-fimo-gray bg-white p-6 sm:grid-cols-3 md:col-span-2 md:p-8">
             <Fitur icon={ShieldCheck} title="Aman & Terverifikasi" desc="Semua kos sudah diverifikasi tim kami" />
             <Fitur icon={Clock} title="Mudah & Cepat" desc="Cari, bandingkan, dan booking dalam hitungan menit" />
             <Fitur icon={Headphones} title="Dukungan 24/7" desc="Tim siap membantu kapan pun kamu butuh" />
@@ -297,8 +296,8 @@ function Fitur({
       <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-fimo-navy/5 text-fimo-navy sm:mx-0">
         <Icon className="h-4 w-4" />
       </div>
-      <p className="text-sm font-semibold text-gray-800">{title}</p>
-      <p className="mt-0.5 text-xs text-gray-500">{desc}</p>
+      <p className="text-sm font-semibold text-gray-800 md:text-base">{title}</p>
+      <p className="mt-0.5 text-xs text-gray-500 md:text-sm">{desc}</p>
     </div>
   )
 }

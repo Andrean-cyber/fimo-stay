@@ -20,8 +20,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-screen flex-col bg-fimo-gray/40 md:flex-row">
-      <AdminSidebar role={profile?.role ?? null} displayName={profile?.fullName ?? user.email ?? ''} />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
+      <AdminSidebar
+        role={profile?.role ?? null}
+        displayName={profile?.fullName ?? user.email ?? ''}
+      />
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 xl:p-10">
+        <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
+      </main>
     </div>
   )
 }

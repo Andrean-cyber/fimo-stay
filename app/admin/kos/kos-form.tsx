@@ -215,7 +215,7 @@ export function KosForm({
 
   return (
     <>
-      <form action={handleSubmit} className="space-y-4 rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-6">
+      <form action={handleSubmit} className="space-y-4 rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-6 lg:p-8">
         <Field label="Nama kos">
           <input name="name" defaultValue={defaults?.name} placeholder="cth. Kos Melati Residence" required className={inputClass} />
           {fieldErrors?.name && <p className="mt-1 text-xs text-red-500">{fieldErrors.name[0]}</p>}
@@ -223,6 +223,10 @@ export function KosForm({
 
         <Field label="Deskripsi" optional>
           <textarea name="description" defaultValue={defaults?.description ?? ''} rows={3} className={`${inputClass} resize-none`} />
+        </Field>
+
+        <Field label="Kecamatan/Area" optional>
+          <input name="district" defaultValue={defaults?.district ?? ''} placeholder="cth. Sukun" className={inputClass} />
         </Field>
 
         <Field label="Alamat">
@@ -254,9 +258,9 @@ export function KosForm({
 
         <div className="space-y-4 border-t border-fimo-gray pt-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-800">Segment & Tipe Kamar</h3>
-            <button type="button" onClick={addSegment} className="flex items-center gap-1 text-sm font-medium text-fimo-navy hover:underline">
-              <Plus className="h-4 w-4" /> Tambah Segment
+            <h3 className="text-sm font-semibold text-gray-800 lg:text-base">Segment & Tipe Kamar</h3>
+            <button type="button" onClick={addSegment} className="flex items-center gap-1 text-sm font-medium text-fimo-navy hover:underline lg:text-[15px]">
+              <Plus className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> Tambah Segment
             </button>
           </div>
 
@@ -280,10 +284,10 @@ export function KosForm({
                     <button
                       type="button"
                       onClick={() => removeSegment(segment.key)}
-                      className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600`}
+                      className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 lg:w-11`}
                       aria-label="Hapus segment"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                     </button>
                   </div>
                 )}
@@ -313,10 +317,10 @@ export function KosForm({
                         <button
                           type="button"
                           onClick={() => removeRoomType(segment.key, rt.key)}
-                          className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600`}
+                          className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 lg:w-11`}
                           aria-label="Hapus tipe kamar"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                         </button>
                       </div>
                     )}
@@ -348,8 +352,8 @@ export function KosForm({
                   </Field>
                 </div>
                 ))}
-                <button type="button" onClick={() => addRoomType(segment.key)} className="flex items-center gap-1 text-xs font-medium text-fimo-navy hover:underline">
-                  <Plus className="h-3.5 w-3.5" /> Tambah Tipe Kamar
+                <button type="button" onClick={() => addRoomType(segment.key)} className="flex items-center gap-1 text-xs font-medium text-fimo-navy hover:underline sm:text-xs lg:text-sm">
+                  <Plus className="h-3.5 w-3.5 lg:h-4 lg:w-4" /> Tambah Tipe Kamar
                 </button>
               </div>
             </div>
@@ -358,14 +362,14 @@ export function KosForm({
 
         <div className="space-y-3 border-t border-fimo-gray pt-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-800">Lokasi Terdekat (Nearby)</h3>
-            <button type="button" onClick={addNearby} className="flex items-center gap-1 text-sm font-medium text-fimo-navy hover:underline">
-              <Plus className="h-4 w-4" /> Tambah Nearby
+            <h3 className="text-sm font-semibold text-gray-800 lg:text-base">Lokasi Terdekat (Nearby)</h3>
+            <button type="button" onClick={addNearby} className="flex items-center gap-1 text-sm font-medium text-fimo-navy hover:underline lg:text-[15px]">
+              <Plus className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> Tambah Nearby
             </button>
           </div>
 
           {nearby.length === 0 && (
-            <p className="text-sm text-gray-400">Belum ada lokasi terdekat ditambahkan.</p>
+            <p className="text-sm text-gray-400 lg:text-[15px]">Belum ada lokasi terdekat ditambahkan.</p>
           )}
 
           {nearby.map((n) => (
@@ -401,17 +405,17 @@ export function KosForm({
                 <button
                   type="button"
                   onClick={() => removeNearby(n.key)}
-                  className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600`}
+                  className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 lg:w-11`}
                   aria-label="Hapus nearby"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                 </button>
               </div>
             </div>
           ))}
         </div>
 
-        <button type="submit" disabled={isPending} className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white hover:bg-fimo-navy/90 disabled:opacity-50 sm:w-auto">
+        <button type="submit" disabled={isPending} className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white hover:bg-fimo-navy/90 disabled:opacity-50 sm:w-auto lg:px-5 lg:py-3 lg:text-[15px]">
           {isPending ? 'Menyimpan...' : submitLabel}
         </button>
       </form>

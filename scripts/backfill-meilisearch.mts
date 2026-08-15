@@ -66,7 +66,7 @@ async function main() {
     where: { status: 'ACTIVE' },
     include: {
       media: {
-        where: { isCover: true },
+        orderBy: [{ isCover: 'desc' }, { order: 'asc' }],
         take: 1,
       },
       segments: {

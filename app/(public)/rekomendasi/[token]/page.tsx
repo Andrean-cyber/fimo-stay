@@ -21,10 +21,10 @@ export default async function RekomendasiPage({
   return (
     <div className="min-h-screen bg-white">
       <PublicHeader />
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        <h1 className="text-xl font-bold text-fimo-navy">Rekomendasi Kos Untukmu</h1>
+      <main className="mx-auto max-w-3xl px-4 py-8 md:py-12">
+        <h1 className="text-xl font-bold text-fimo-navy md:text-2xl">Rekomendasi Kos Untukmu</h1>
         {trx.preferenceNotes && (
-          <p className="mb-6 mt-1 text-sm text-gray-500">
+          <p className="mb-6 mt-1 text-sm text-gray-500 md:text-base">
             Berdasarkan preferensi: {trx.preferenceNotes}
           </p>
         )}
@@ -34,21 +34,21 @@ export default async function RekomendasiPage({
             <Link
               key={item.id}
               href={`/kos/${item.kos.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-fimo-gray bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
+              className="group relative overflow-hidden rounded-2xl border border-fimo-gray bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-md md:p-5"
             >
-              <span className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-fimo-blue/15 text-xs font-semibold text-fimo-navy">
+              <span className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-fimo-blue/15 text-xs font-semibold text-fimo-navy md:h-7 md:w-7 md:text-sm">
                 {i + 1}
               </span>
-              <h2 className="pr-8 font-semibold text-gray-900 group-hover:text-fimo-navy">
+              <h2 className="pr-8 font-semibold text-gray-900 group-hover:text-fimo-navy md:text-lg">
                 {item.kos.name}
               </h2>
-              <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
+              <p className="mt-1 flex items-center gap-1 text-sm text-gray-500 md:text-base">
                 <MapPin className="h-3.5 w-3.5 shrink-0" />
                 {item.kos.city}
               </p>
-              <p className="mt-2 text-base font-bold text-fimo-navy">
+              <p className="mt-2 text-base font-bold text-fimo-navy md:text-lg">
                 Rp{item.kos.priceMonthly.toLocaleString('id-ID')}
-                <span className="text-xs font-normal text-gray-500"> / bulan</span>
+                <span className="text-xs font-normal text-gray-500 md:text-sm"> / bulan</span>
               </p>
             </Link>
           ))}

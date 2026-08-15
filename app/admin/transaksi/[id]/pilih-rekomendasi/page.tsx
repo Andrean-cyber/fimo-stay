@@ -40,17 +40,17 @@ export default async function PilihRekomendasiPage({
     <div className="max-w-3xl space-y-6 pb-24">
       <Link
         href="/admin/transaksi"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-fimo-navy"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-fimo-navy lg:text-[15px]"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
         Kembali ke daftar transaksi
       </Link>
 
       <div>
-        <h1 className="text-2xl font-bold text-fimo-navy">
+        <h1 className="text-xl font-bold text-fimo-navy sm:text-2xl lg:text-3xl">
           Pilih {RECOMMENDATION_KOS_COUNT} Kos untuk Rekomendasi
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-xs text-gray-500 sm:text-sm">
           Untuk {trx.searcher.phone}
           {trx.preferenceNotes && (
             <>

@@ -48,10 +48,10 @@ export function PilihRekomendasiForm({
         <div className="rounded-full bg-green-100 p-3">
           <CheckCircle2 className="h-6 w-6 text-green-600" />
         </div>
-        <p className="font-medium text-green-800">Rekomendasi berhasil disimpan.</p>
+        <p className="text-sm font-medium text-green-800 sm:text-base">Rekomendasi berhasil disimpan.</p>
         <Link
           href="/admin/transaksi"
-          className="mt-2 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90"
+          className="mt-2 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 lg:py-3 lg:text-[15px]"
         >
           Kembali ke daftar transaksi
         </Link>
@@ -90,9 +90,9 @@ export function PilihRekomendasiForm({
                 checked={isChecked}
                 disabled={isDisabled}
                 onChange={() => toggle(k.id)}
-                className="absolute right-4 top-4 h-4 w-4 accent-fimo-navy"
+                className="absolute right-4 top-4 h-4 w-4 accent-fimo-navy lg:h-[18px] lg:w-[18px]"
               />
-              <p className="pr-6 font-medium text-gray-900">{k.name}</p>
+              <p className="pr-6 text-sm font-medium text-gray-900 sm:text-base">{k.name}</p>
               <p className="flex items-center gap-1 text-xs text-gray-500">
                 <MapPin className="h-3 w-3 shrink-0" />
                 <span className="truncate">
@@ -118,15 +118,15 @@ export function PilihRekomendasiForm({
         })}
       </div>
 
-      <div className="sticky bottom-4 flex items-center justify-between rounded-2xl border border-fimo-gray bg-white px-5 py-3.5 shadow-md">
-        <p className="text-sm font-medium">
+      <div className="sticky bottom-4 flex items-center justify-between rounded-2xl border border-fimo-gray bg-white px-4 py-3.5 shadow-md sm:px-5">
+        <p className="text-sm font-medium lg:text-[15px]">
           <span className={isComplete ? 'text-fimo-navy' : 'text-gray-900'}>{selected.length}</span>
           <span className="text-gray-400"> / {requiredCount} kos dipilih</span>
         </p>
         <button
           type="submit"
           disabled={!isComplete || isPending}
-          className="rounded-xl bg-fimo-navy px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-xl bg-fimo-navy px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:cursor-not-allowed disabled:opacity-40 lg:py-3 lg:text-[15px]"
         >
           {isPending ? 'Menyimpan...' : 'Simpan Rekomendasi'}
         </button>

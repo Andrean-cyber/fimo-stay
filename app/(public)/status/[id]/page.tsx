@@ -13,6 +13,12 @@ const STATUS_LABEL: Record<string, string> = {
   REJECTED: 'Ditolak',
 }
 
+const STATUS_STYLE: Record<string, string> = {
+  PENDING: 'bg-amber-50 text-amber-700',
+  VERIFIED: 'bg-green-50 text-green-700',
+  REJECTED: 'bg-red-50 text-red-700',
+}
+
 export default async function StatusPage({
   params,
 }: {
@@ -44,44 +50,46 @@ export default async function StatusPage({
     <div>
       <PublicHeader />
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-2">
+      <main className="mx-auto max-w-2xl px-4 py-8 md:py-12">
+        <h1 className="text-2xl font-bold text-fimo-navy md:text-3xl">
           Status Transaksi
         </h1>
 
-        <p className="text-gray-600 mb-6">
+        <p className="mb-6 mt-1 text-sm text-gray-500 md:text-base">
           {label} — Rp{trx.amount.toLocaleString('id-ID')}
         </p>
 
-        <div className="border rounded p-4 mb-4">
-          <p className="text-sm text-gray-500">Status</p>
-          <p className="font-semibold">
+        <div className="mb-4 rounded-xl border border-fimo-gray p-4 md:p-5">
+          <p className="text-xs text-gray-500 md:text-sm">Status</p>
+          <span
+            className={`mt-1 inline-block rounded-full px-3 py-1 text-sm font-semibold md:text-base ${STATUS_STYLE[trx.status] ?? 'bg-gray-100 text-gray-700'}`}
+          >
             {STATUS_LABEL[trx.status]}
-          </p>
+          </span>
         </div>
 
         {trx.status === 'PENDING' && (
           <div className="space-y-4">
-            <div className="border rounded p-4 bg-gray-50">
-              <p className="text-sm mb-2">
+            <div className="rounded-xl border border-fimo-gray bg-gray-50 p-4 md:p-5">
+              <p className="mb-2 text-sm text-gray-700 md:text-base">
                 1. Transfer{' '}
-                <b>
+                <b className="text-gray-900">
                   Rp{trx.amount.toLocaleString('id-ID')}
                 </b>{' '}
                 ke{' '}
-                <b>
+                <b className="text-gray-900">
                   {PAYMENT_INFO.bank}{' '}
                   {PAYMENT_INFO.accountNumber} a.n.{' '}
                   {PAYMENT_INFO.accountName}
                 </b>
               </p>
 
-              <p className="text-sm mb-2">
+              <p className="mb-2 text-sm text-gray-700 md:text-base">
                 2. Kirim screenshot bukti transfer ke WhatsApp
                 kami, sertakan kode referensi:
               </p>
 
-              <p className="text-lg font-mono font-bold text-center bg-white border rounded py-2">
+              <p className="rounded-lg border bg-white py-2 text-center font-mono text-lg font-bold text-fimo-navy md:text-xl">
                 {getReferenceCode(trx.id)}
               </p>
             </div>
@@ -90,12 +98,12 @@ export default async function StatusPage({
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-center bg-green-600 text-white px-4 py-3 rounded"
+              className="block rounded-xl bg-green-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-green-700 md:text-base"
             >
               Kirim via WhatsApp
             </a>
 
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-center text-xs text-gray-400 md:text-sm">
               Simpan link halaman ini untuk cek status setelah tim
               verifikasi (biasanya kurang dari 1x24 jam).
             </p>
@@ -105,16 +113,16 @@ export default async function StatusPage({
         {trx.status === 'VERIFIED' &&
           trx.type === 'SELF_SEARCH' &&
           trx.targetKos && (
-            <div className="border rounded p-4 bg-green-50">
-              <p className="font-semibold">
+            <div className="rounded-xl border border-fimo-gray bg-green-50 p-4 md:p-5">
+              <p className="text-base font-semibold text-gray-900 md:text-lg">
                 {trx.targetKos.name}
               </p>
 
-              <p className="text-sm">
+              <p className="mt-1 text-sm text-gray-700 md:text-base">
                 Owner: {trx.targetKos.owner.name}
               </p>
 
-              <p className="text-sm">
+              <p className="text-sm text-gray-700 md:text-base">
                 Kontak: {trx.targetKos.owner.phone}
               </p>
             </div>
@@ -125,14 +133,14 @@ export default async function StatusPage({
           trx.recommendationToken && (
             <a
               href={`/rekomendasi/${trx.recommendationToken}`}
-              className="block text-center bg-black text-white px-4 py-3 rounded"
+              className="block rounded-xl bg-fimo-navy px-4 py-3 text-center text-sm font-semibold text-white hover:bg-fimo-navy/90 md:text-base"
             >
               Lihat 3 Rekomendasi Kos
             </a>
           )}
 
         {trx.status === 'REJECTED' && (
-          <p className="text-sm text-red-500">
+          <p className="text-sm text-red-500 md:text-base">
             Pembayaran tidak dapat kami verifikasi. Silakan
             hubungi WhatsApp kami untuk klarifikasi.
           </p>

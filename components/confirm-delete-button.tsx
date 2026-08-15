@@ -35,23 +35,23 @@ export function ConfirmDeleteButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 lg:text-[15px]"
       >
-        <Trash2 className="h-3.5 w-3.5" />
+        <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
         {label}
       </button>
 
       <Modal open={open} onClose={() => !isPending && setOpen(false)} title="Hapus Data">
       <div className="mb-4 flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 p-3">
         <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
-        <p className="min-w-0 text-sm text-amber-800">
+        <p className="min-w-0 text-sm text-amber-800 lg:text-[15px]">
             Yakin ingin menghapus <b>{itemName}</b>? Tindakan ini tidak bisa dibatalkan.
             {extraWarning && <span className="block mt-1">{extraWarning}</span>}
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+          <div className="mb-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700 lg:text-[15px]">
             {error}
           </div>
         )}
@@ -60,14 +60,14 @@ export function ConfirmDeleteButton({
           <button
             onClick={() => setOpen(false)}
             disabled={isPending}
-            className="rounded-xl border border-fimo-gray px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-xl border border-fimo-gray px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 lg:text-[15px]"
           >
             Batal
           </button>
           <button
             onClick={handleConfirm}
             disabled={isPending}
-            className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 lg:text-[15px]"
           >
             {isPending ? 'Menghapus...' : 'Ya, Hapus'}
           </button>

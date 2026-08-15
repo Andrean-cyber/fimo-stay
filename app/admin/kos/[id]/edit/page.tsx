@@ -26,35 +26,35 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
   if (!kos) notFound()
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-fimo-navy">Edit Kos</h1>
-        <p className="mt-1 text-sm text-gray-500">Perbarui detail {kos.name}.</p>
+        <h1 className="text-xl font-bold text-fimo-navy sm:text-2xl lg:text-3xl">Edit Kos</h1>
+        <p className="mt-1 text-xs text-gray-500 sm:text-sm">Perbarui detail {kos.name}.</p>
       </div>
 
       <KosForm action={updateKos.bind(null, kos.id)} owners={owners} kosTypes={kosTypes} defaults={kos} submitLabel="Simpan Perubahan" />
 
-      <div className="rounded-2xl border border-fimo-gray bg-white p-6 shadow-sm">
-        <h2 className="mb-4 font-semibold text-gray-900">Foto Kos</h2>
+      <div className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+        <h2 className="mb-4 text-sm font-semibold text-gray-900 sm:text-base">Foto Kos</h2>
         {kos.media.length > 0 ? (
           <div className="mb-4 grid grid-cols-3 gap-2">
             {kos.media.map((m) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={m.id} src={m.url} alt="" className="h-24 w-full rounded-xl object-cover" />
+              <img key={m.id} src={m.url} alt="" className="h-24 w-full rounded-xl object-cover sm:h-28 lg:h-32" />
             ))}
           </div>
         ) : (
           <div className="mb-4 flex flex-col items-center gap-2 rounded-xl border border-dashed border-fimo-gray py-8 text-center">
             <ImageIcon className="h-5 w-5 text-gray-300" />
-            <p className="text-sm text-gray-400">Belum ada foto</p>
+            <p className="text-xs text-gray-400 sm:text-sm">Belum ada foto</p>
           </div>
         )}
         <UploadFoto kosId={kos.id} />
       </div>
 
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-        <h2 className="mb-1 font-semibold text-red-900">Zona Berbahaya</h2>
-        <p className="mb-4 text-sm text-red-700">
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 sm:p-6 lg:p-8">
+        <h2 className="mb-1 text-sm font-semibold text-red-900 sm:text-base">Zona Berbahaya</h2>
+        <p className="mb-4 text-xs text-red-700 sm:text-sm">
           Sembunyikan kos ini dari pencarian publik secara manual.
           {kos.status === 'HIDDEN_MANUAL' && ' Kos ini saat ini sedang disembunyikan manual.'}
         </p>
@@ -62,7 +62,7 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
           <button
             type="submit"
             disabled={kos.status === 'HIDDEN_MANUAL'}
-            className="rounded-xl border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl border border-red-300 bg-white px-4 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
           >
             {kos.status === 'HIDDEN_MANUAL' ? 'Sudah Disembunyikan' : 'Sembunyikan Manual'}
           </button>

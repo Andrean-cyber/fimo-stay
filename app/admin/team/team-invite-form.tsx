@@ -17,7 +17,7 @@ export function TeamInviteForm() {
     <>
       <form action={formAction} className="space-y-3">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor="fullName">
+          <label className="mb-1 block text-sm font-medium text-gray-700 lg:text-[15px]" htmlFor="fullName">
             Nama lengkap
           </label>
           <input
@@ -25,11 +25,11 @@ export function TeamInviteForm() {
             name="fullName"
             placeholder="cth. Budi Santoso"
             required
-            className="w-full rounded-xl border border-fimo-gray px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30"
+            className="w-full rounded-xl border border-fimo-gray px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30 lg:py-3 lg:text-[15px]"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor="email">
+          <label className="mb-1 block text-sm font-medium text-gray-700 lg:text-[15px]" htmlFor="email">
             Email
           </label>
           <input
@@ -38,19 +38,19 @@ export function TeamInviteForm() {
             type="email"
             placeholder="you@example.com"
             required
-            className="w-full rounded-xl border border-fimo-gray px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30"
+            className="w-full rounded-xl border border-fimo-gray px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30 lg:py-3 lg:text-[15px]"
           />
         </div>
         <button
           type="submit"
           disabled={isPending}
-          className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:opacity-50"
+          className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:opacity-50 lg:py-3 lg:text-[15px]"
         >
           {isPending ? 'Mengirim...' : 'Kirim Undangan'}
         </button>
         {state?.success && (
-          <p className="flex items-center gap-1 text-sm text-green-600">
-            <CheckCircle2 className="h-4 w-4" /> Undangan berhasil dikirim.
+          <p className="flex items-center gap-1 text-sm text-green-600 lg:text-[15px]">
+            <CheckCircle2 className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> Undangan berhasil dikirim.
           </p>
         )}
       </form>

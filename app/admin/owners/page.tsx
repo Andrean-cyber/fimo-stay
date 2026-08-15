@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
 import Link from 'next/link'
-import { Plus, Users } from 'lucide-react'
+import { Plus, Users, Phone } from 'lucide-react'
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button'
 import { deleteOwner } from './actions'
 import { EmptyState } from '@/components/empty-state'
@@ -14,20 +14,20 @@ export default async function OwnersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-fimo-navy">Daftar Owner</h1>
-          <p className="mt-1 text-sm text-gray-500">{owners.length} owner terdaftar</p>
+          <h1 className="text-xl font-bold text-fimo-navy sm:text-2xl lg:text-3xl">Daftar Owner</h1>
+          <p className="mt-1 text-xs text-gray-500 sm:text-sm">{owners.length} owner terdaftar</p>
         </div>
         <Link
           href="/admin/owners/new"
-          className="flex items-center gap-1.5 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90"
+          className="flex items-center gap-1.5 rounded-xl bg-fimo-navy px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-fimo-navy/90 sm:text-sm lg:px-5 lg:py-3 lg:text-[15px]"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
           Tambah Owner
         </Link>
       </div>
 
-      <div className="rounded-2xl border border-fimo-gray bg-white shadow-sm">
-        {owners.length === 0 ? (
+      {owners.length === 0 ? (
+        <div className="rounded-2xl border border-fimo-gray bg-white shadow-sm">
           <EmptyState
             icon={Users}
             title="Belum ada owner"
@@ -35,9 +35,45 @@ export default async function OwnersPage() {
             actionLabel="+ Tambah Owner"
             actionHref="/admin/owners/new"
           />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+        </div>
+      ) : (
+        <>
+          {/* ===== Mobile: card list (tampil < md) ===== */}
+          <div className="space-y-3 md:hidden">
+            {owners.map((o) => (
+              <div
+                key={o.id}
+                className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-base font-semibold text-gray-800">{o.name}</h3>
+                    <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+                      <Phone className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{o.phone}</span>
+                    </div>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-fimo-navy/10 px-2.5 py-1 text-xs font-medium text-fimo-navy">
+                    {o.kos.length} kos
+                  </span>
+                </div>
+
+                <div className="mt-3 flex items-center justify-end gap-4 border-t border-fimo-gray pt-3">
+                  <Link
+                    href={`/admin/owners/${o.id}/edit`}
+                    className="text-sm font-medium text-fimo-navy hover:text-fimo-blue"
+                  >
+                    Edit
+                  </Link>
+                  <ConfirmDeleteButton action={deleteOwner.bind(null, o.id)} itemName={o.name} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ===== Desktop: table (tampil >= md) ===== */}
+          <div className="hidden overflow-x-auto rounded-2xl border border-fimo-gray bg-white shadow-sm md:block">
+            <table className="w-full text-sm lg:text-[15px]">
               <thead>
                 <tr className="border-b border-fimo-gray text-left text-xs uppercase tracking-wide text-gray-500">
                   <th className="px-5 py-3 font-medium">Nama</th>
@@ -60,7 +96,7 @@ export default async function OwnersPage() {
                       <div className="flex items-center justify-end gap-3">
                         <Link
                           href={`/admin/owners/${o.id}/edit`}
-                          className="text-sm font-medium text-fimo-navy hover:text-fimo-blue"
+                          className="text-sm font-medium text-fimo-navy hover:text-fimo-blue lg:text-[15px]"
                         >
                           Edit
                         </Link>
@@ -72,8 +108,8 @@ export default async function OwnersPage() {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   )
 }

@@ -12,7 +12,7 @@ export default async function EditOwnerPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold text-fimo-navy">Edit Owner</h1>
+      <h1 className="text-xl font-bold text-fimo-navy sm:text-2xl lg:text-3xl">Edit Owner</h1>
       <OwnerForm action={updateOwner.bind(null, owner.id)} defaults={owner} submitLabel="Simpan Perubahan" />
     </div>
   )

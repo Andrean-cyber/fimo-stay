@@ -1,22 +1,23 @@
 import type { ReactNode } from 'react'
 
 export const inputClass =
-  'w-full rounded-xl border border-fimo-gray px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30'
+  'w-full rounded-xl border border-fimo-gray px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30 lg:py-3 lg:text-[15px]'
 
 // Ukuran seragam untuk semua checkbox fasilitas
 export const checkboxItemClass =
-  'flex h-11 w-full items-center gap-2 rounded-xl border border-fimo-gray px-3 text-sm text-gray-700 hover:bg-fimo-gray/40 transition-colors'
+  'flex h-11 w-full items-center gap-2 rounded-xl border border-fimo-gray px-3 text-sm text-gray-700 hover:bg-fimo-gray/40 transition-colors lg:h-12 lg:text-[15px]'
 
-export const checkboxInputClass = 'h-4 w-4 shrink-0 accent-fimo-navy'
+export const checkboxInputClass = 'h-4 w-4 shrink-0 accent-fimo-navy lg:h-[18px] lg:w-[18px]'
 
-// Tinggi tombol yang sama persis dengan tinggi <input> (py-2.5 + border + text-sm)
-export const actionButtonHeightClass = 'h-[42px]'
+// Tinggi tombol yang sama persis dengan tinggi <input> (py-2.5 + border + text-sm,
+// dan lg:py-3 + lg:text-[15px] di desktop) — kedua breakpoint harus selalu diubah bersamaan.
+export const actionButtonHeightClass = 'h-[42px] lg:h-[46px]'
 
-// Reserves ruang vertikal yang sama persis dengan label Field, supaya
-// tombol (mis. tombol hapus) yang ditaruh di sebelah sekumpulan Field
-// sejajar dengan INPUT-nya, bukan dengan label-nya.
+// Reserves ruang vertikal yang sama persis dengan label Field (termasuk di breakpoint lg,
+// karena label ikut membesar di desktop), supaya tombol (mis. tombol hapus) yang ditaruh
+// di sebelah sekumpulan Field sejajar dengan INPUT-nya, bukan dengan label-nya.
 export function FieldLabelSpacer() {
-  return <div className="mb-1.5 h-5" aria-hidden="true" />
+  return <div className="mb-1.5 h-5 lg:h-6" aria-hidden="true" />
 }
 
 export function Field({
@@ -30,10 +31,10 @@ export function Field({
 }) {
   return (
     <div className="min-w-0">
-      {/* h-5 fixed + truncate: label TIDAK PERNAH wrap 2 baris, jadi semua
-          Field di satu baris selalu punya offset yang sama ke input-nya */}
-      <div className="mb-1.5 flex h-5 items-center gap-1">
-        <span className="truncate text-sm font-medium text-gray-700">{label}</span>
+      {/* h-5 (lg:h-6) fixed + truncate: label TIDAK PERNAH wrap 2 baris, jadi semua
+          Field di satu baris selalu punya offset yang sama ke input-nya, di semua breakpoint */}
+      <div className="mb-1.5 flex h-5 items-center gap-1 lg:h-6">
+        <span className="truncate text-sm font-medium text-gray-700 lg:text-[15px]">{label}</span>
         {optional && <span className="shrink-0 text-xs text-gray-400">(opsional)</span>}
       </div>
       {children}

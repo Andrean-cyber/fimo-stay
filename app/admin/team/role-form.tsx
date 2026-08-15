@@ -22,7 +22,7 @@ export function RoleForm({ adminId, target, isSuperadmin }: Props) {
   return (
     <form action={formAction}>
       <PendingSubmitButton
-        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors lg:px-3.5 lg:py-2 lg:text-sm ${
           isSuperadmin
             ? 'bg-amber-50 text-amber-700 hover:bg-amber-100'
             : 'bg-fimo-navy/10 text-fimo-navy hover:bg-fimo-navy/20'

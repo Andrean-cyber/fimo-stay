@@ -27,7 +27,7 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
 
   return (
     <form action={handleSubmit} className="space-y-3">
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-gray-600 md:text-base">
         Isi nomor HP kamu dulu — instruksi transfer &amp; konfirmasi WhatsApp muncul di langkah berikutnya.
       </p>
 
@@ -40,23 +40,23 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
           pattern="[0-9+ ]*"
           placeholder="08xxxxxxxxxx"
           required
-          className="w-full rounded-lg border border-fimo-gray bg-white p-2.5 pl-10 text-sm outline-none transition-colors focus:border-fimo-navy focus:ring-1 focus:ring-fimo-navy"
+          className="w-full rounded-lg border border-fimo-gray bg-white p-2.5 pl-10 text-sm outline-none transition-colors focus:border-fimo-navy focus:ring-1 focus:ring-fimo-navy md:text-base"
         />
       </div>
 
       <TurnstileWidget onVerify={setTurnstileToken} />
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-red-500 md:text-base">{error}</p>}
 
       <button
         type="submit"
         disabled={submitting || !turnstileToken}
-        className="w-full rounded-lg bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:opacity-50 disabled:hover:bg-fimo-navy"
+        className="w-full rounded-lg bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:opacity-50 disabled:hover:bg-fimo-navy md:text-base"
       >
         {submitting ? 'Memproses...' : `Lanjutkan — Rp${(30000).toLocaleString('id-ID')}`}
       </button>
 
-      <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
+      <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 md:text-sm">
         <ShieldCheck className="h-3.5 w-3.5" />
         Pembayaran diverifikasi manual, kontak owner terbuka setelah dikonfirmasi
       </p>

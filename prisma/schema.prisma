@@ -84,6 +84,7 @@ model Kos {
   name         String
   description  String?
   city         String    // tampil publik sebelum bayar
+  district String?
   address      String    // alamat lengkap — TIDAK pernah di-select di query publik,
                           // baru boleh diambil setelah ada Transaction VERIFIED milik searcher utk kos ini
   latitude     Float?

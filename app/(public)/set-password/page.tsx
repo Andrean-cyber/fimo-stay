@@ -82,21 +82,21 @@ export default function SetPasswordPage() {
   return (
     <div className="min-h-screen bg-fimo-gray/40">
       <PublicHeader />
-      <main className="mx-auto max-w-sm px-4 py-16">
-        <div className="rounded-2xl border border-fimo-gray bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-bold text-fimo-navy">Buat Password</h1>
-          <p className="mt-1 text-sm text-gray-500">
+      <main className="mx-auto max-w-sm px-4 py-12 sm:max-w-md sm:py-16 lg:max-w-lg lg:py-20">
+        <div className="rounded-2xl border border-fimo-gray bg-white p-6 shadow-sm sm:p-8 lg:p-10">
+          <h1 className="text-xl font-bold text-fimo-navy sm:text-2xl lg:text-3xl">Buat Password</h1>
+          <p className="mt-1 text-xs text-gray-500 sm:text-sm">
             Buat password baru untuk mengakses akun tim FimoStay kamu.
           </p>
 
           {!ready && !error && (
-            <p className="mt-6 text-sm text-gray-500">Memverifikasi undangan...</p>
+            <p className="mt-6 text-sm text-gray-500 lg:text-[15px]">Memverifikasi undangan...</p>
           )}
 
           {ready && (
             <form onSubmit={handleSubmit} className="mt-6 space-y-3">
               <div>
-                <label htmlFor="password" className="mb-1 block text-xs font-medium text-gray-600">
+                <label htmlFor="password" className="mb-1 block text-xs font-medium text-gray-600 lg:text-sm">
                   Password baru
                 </label>
                 <div className="relative">
@@ -108,7 +108,7 @@ export default function SetPasswordPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={8}
-                    className="w-full rounded-lg border border-fimo-gray p-2.5 pr-10 text-sm outline-none transition-colors focus:border-fimo-navy focus:ring-1 focus:ring-fimo-navy"
+                    className="w-full rounded-lg border border-fimo-gray p-2.5 pr-10 text-sm outline-none transition-colors focus:border-fimo-navy focus:ring-1 focus:ring-fimo-navy lg:p-3 lg:text-[15px]"
                   />
                   <button
                     type="button"
@@ -117,13 +117,17 @@ export default function SetPasswordPage() {
                     tabIndex={-1}
                     aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                    ) : (
+                      <Eye className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                    )}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="mb-1 block text-xs font-medium text-gray-600">
+                <label htmlFor="confirmPassword" className="mb-1 block text-xs font-medium text-gray-600 lg:text-sm">
                   Konfirmasi password
                 </label>
                 <input
@@ -134,7 +138,7 @@ export default function SetPasswordPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={8}
-                  className="w-full rounded-lg border border-fimo-gray p-2.5 text-sm outline-none transition-colors focus:border-fimo-navy focus:ring-1 focus:ring-fimo-navy"
+                  className="w-full rounded-lg border border-fimo-gray p-2.5 text-sm outline-none transition-colors focus:border-fimo-navy focus:ring-1 focus:ring-fimo-navy lg:p-3 lg:text-[15px]"
                 />
                 {confirmPassword.length > 0 && password === confirmPassword && (
                   <p className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
@@ -143,19 +147,19 @@ export default function SetPasswordPage() {
                 )}
               </div>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-red-500 lg:text-[15px]">{error}</p>}
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full rounded-lg bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:opacity-50"
+                className="w-full rounded-lg bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:opacity-50 lg:py-3 lg:text-[15px]"
               >
                 {submitting ? 'Menyimpan...' : 'Simpan & Masuk'}
               </button>
             </form>
           )}
 
-          {!ready && error && <p className="mt-6 text-sm text-red-500">{error}</p>}
+          {!ready && error && <p className="mt-6 text-sm text-red-500 lg:text-[15px]">{error}</p>}
         </div>
       </main>
     </div>

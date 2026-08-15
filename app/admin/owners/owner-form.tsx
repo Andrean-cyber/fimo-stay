@@ -6,7 +6,7 @@ import { AlertTriangle } from 'lucide-react'
 import type { FormActionState } from '@/lib/action-state'
 
 const inputClass =
-  'w-full rounded-xl border border-fimo-gray px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30'
+  'w-full rounded-xl border border-fimo-gray px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30 lg:py-3 lg:text-[15px]'
 
 export function OwnerForm({
   action,
@@ -28,12 +28,16 @@ export function OwnerForm({
 
   return (
     <>
-      <form action={formAction} className="max-w-lg space-y-3 rounded-2xl border border-fimo-gray bg-white p-6 shadow-sm">
+      <form action={formAction} className="max-w-lg space-y-3 rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-6 lg:p-8">
         <input name="name" defaultValue={defaults?.name} placeholder="Nama owner" required className={inputClass} />
         <input name="phone" defaultValue={defaults?.phone} placeholder="Nomor telepon" required className={inputClass} />
         <input name="address" defaultValue={defaults?.address ?? ''} placeholder="Alamat (opsional)" className={inputClass} />
         <textarea name="notes" defaultValue={defaults?.notes ?? ''} placeholder="Catatan internal (opsional)" className={inputClass} />
-        <button type="submit" disabled={isPending} className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white hover:bg-fimo-navy/90 disabled:opacity-50 sm:w-auto">
+        <button
+          type="submit"
+          disabled={isPending}
+          className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white hover:bg-fimo-navy/90 disabled:opacity-50 sm:w-auto lg:px-5 lg:py-3 lg:text-[15px]"
+        >
           {isPending ? 'Menyimpan...' : submitLabel}
         </button>
       </form>

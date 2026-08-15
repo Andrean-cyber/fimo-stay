@@ -33,6 +33,7 @@ type KosForIndex = {
   facilities: string[]
   status: string
   createdAt: Date
+  media: { url: string }[]
   segments: {
     kosType: { name: string }
     roomTypes: {
@@ -77,6 +78,7 @@ export async function syncKosToIndex(kos: KosForIndex) {
       kosTypes,          // array, karena 1 kos bisa punya beberapa segment/jenis
       priceMin: Math.min(...prices),
       priceMax: Math.max(...prices),
+      coverImageUrl: kos.media[0]?.url ?? null, // ← tambahan
       createdAt: kos.createdAt.getTime(),
     },
   ])

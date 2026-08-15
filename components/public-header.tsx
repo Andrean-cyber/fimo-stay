@@ -15,20 +15,20 @@ export function PublicHeader() {
 
   return (
     <header className="border-b border-fimo-gray bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:py-4">
         <Link href="/" className="flex items-center" onClick={() => setMenuOpen(false)}>
           <Image
             src="/lgfimostay-blue.webp"
             alt="FimoStay"
             width={140}
             height={36}
-            className="h-8 w-auto"
+            className="h-7 w-auto md:h-9"
             priority
           />
         </Link>
 
         {/* Nav desktop */}
-        <nav className="hidden items-center gap-6 text-sm font-medium text-gray-600 md:flex">
+        <nav className="hidden items-center gap-6 text-sm font-medium text-gray-600 md:flex md:text-base md:gap-8">
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href} className="transition-colors hover:text-fimo-navy">
               {link.label}
@@ -56,7 +56,7 @@ export function PublicHeader() {
               key={link.href}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-fimo-blue/10 hover:text-fimo-navy"
+              className="rounded-lg px-3 py-2.5 text-base font-medium text-gray-600 transition-colors hover:bg-fimo-blue/10 hover:text-fimo-navy"
             >
               {link.label}
             </Link>
