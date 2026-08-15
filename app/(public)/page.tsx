@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { toPublicUrl } from '@/lib/r2'
 import { PublicHeader } from '@/components/public-header'
 import { PublicFooter } from '@/components/public-footer'
 import { KosCard } from '@/components/kos-card'
@@ -66,6 +67,12 @@ export default async function HomePage() {
           take: 1,
           select: { url: true },
         },
+        nearby: {                                   // ⬅️ tambahan
+          where: { isActive: true },
+          orderBy: { order: 'asc' },
+          take: 1,
+          select: { name: true, distanceText: true },
+        },
       },
     }),
     prisma.kos.groupBy({
@@ -87,6 +94,7 @@ export default async function HomePage() {
   // kosType segment pertama.
   const kosRekomendasi = kosRekomendasiRaw.map((k) => {
     const allPrices = k.segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
+    const nearby = k.nearby[0]
     return {
       id: k.id,
       slug: k.slug,
@@ -95,7 +103,8 @@ export default async function HomePage() {
       facilities: k.facilities,
       priceMonthly: allPrices.length > 0 ? Math.min(...allPrices) : 0,
       roomType: k.segments[0]?.kosType.name ?? null,
-      imageUrl: k.media[0]?.url,
+      imageUrl: k.media[0]?.url ? toPublicUrl(k.media[0].url) : null,   // ⬅️ fix
+      nearbyText: nearby ? `${nearby.distanceText} ke ${nearby.name}` : null,  // ⬅️ fix
     }
   })
 
@@ -253,6 +262,7 @@ export default async function HomePage() {
                 roomType={k.roomType}
                 facilities={k.facilities}
                 imageUrl={k.imageUrl}
+                nearbyText={k.nearbyText}
               />
             ))}
           </div>

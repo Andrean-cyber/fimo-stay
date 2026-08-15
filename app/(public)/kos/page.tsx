@@ -1,21 +1,11 @@
+import { prisma } from '@/lib/prisma'
 import { PublicHeader } from '@/components/public-header'
 import { SearchForm } from './search-form'
-import { searchKos } from '@/lib/meilisearch'
 import { EmptyState } from '@/components/empty-state'
 import { SearchX } from 'lucide-react'
 import { KosCard } from '@/components/kos-card'
-
-type KosHit = {
-  id: string
-  name: string
-  slug: string
-  city: string
-  priceMin: number
-  priceMax: number
-  coverImageUrl: string | null
-  kosTypes?: string[]
-  facilities?: string[]
-}
+import { toPublicUrl } from '@/lib/r2'
+import type { Prisma } from '@prisma/client'
 
 export default async function KosSearchPage({
   searchParams,
@@ -23,8 +13,74 @@ export default async function KosSearchPage({
   searchParams: Promise<{ q?: string }>
 }) {
   const { q = '' } = await searchParams
-  const results = await searchKos(q)
-  const hits = results.hits as KosHit[]
+
+  const where: Prisma.KosWhereInput = {
+    status: 'ACTIVE',
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: 'insensitive' } },
+            { city: { contains: q, mode: 'insensitive' } },
+            { district: { contains: q, mode: 'insensitive' } },
+          ],
+        }
+      : {}),
+  }
+
+  const kosListRaw = await prisma.kos.findMany({
+    where,
+    orderBy: { lastUpdatedAt: 'desc' },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      city: true,
+      facilities: true,
+      segments: {
+        select: {
+          kosType: { select: { name: true } },
+          roomTypes: {
+            where: { isActive: true },
+            select: { priceMonthly: true },
+          },
+        },
+      },
+      media: {
+        orderBy: [{ isCover: 'desc' }, { order: 'asc' }],
+        take: 1,
+        select: { url: true },
+      },
+      nearby: {
+        where: { isActive: true },
+        orderBy: { order: 'asc' },
+        take: 1,
+        select: { name: true, distanceText: true },
+      },
+    },
+  })
+
+  // Kos tanpa room type aktif dikeluarkan — sama seperti logika lama di
+  // syncKosToIndex, supaya tidak tampil dengan harga kosong/ngaco
+  const kosList = kosListRaw
+    .map((k) => {
+      const allPrices = k.segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
+      if (allPrices.length === 0) return null
+
+      const nearby = k.nearby[0]
+      return {
+        id: k.id,
+        slug: k.slug,
+        name: k.name,
+        city: k.city,
+        facilities: k.facilities,
+        priceMin: Math.min(...allPrices),
+        priceMax: Math.max(...allPrices),
+        roomType: k.segments[0]?.kosType.name ?? null,
+        imageUrl: k.media[0]?.url ? toPublicUrl(k.media[0].url) : null,
+        nearbyText: nearby ? `${nearby.distanceText} ke ${nearby.name}` : null,
+      }
+    })
+    .filter((k): k is NonNullable<typeof k> => k !== null)
 
   return (
     <div className="min-h-screen bg-white">
@@ -35,7 +91,7 @@ export default async function KosSearchPage({
         </div>
 
         <p className="mb-4 text-sm text-gray-500 md:text-base">
-          {results.estimatedTotalHits} kos ditemukan
+          {kosList.length} kos ditemukan
           {q && (
             <>
               {' '}untuk <span className="font-medium text-gray-700">&ldquo;{q}&rdquo;</span>
@@ -43,7 +99,7 @@ export default async function KosSearchPage({
           )}
         </p>
 
-        {hits.length === 0 ? (
+        {kosList.length === 0 ? (
           <EmptyState
             icon={SearchX}
             title="Tidak ditemukan"
@@ -53,7 +109,7 @@ export default async function KosSearchPage({
           />
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-            {hits.map((kos) => (
+            {kosList.map((kos) => (
               <KosCard
                 key={kos.id}
                 slug={kos.slug}
@@ -61,9 +117,10 @@ export default async function KosSearchPage({
                 city={kos.city}
                 priceMonthly={kos.priceMin}
                 priceMax={kos.priceMax}
-                roomType={kos.kosTypes?.[0]}
+                roomType={kos.roomType}
                 facilities={kos.facilities}
-                imageUrl={kos.coverImageUrl}
+                imageUrl={kos.imageUrl}
+                nearbyText={kos.nearbyText}
               />
             ))}
           </div>

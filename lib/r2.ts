@@ -8,3 +8,11 @@ export const r2 = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
   },
 })
+
+// R2 object key ATAU full URL -> selalu full public URL
+export function toPublicUrl(keyOrUrl: string) {
+  if (/^https?:\/\//.test(keyOrUrl)) {
+    return keyOrUrl
+  }
+  return `${process.env.R2_PUBLIC_BASE_URL}/${keyOrUrl}`
+}

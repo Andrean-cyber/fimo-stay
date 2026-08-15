@@ -1,4 +1,5 @@
 import { Meilisearch } from "meilisearch";
+import { toPublicUrl } from '@/lib/r2'   // ⬅️ ganti definisi lokal jadi import ini
 
 export const meili = new Meilisearch({
   host: process.env.MEILISEARCH_HOST!,
@@ -15,15 +16,12 @@ export async function setupKosIndex() {
   }
 
   await kosIndex.updateSettings({
-    // address sengaja TIDAK masuk sini — belum boleh publik sebelum transaksi VERIFIED
     searchableAttributes: ['name', 'city', 'description'],
     filterableAttributes: ['status', 'city', 'kosTypes', 'priceMin', 'priceMax', 'facilities'],
     sortableAttributes: ['priceMin', 'priceMax', 'createdAt'],
   })
 }
 
-// Bentuk data yang dibutuhkan fungsi ini — ambil dari Prisma dengan
-// include segments -> kosType & roomTypes
 type KosForIndex = {
   id: string
   name: string
@@ -33,7 +31,7 @@ type KosForIndex = {
   facilities: string[]
   status: string
   createdAt: Date
-  media: { url: string }[]
+  media: { url: string; isCover: boolean; order: number }[]
   segments: {
     kosType: { name: string }
     roomTypes: {
@@ -42,7 +40,15 @@ type KosForIndex = {
       availableRooms: number | null
     }[]
   }[]
+  nearby: {
+    name: string
+    distanceText: string
+    isActive: boolean
+    order: number
+  }[]
 }
+
+// (hapus function toPublicUrl yang lama di sini)
 
 export async function syncKosToIndex(kos: KosForIndex) {
   if (kos.status !== 'ACTIVE') {
@@ -56,15 +62,19 @@ export async function syncKosToIndex(kos: KosForIndex) {
 
   const prices = activeRoomTypes.map((rt) => rt.priceMonthly)
 
-  // Kos tanpa room type aktif = tidak ada harga valid untuk difilter,
-  // jadi lebih aman dikeluarkan dulu dari index daripada tampil dengan
-  // priceMin/priceMax kosong/ngaco
   if (prices.length === 0) {
     await kosIndex.deleteDocument(kos.id)
     return
   }
 
   const kosTypes = [...new Set(kos.segments.map((s) => s.kosType.name))]
+
+  const sortedMedia = [...kos.media].sort((a, b) => a.order - b.order)
+  const cover = sortedMedia.find((m) => m.isCover) ?? sortedMedia[0]
+
+  const primaryNearby = kos.nearby
+    .filter((n) => n.isActive)
+    .sort((a, b) => a.order - b.order)[0]
 
   await kosIndex.addDocuments([
     {
@@ -75,10 +85,13 @@ export async function syncKosToIndex(kos: KosForIndex) {
       city: kos.city,
       facilities: kos.facilities,
       status: kos.status,
-      kosTypes,          // array, karena 1 kos bisa punya beberapa segment/jenis
+      kosTypes,
       priceMin: Math.min(...prices),
       priceMax: Math.max(...prices),
-      coverImageUrl: kos.media[0]?.url ?? null, // ← tambahan
+      coverImageUrl: cover ? toPublicUrl(cover.url) : null,
+      nearbyText: primaryNearby
+        ? `${primaryNearby.distanceText} ke ${primaryNearby.name}`
+        : null,
       createdAt: kos.createdAt.getTime(),
     },
   ])
@@ -86,4 +99,16 @@ export async function syncKosToIndex(kos: KosForIndex) {
 
 export async function searchKos(query: string, filter?: string) {
   return kosIndex.search(query, { filter })
+}
+
+export async function resyncKos(prisma: any, kosId: string) {
+  const kos = await prisma.kos.findUniqueOrThrow({
+    where: { id: kosId },
+    include: {
+      media: { orderBy: { order: 'asc' } },
+      nearby: { orderBy: { order: 'asc' } },
+      segments: { include: { kosType: true, roomTypes: true } },
+    },
+  })
+  await syncKosToIndex(kos)
 }
