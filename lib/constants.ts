@@ -36,3 +36,8 @@ export function buildOwnerWhatsAppLink(phone: string, kosName: string) {
   )
   return `https://wa.me/${normalized}?text=${message}`
 }
+
+export function normalizePhone(phone: string) {
+  const digits = phone.replace(/\D/g, '')
+  return digits.startsWith('0') ? `62${digits.slice(1)}` : digits
+}
