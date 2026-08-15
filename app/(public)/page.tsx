@@ -46,7 +46,7 @@ export default async function HomePage() {
     prisma.kos.findMany({
       where: { status: 'ACTIVE' },
       orderBy: { lastUpdatedAt: 'desc' },
-      take: 5,
+      take: 3,
       select: {
         id: true,
         slug: true,

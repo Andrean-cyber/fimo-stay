@@ -39,7 +39,7 @@ export default async function AdminDashboardPage() {
       lastUpdatedAt: { lt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) },
     },
     orderBy: { lastUpdatedAt: 'asc' },
-    take: 5,
+    take: 3,
     select: { id: true, name: true, lastUpdatedAt: true },
   })
 
