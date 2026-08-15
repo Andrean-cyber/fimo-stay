@@ -1,12 +1,11 @@
 import { notFound } from 'next/navigation'
-import { MapPin, Phone, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, MessageCircle } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { PublicHeader } from '@/components/public-header'
 import {
   PAYMENT_INFO,
   getReferenceCode,
   buildWhatsAppLink,
-  buildOwnerWhatsAppLink,
 } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
@@ -30,15 +29,12 @@ export default async function StatusPage({
 }) {
   const { id } = await params
 
+  // Sengaja TIDAK include targetKos/owner atau recommendationItems di sini.
+  // Detail sensitif (alamat, kontak owner, daftar rekomendasi) tidak lagi
+  // ditampilkan di web — dikirim manual oleh admin via WhatsApp setelah
+  // transaksi diverifikasi. Halaman ini murni status tracker.
   const trx = await prisma.transaction.findUnique({
     where: { id },
-    include: {
-      targetKos: {
-        include: {
-          owner: true,
-        },
-      },
-    },
   })
 
   if (!trx) notFound()
@@ -110,50 +106,42 @@ export default async function StatusPage({
           </div>
         )}
 
-        {trx.status === 'VERIFIED' &&
-          trx.type === 'SELF_SEARCH' &&
-          trx.targetKos && (
-            <div className="rounded-xl border border-fimo-gray bg-green-50 p-4 md:p-5">
-              <p className="text-base font-semibold text-gray-900 md:text-lg">
-                {trx.targetKos.name}
-              </p>
-
-              <p className="mt-2 flex items-start gap-1.5 text-sm text-gray-700 md:text-base">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-fimo-navy" />
-                {trx.targetKos.address}
-              </p>
-
-              <div className="my-4 h-px bg-fimo-gray/60" />
-
-              <p className="text-sm text-gray-700 md:text-base">
-                Owner: <b>{trx.targetKos.owner.name}</b>
-              </p>
-              <p className="text-sm text-gray-700 md:text-base">
-                Kontak: {trx.targetKos.owner.phone}
-              </p>
-
-              <a
-                href={buildOwnerWhatsAppLink(trx.targetKos.owner.phone, trx.targetKos.name)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 md:text-base"
-              >
-                <Phone className="h-4 w-4" />
-                Hubungi Owner via WhatsApp
-              </a>
+        {trx.status === 'VERIFIED' && (
+          <div className="rounded-xl border border-fimo-gray bg-green-50 p-4 md:p-5">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+              <div>
+                <p className="text-sm font-semibold text-gray-900 md:text-base">
+                  Pembayaran terverifikasi
+                </p>
+                <p className="mt-1 text-sm text-gray-700 md:text-base">
+                  {trx.type === 'SELF_SEARCH'
+                    ? 'Detail kos dan kontak owner sudah kami kirimkan ke WhatsApp kamu.'
+                    : 'Rekomendasi 3 kos akan kami kirimkan ke WhatsApp kamu dalam 2-4 Hari Kerja.'}
+                </p>
+              </div>
             </div>
-          )}
 
-        {trx.status === 'VERIFIED' &&
-          trx.type === 'RECOMMENDATION' &&
-          trx.recommendationToken && (
             <a
-              href={`/rekomendasi/${trx.recommendationToken}`}
-              className="block rounded-xl bg-fimo-navy px-4 py-3 text-center text-sm font-semibold text-white hover:bg-fimo-navy/90 md:text-base"
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 md:text-base"
             >
-              Lihat 3 Rekomendasi Kos
+              <MessageCircle className="h-4 w-4" />
+              Buka Chat WhatsApp
             </a>
-          )}
+
+            <p className="mt-3 text-center text-xs text-gray-400 md:text-sm">
+              Tidak menerima pesan? Hubungi kami via tombol di atas dengan
+              menyertakan kode referensi{' '}
+              <span className="font-mono font-semibold text-gray-600">
+                {getReferenceCode(trx.id)}
+              </span>
+              .
+            </p>
+          </div>
+        )}
 
         {trx.status === 'REJECTED' && (
           <p className="text-sm text-red-500 md:text-base">

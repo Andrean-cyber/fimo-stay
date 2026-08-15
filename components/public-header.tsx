@@ -8,7 +8,6 @@ import { Menu, X } from 'lucide-react'
 const navLinks = [
   { href: '/kos', label: 'Cari Kos' },
   { href: '/rekomendasi/mulai', label: 'Minta Rekomendasi' },
-  { href: '/status/cek', label: 'Cek Status' },
 ]
 
 export function PublicHeader() {

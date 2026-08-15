@@ -47,6 +47,7 @@ type NearbyDraft = {
 type KosDefaults = {
   name?: string
   description?: string | null
+  district?: string | null
   address?: string
   city?: string
   facilities?: string[]

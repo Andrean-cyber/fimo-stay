@@ -7,6 +7,7 @@ type KosCardProps = {
   slug: string
   name: string
   city: string
+  district?: string | null
   priceMonthly: number
   priceMax?: number
   roomType?: string | null
@@ -19,6 +20,7 @@ export function KosCard({
   slug,
   name,
   city,
+  district,
   priceMonthly,
   priceMax,
   roomType,
@@ -27,6 +29,7 @@ export function KosCard({
   nearbyText,
 }: KosCardProps) {
   const showRange = priceMax != null && priceMax !== priceMonthly
+  const locationText = district ? `${district}, ${city}` : city
 
   return (
     <Link
@@ -52,7 +55,7 @@ export function KosCard({
 
       <div className="flex flex-1 flex-col gap-1.5 p-3 sm:gap-2 sm:p-4">
         <p className="truncate text-sm font-semibold text-gray-800 sm:text-base">{name}</p>
-        <p className="truncate text-xs text-gray-500 sm:text-sm">{city}</p>
+        <p className="truncate text-xs text-gray-500 sm:text-sm">{locationText}</p>
 
         {nearbyText && (
           <p className="truncate text-[11px] text-gray-400 sm:text-xs">{nearbyText}</p>

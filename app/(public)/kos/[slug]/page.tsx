@@ -173,7 +173,7 @@ export default async function KosDetailPage({
             <div className="mt-8 rounded-2xl border border-fimo-gray bg-fimo-gray/30 p-5 lg:hidden">
               <p className="mb-3 flex items-start gap-2 text-sm text-gray-600 md:text-base">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-fimo-navy" />
-                Kontak owner tersembunyi. Buka kontak untuk melihat nomor dan menghubungi langsung.
+                Kami bantu hubungkan kamu langsung dengan pemilik kos yang sudah terverifikasi tim kami.
               </p>
               <SelfSearchForm kosId={kos.id} />
             </div>

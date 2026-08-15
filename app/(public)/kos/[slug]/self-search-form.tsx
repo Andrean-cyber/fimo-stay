@@ -28,7 +28,7 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
   return (
     <form action={handleSubmit} className="space-y-3">
       <p className="text-sm text-gray-600 md:text-base">
-        Isi nomor HP kamu dulu — instruksi transfer &amp; konfirmasi WhatsApp muncul di langkah berikutnya.
+      Isi nomor HP kamu, tim kami akan bantu proses koneksinya ke pemilik kos setelah pembayaran dikonfirmasi.
       </p>
 
       <div className="relative">
@@ -53,12 +53,12 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
         disabled={submitting || !turnstileToken}
         className="w-full rounded-lg bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:opacity-50 disabled:hover:bg-fimo-navy md:text-base"
       >
-        {submitting ? 'Memproses...' : `Lanjutkan — Rp${(30000).toLocaleString('id-ID')}`}
+        {submitting ? 'Memproses...' : `Proses Sekarang — Rp${(30000).toLocaleString('id-ID')}`}
       </button>
 
       <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 md:text-sm">
         <ShieldCheck className="h-3.5 w-3.5" />
-        Pembayaran diverifikasi manual, kontak owner terbuka setelah dikonfirmasi
+        Pembayaran diverifikasi manual oleh tim kami, prosesnya biasanya kurang dari 1x24 jam.
       </p>
     </form>
   )

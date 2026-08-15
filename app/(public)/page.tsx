@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma'
-import { toPublicUrl } from '@/lib/r2'
 import { PublicHeader } from '@/components/public-header'
 import { PublicFooter } from '@/components/public-footer'
 import { KosCard } from '@/components/kos-card'
@@ -15,43 +14,28 @@ import {
   GraduationCap,
 } from 'lucide-react'
 import type { Prisma } from '@prisma/client'
+import { toPublicUrl } from '@/lib/r2'
+import { KAMPUS_POPULER } from '@/lib/campuses'
 
-// ⚠️ Filter kategori sekarang lewat relasi segments -> kosType,
-// karena roomType/kosType bukan lagi field langsung di Kos.
-// Pastikan value 'Putri' / 'Putra' / 'Campur' di bawah ini SAMA PERSIS
-// (atau setidaknya cocok case-insensitive) dengan KosType.name di database.
-const KATEGORI: { label: string; filter: Prisma.KosWhereInput }[] = [
-  {
-    label: 'Kos Putri',
-    filter: { segments: { some: { kosType: { name: { equals: 'Putri', mode: 'insensitive' } } } } },
-  },
-  {
-    label: 'Kos Putra',
-    filter: { segments: { some: { kosType: { name: { equals: 'Putra', mode: 'insensitive' } } } } },
-  },
-  {
-    label: 'Kos Campur',
-    filter: { segments: { some: { kosType: { name: { equals: 'Campur', mode: 'insensitive' } } } } },
-  },
-  // ⚠️ ASUMSI: "Harian" & "Pet Friendly" ditandai lewat facilities, sesuaikan string-nya
-  { label: 'Kos Harian', filter: { facilities: { has: 'Harian' } } },
-  { label: 'Kos Pet Friendly', filter: { facilities: { has: 'Pet Friendly' } } },
-]
-
-// ⚠️ ASUMSI: belum ada model Campus, jadi kampus ditandai lewat tag di facilities
-const KAMPUS_POPULER = ['UGM', 'ITB', 'UI', 'UB', 'ITS', 'UNDIP']
+// ⚠️ Jenis kos ("Putra"/"Putri"/dst) DIKELOLA ADMIN lewat tabel KosType
+// (bisa ditambah/dihapus/diganti nama kapan saja di halaman
+// admin/kos/pengaturan/jenis-kos). Karena itu daftar ini TIDAK BOLEH
+// di-hardcode — harus di-query dari database, dan value yang dikirim ke
+// URL pakai kosType.id (bukan nama), supaya tidak rusak kalau nama diganti
+// atau mengandung karakter aneh (mis. "Putra & Putri").
 
 export default async function HomePage() {
-  const [kosRekomendasiRaw, lokasiPopuler, jumlahPerKategori] = await Promise.all([
+  const [kosRekomendasiRaw, kosAktifCities, kosTypes] = await Promise.all([
     prisma.kos.findMany({
       where: { status: 'ACTIVE' },
       orderBy: { lastUpdatedAt: 'desc' },
-      take: 3,
+      take: 5,
       select: {
         id: true,
         slug: true,
         name: true,
         city: true,
+        district: true,
         facilities: true,
         segments: {
           select: {
@@ -67,7 +51,7 @@ export default async function HomePage() {
           take: 1,
           select: { url: true },
         },
-        nearby: {                                   // ⬅️ tambahan
+        nearby: {
           where: { isActive: true },
           orderBy: { order: 'asc' },
           take: 1,
@@ -75,19 +59,31 @@ export default async function HomePage() {
         },
       },
     }),
-    prisma.kos.groupBy({
-      by: ['city'],
+    // Ambil semua nama kota kos aktif — grouping & normalisasi kapitalisasi
+    // dilakukan manual di bawah (bukan pakai prisma.groupBy) karena groupBy
+    // membandingkan string apa adanya (case-sensitive), sehingga "Malang"
+    // dan "malang" akan dianggap dua kota berbeda kalau langsung di-groupBy.
+    prisma.kos.findMany({
       where: { status: 'ACTIVE' },
-      _count: { city: true },
-      orderBy: { _count: { city: 'desc' } },
-      take: 6,
+      select: { city: true },
     }),
-    Promise.all(
-      KATEGORI.map((k) =>
-        prisma.kos.count({ where: { status: 'ACTIVE', ...k.filter } })
-      )
-    ),
+    // Daftar jenis kos yang admin kelola — sumber kebenaran untuk kategori
+    prisma.kosType.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true } }),
   ])
+
+  const KATEGORI: { label: string; value: string; filter: Prisma.KosWhereInput }[] = kosTypes.map(
+    (kt) => ({
+      label: `Kos ${kt.name}`,
+      value: kt.id,
+      filter: { segments: { some: { kosTypeId: kt.id } } },
+    })
+  )
+
+  // Jumlah kos aktif per kategori — dihitung setelah tahu daftar KosType
+  // yang sebenarnya ada, bukan angka yang di-assume di kode.
+  const jumlahPerKategori = await Promise.all(
+    KATEGORI.map((k) => prisma.kos.count({ where: { status: 'ACTIVE', ...k.filter } }))
+  )
 
   // Ringkas hasil query: priceMonthly diambil dari harga TERMURAH antar
   // semua roomType aktif kos tsb, roomType (label jenis kos) diambil dari
@@ -100,13 +96,31 @@ export default async function HomePage() {
       slug: k.slug,
       name: k.name,
       city: k.city,
+      district: k.district,
       facilities: k.facilities,
       priceMonthly: allPrices.length > 0 ? Math.min(...allPrices) : 0,
       roomType: k.segments[0]?.kosType.name ?? null,
-      imageUrl: k.media[0]?.url ? toPublicUrl(k.media[0].url) : null,   // ⬅️ fix
-      nearbyText: nearby ? `${nearby.distanceText} ke ${nearby.name}` : null,  // ⬅️ fix
+      imageUrl: k.media[0]?.url ? toPublicUrl(k.media[0].url) : null,
+      nearbyText: nearby ? `${nearby.distanceText} ke ${nearby.name}` : null,
     }
   })
+
+  // Group kota secara case-insensitive: "malang" dan "Malang" dihitung
+  // sebagai kota yang sama, ditampilkan dengan kapitalisasi versi pertama
+  // yang ditemukan di database.
+  const cityCountMap = new Map<string, { display: string; count: number }>()
+  for (const { city } of kosAktifCities) {
+    const key = city.trim().toLowerCase()
+    const existing = cityCountMap.get(key)
+    if (existing) {
+      existing.count++
+    } else {
+      cityCountMap.set(key, { display: city.trim(), count: 1 })
+    }
+  }
+  const lokasiPopuler = Array.from(cityCountMap.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6)
 
   return (
     <div>
@@ -147,9 +161,9 @@ export default async function HomePage() {
               <h3 className="mb-3 px-2 text-sm font-semibold text-fimo-navy">KATEGORI</h3>
               <ul className="space-y-1">
                 {KATEGORI.map((k, i) => (
-                  <li key={k.label}>
+                  <li key={k.value}>
                     <Link
-                      href={`/kos?kategori=${encodeURIComponent(k.label)}`}
+                      href={`/kos?kategori=${encodeURIComponent(k.value)}`}
                       className="flex items-center justify-between rounded-lg px-2 py-2 text-sm text-gray-600 hover:bg-fimo-navy/5 hover:text-fimo-navy"
                     >
                       <span>{k.label}</span>
@@ -164,8 +178,8 @@ export default async function HomePage() {
             <div className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
               {KATEGORI.map((k) => (
                 <Link
-                  key={k.label}
-                  href={`/kos?kategori=${encodeURIComponent(k.label)}`}
+                  key={k.value}
+                  href={`/kos?kategori=${encodeURIComponent(k.value)}`}
                   className="shrink-0 rounded-full border border-fimo-gray bg-white px-4 py-2 text-sm font-medium text-gray-600"
                 >
                   {k.label}
@@ -177,12 +191,12 @@ export default async function HomePage() {
             <div className="relative overflow-hidden rounded-2xl bg-fimo-navy/5">
               <div className="grid grid-cols-1 items-center gap-6 p-8 md:grid-cols-2 md:p-10 lg:p-12">
                 <div>
-                  <h1 className="text-3xl font-bold leading-[1.1] text-fimo-navy md:text-4xl lg:text-5xl">
+                  <h1 className="text-3xl font-bold leading-[1.1] text-fimo-navy md:text-4xl lg:text-4xl">
                     Temukan
                     <br />
                     <span className="text-fimo-blue">Kos Nyaman,</span>
                     <br />
-                    Dekat Kampus
+                    Sesuai Pilihanmu
                   </h1>
                   <p className="mt-3 text-sm text-gray-500 md:mt-4 md:text-base lg:max-w-sm">
                     Cari kos terbaik sesuai kebutuhanmu. Mudah, aman, dan terpercaya.
@@ -213,12 +227,12 @@ export default async function HomePage() {
           <div className="flex flex-wrap gap-2">
             {lokasiPopuler.map((l) => (
               <Link
-                key={l.city}
-                href={`/kos?city=${encodeURIComponent(l.city)}`}
+                key={l.display}
+                href={`/kos?city=${encodeURIComponent(l.display)}`}
                 className="flex items-center gap-1.5 rounded-full border border-fimo-gray bg-white px-4 py-2 text-sm text-gray-700 hover:border-fimo-blue md:text-base"
               >
                 <MapPin className="h-3.5 w-3.5 text-fimo-blue" />
-                {l.city}
+                {l.display}
               </Link>
             ))}
           </div>
@@ -228,16 +242,16 @@ export default async function HomePage() {
         <section>
           <h2 className="mb-4 text-lg font-semibold text-fimo-navy md:text-xl">Dekat Kampus Populer</h2>
           <div className="flex flex-wrap gap-4">
-            {KAMPUS_POPULER.map((kampus) => (
+            {KAMPUS_POPULER.map((k) => (
               <Link
-                key={kampus}
-                href={`/kos?facility=${encodeURIComponent(kampus)}`}
+                key={k.label}
+                href={`/kos?kampus=${encodeURIComponent(k.label)}`}
                 className="flex flex-col items-center gap-2 rounded-xl border border-fimo-gray bg-white px-5 py-4 hover:border-fimo-blue"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-fimo-navy/5 text-fimo-navy">
                   <GraduationCap className="h-5 w-5" />
                 </div>
-                <span className="text-sm font-medium text-gray-700 md:text-base">{kampus}</span>
+                <span className="text-sm font-medium text-gray-700 md:text-base">{k.label}</span>
               </Link>
             ))}
           </div>
@@ -258,6 +272,7 @@ export default async function HomePage() {
                 slug={k.slug}
                 name={k.name}
                 city={k.city}
+                district={k.district}
                 priceMonthly={k.priceMonthly}
                 roomType={k.roomType}
                 facilities={k.facilities}
@@ -268,22 +283,25 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* PROMO BANNER */}
         <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="flex flex-col justify-center rounded-2xl bg-fimo-navy p-6 text-white md:col-span-1 md:p-8">
-            <p className="text-lg font-bold md:text-xl">Booking Kos Sekarang Lebih Hemat!</p>
-            <p className="mt-1 text-sm text-white/70 md:text-base">Diskon hingga 20% untuk booking 3 bulan ke atas.</p>
+            <p className="text-lg font-bold md:text-xl">
+              Capek Keliling, Ternyata Penuh?
+            </p>
+            <p className="mt-2 text-sm text-white/70 md:text-base">
+              Kos di FimoStay diperbarui rutin tiap minggu — kalau muncul di sini, artinya kamarnya masih ada. Nggak perlu survey ke tempat cuma buat kecewa.
+            </p>
             <Link
-              href="/promo"
+              href="/kos"
               className="mt-4 inline-flex w-fit items-center gap-1 rounded-full bg-fimo-blue px-4 py-2 text-sm font-medium text-fimo-navy md:text-base"
             >
-              Lihat Promo <ArrowRight className="h-4 w-4" />
+              Cari Kos Sekarang <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="grid grid-cols-1 gap-4 rounded-2xl border border-fimo-gray bg-white p-6 sm:grid-cols-3 md:col-span-2 md:p-8">
-            <Fitur icon={ShieldCheck} title="Aman & Terverifikasi" desc="Semua kos sudah diverifikasi tim kami" />
-            <Fitur icon={Clock} title="Mudah & Cepat" desc="Cari, bandingkan, dan booking dalam hitungan menit" />
-            <Fitur icon={Headphones} title="Dukungan 24/7" desc="Tim siap membantu kapan pun kamu butuh" />
+            <Fitur icon={ShieldCheck} title="Terverifikasi Tim" desc="Setiap kos sudah dicek langsung, bukan cuma foto dari owner" />
+            <Fitur icon={Clock} title="Selalu Update" desc="Kos yang sudah lama tidak diperbarui otomatis disembunyikan" />
+            <Fitur icon={Headphones} title="Bingung Pilih?" desc="Minta 3 rekomendasi dari tim, tinggal duduk manis" />
           </div>
         </section>
       </main>

@@ -20,7 +20,7 @@ export default async function PilihRekomendasiPage({
   })
   if (!trx) notFound()
 
-  const kosAktif = await prisma.kos.findMany({
+  const kosAktifRaw = await prisma.kos.findMany({
     where: { status: 'ACTIVE' },
     orderBy: { name: 'asc' },
     select: {
@@ -28,10 +28,32 @@ export default async function PilihRekomendasiPage({
       name: true,
       city: true,
       address: true,
-      priceMonthly: true,
-      roomType: true,
       facilities: true,
+      segments: {
+        select: {
+          kosType: { select: { name: true } },
+          roomTypes: {
+            where: { isActive: true },
+            select: { priceMonthly: true },
+          },
+        },
+      },
     },
+  })
+
+  // Ringkas: priceMonthly ambil harga TERMURAH antar semua roomType aktif,
+  // roomType (label jenis kos) ambil dari kosType segment pertama.
+  const kosAktif = kosAktifRaw.map((k) => {
+    const allPrices = k.segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
+    return {
+      id: k.id,
+      name: k.name,
+      city: k.city,
+      address: k.address,
+      facilities: k.facilities,
+      priceMonthly: allPrices.length > 0 ? Math.min(...allPrices) : 0,
+      roomType: k.segments[0]?.kosType.name ?? null,
+    }
   })
 
   const alreadySelectedIds = trx.recommendationItems.map((r) => r.kosId)

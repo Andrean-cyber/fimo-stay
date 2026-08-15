@@ -8,6 +8,7 @@ import { syncKosToIndex, kosIndex } from '@/lib/meilisearch'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { FormActionState } from '@/lib/action-state'
+import { normalizeCityName } from '@/lib/constants'
 
 // ⚠️ Dipakai di kedua transaksi (create & update) supaya `kos` yang
 // dikirim ke syncKosToIndex punya semua relasi yang dibutuhkan
@@ -43,6 +44,7 @@ function parseForm(formData: FormData) {
   return kosSchema.safeParse({
     name: formData.get('name'),
     description: formData.get('description') || undefined,
+    district: formData.get('district') || undefined,
     address: formData.get('address'),
     city: formData.get('city'),
     facilities: formData.getAll('facilities'),
@@ -86,6 +88,8 @@ export async function createKos(_prevState: FormActionState, formData: FormData)
 
   const parsed = parseForm(formData)
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  parsed.data.city = normalizeCityName(parsed.data.city)
 
   const segmentsResult = parseSegments(formData)
   if (!segmentsResult.success) return { error: segmentsResult.error }
@@ -161,6 +165,8 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
 
   const parsed = parseForm(formData)
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  parsed.data.city = normalizeCityName(parsed.data.city)
 
   const segmentsResult = parseSegments(formData)
   if (!segmentsResult.success) return { error: segmentsResult.error }

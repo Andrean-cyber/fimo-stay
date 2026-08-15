@@ -5,6 +5,18 @@ import { getReferenceCode } from '@/lib/constants'
 import Link from 'next/link'
 import { Search, Check, X, ArrowRight } from 'lucide-react'
 
+const STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Menunggu verifikasi',
+  VERIFIED: 'Terverifikasi',
+  REJECTED: 'Ditolak',
+}
+
+const STATUS_STYLE: Record<string, string> = {
+  PENDING: 'bg-amber-50 text-amber-700',
+  VERIFIED: 'bg-green-50 text-green-700',
+  REJECTED: 'bg-red-50 text-red-700',
+}
+
 export default async function TransaksiPage({
   searchParams,
 }: {
@@ -20,20 +32,26 @@ export default async function TransaksiPage({
     orderBy: { createdAt: 'asc' },
   })
 
-  const pending = q
-    ? pendingAll.filter((t) => {
-        const code = getReferenceCode(t.id)
-        return (
-          code.toUpperCase().includes(q.toUpperCase()) ||
-          t.searcher.phone.includes(q)
-        )
-      })
-    : pendingAll
-
   const verifiedNeedPick = await prisma.transaction.findMany({
     where: { status: 'VERIFIED', type: 'RECOMMENDATION', recommendationItems: { none: {} } },
     include: { searcher: true },
   })
+
+  // Pencarian riwayat — lintas SEMUA status, query terpisah dari antrian kerja.
+  // Dijalankan hanya kalau ada kata kunci.
+  const searchResults = q
+    ? await prisma.transaction.findMany({
+        where: {
+          OR: [
+            { id: { startsWith: q.toLowerCase() } },
+            { searcher: { phone: { contains: q } } },
+          ],
+        },
+        include: { searcher: true, targetKos: true },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      })
+    : []
 
   return (
     <div className="space-y-8">
@@ -64,33 +82,59 @@ export default async function TransaksiPage({
         </button>
       </form>
 
-      {/* Daftar pending */}
+      {/* Hasil pencarian riwayat — lintas semua status, cuma tampil kalau q diisi */}
+      {q && (
+        <div className="rounded-2xl border border-fimo-gray bg-white shadow-sm">
+          <div className="border-b border-fimo-gray px-4 py-3.5 sm:px-5 sm:py-4">
+            <h2 className="text-sm font-semibold text-gray-900 sm:text-base">
+              Hasil Pencarian Riwayat
+            </h2>
+            <p className="text-xs text-gray-500">
+              {searchResults.length > 0
+                ? `${searchResults.length} transaksi ditemukan untuk "${q}"`
+                : `Tidak ada transaksi ditemukan untuk "${q}"`}
+            </p>
+          </div>
+
+          {searchResults.length > 0 && (
+            <ul className="divide-y divide-fimo-gray">
+              {searchResults.map((t) => (
+                <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3.5 sm:px-5">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs text-gray-400">{getReferenceCode(t.id)}</span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLE[t.status] ?? 'bg-gray-100 text-gray-700'}`}
+                      >
+                        {STATUS_LABEL[t.status] ?? t.status}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 truncate text-sm text-gray-700 lg:text-[15px]">
+                      {t.searcher.phone}
+                      {t.targetKos && <span className="text-gray-400"> — {t.targetKos.name}</span>}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold text-fimo-navy lg:text-[15px]">
+                    Rp{t.amount.toLocaleString('id-ID')}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Daftar pending — antrian kerja, TIDAK dipengaruhi search */}
       <div className="space-y-3">
-        {pending.length === 0 ? (
+        {pendingAll.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-fimo-gray bg-white px-5 py-10 text-center">
-            {q ? (
-              <>
-                <div className="rounded-full bg-gray-100 p-3">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <p className="text-sm text-gray-500">
-                  Tidak ada transaksi pending yang cocok dengan &quot;{q}&quot;.
-                </p>
-                <p className="text-xs text-gray-400">
-                  Transaksi ini mungkin belum dibuat, sudah diverifikasi/ditolak sebelumnya, atau kode/nomor HP salah ketik.
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="rounded-full bg-fimo-blue/10 p-3">
-                  <Check className="h-5 w-5 text-fimo-blue" />
-                </div>
-                <p className="text-sm text-gray-500">Semua transaksi sudah diverifikasi.</p>
-              </>
-            )}
+            <div className="rounded-full bg-fimo-blue/10 p-3">
+              <Check className="h-5 w-5 text-fimo-blue" />
+            </div>
+            <p className="text-sm text-gray-500">Semua transaksi sudah diverifikasi.</p>
           </div>
         ) : (
-          pending.map((t) => (
+          pendingAll.map((t) => (
             <div key={t.id} className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-5">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
