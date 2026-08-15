@@ -6,6 +6,8 @@ import { PublicHeader } from '@/components/public-header'
 import { toPublicUrl } from '@/lib/r2'
 import { buildOwnerWhatsAppLink } from '@/lib/constants'
 
+export const dynamic = 'force-dynamic'
+
 export default async function RekomendasiPage({
   params,
 }: {

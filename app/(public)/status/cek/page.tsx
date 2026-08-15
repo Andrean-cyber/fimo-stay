@@ -1,172 +1,125 @@
-import { notFound } from 'next/navigation'
-import Image from 'next/image'
-import { MapPin, Phone, ShieldCheck, AlertTriangle } from 'lucide-react'
+import Link from 'next/link'
+import { Search, Clock, CheckCircle2, XCircle } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { PublicHeader } from '@/components/public-header'
-import { toPublicUrl } from '@/lib/r2'
-import { buildOwnerWhatsAppLink } from '@/lib/constants'
+import { normalizePhone } from '@/lib/constants'
 
-export default async function RekomendasiPage({
-  params,
+export const dynamic = 'force-dynamic'
+
+const STATUS_META: Record<
+  string,
+  { label: string; icon: typeof Clock; className: string }
+> = {
+  PENDING: { label: 'Menunggu verifikasi', icon: Clock, className: 'bg-amber-50 text-amber-700' },
+  VERIFIED: { label: 'Terverifikasi', icon: CheckCircle2, className: 'bg-green-50 text-green-700' },
+  REJECTED: { label: 'Ditolak', icon: XCircle, className: 'bg-red-50 text-red-700' },
+}
+
+const TYPE_LABEL: Record<string, string> = {
+  SELF_SEARCH: 'Buka Kontak Kos',
+  RECOMMENDATION: 'Rekomendasi 3 Kos',
+}
+
+export default async function CekStatusPage({
+  searchParams,
 }: {
-  params: Promise<{ token: string }>
+  searchParams: Promise<{ phone?: string }>
 }) {
-  const { token } = await params
+  const { phone = '' } = await searchParams
+  const hasSearched = phone.trim().length > 0
+  const normalized = hasSearched ? normalizePhone(phone) : null
 
-  const trx = await prisma.transaction.findUnique({
-    where: { recommendationToken: token },
-    include: {
-      recommendationItems: {
-        orderBy: { order: 'asc' },
+  const searcher = normalized
+    ? await prisma.searcher.findFirst({
+        where: { phone: normalized },
         include: {
-          kos: {
-            include: {
-              owner: true,
-              media: { orderBy: [{ isCover: 'desc' }, { order: 'asc' }] },
-              segments: {
-                include: {
-                  kosType: true,
-                  roomTypes: { where: { isActive: true }, orderBy: { order: 'asc' } },
-                },
-              },
-              nearby: { where: { isActive: true }, orderBy: { order: 'asc' } },
-            },
+          transactions: {
+            orderBy: { createdAt: 'desc' },
           },
         },
-      },
-    },
-  })
+      })
+    : null
 
-  // token tidak ditemukan / transaksi belum terverifikasi -> tidak boleh diakses
-  if (!trx || trx.type !== 'RECOMMENDATION' || trx.status !== 'VERIFIED') notFound()
+  const transactions = searcher?.transactions ?? []
 
   return (
     <div className="min-h-screen bg-white">
       <PublicHeader />
-      <main className="mx-auto max-w-3xl px-4 py-8 md:py-12">
-        <h1 className="text-xl font-bold text-fimo-navy md:text-2xl">Rekomendasi Kos Untukmu</h1>
-        {trx.preferenceNotes && (
-          <p className="mb-6 mt-1 text-sm text-gray-500 md:text-base">
-            Berdasarkan preferensi: {trx.preferenceNotes}
-          </p>
-        )}
-        {!trx.preferenceNotes && <div className="mb-6" />}
+      <main className="mx-auto max-w-xl px-4 py-8 md:py-12">
+        <h1 className="text-xl font-bold text-fimo-navy md:text-2xl">Cek Status Transaksi</h1>
+        <p className="mt-1 text-sm text-gray-500 md:text-base">
+          Masukkan nomor HP yang kamu pakai saat checkout untuk melihat riwayat transaksimu.
+        </p>
 
-        <div className="space-y-5">
-          {trx.recommendationItems.map((item, i) => {
-            const kos = item.kos
-            const cover = kos.media[0]
+        <form action="/status/cek" method="GET" className="mt-6 flex gap-2">
+          <input
+            type="tel"
+            name="phone"
+            defaultValue={phone}
+            placeholder="08xxxxxxxxxx"
+            required
+            className="flex-1 rounded-xl border border-fimo-gray px-4 py-2.5 text-sm outline-none focus:border-fimo-blue md:text-base"
+          />
+          <button
+            type="submit"
+            className="flex items-center gap-1.5 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-fimo-navy/90 md:px-5 md:text-base"
+          >
+            <Search className="h-4 w-4" />
+            Cari
+          </button>
+        </form>
 
-            const allRoomTypes = kos.segments.flatMap((s) =>
-              s.roomTypes.map((rt) => ({ ...rt, kosTypeName: s.kosType.name }))
-            )
-            const prices = allRoomTypes.map((rt) => rt.priceMonthly)
-            const priceMin = prices.length > 0 ? Math.min(...prices) : 0
-            const priceMax = prices.length > 0 ? Math.max(...prices) : 0
-
-            // jaminan: kalau semua room type yang tercatat availableRooms-nya 0
-            const hasAvailabilityData = allRoomTypes.some((rt) => rt.availableRooms != null)
-            const isFull =
-              hasAvailabilityData && allRoomTypes.every((rt) => (rt.availableRooms ?? 0) === 0)
-
-            return (
-              <div
-                key={item.id}
-                className="relative overflow-hidden rounded-2xl border border-fimo-gray bg-white shadow-sm"
-              >
-                <span className="absolute left-4 top-4 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-sm font-semibold text-fimo-navy shadow-sm">
-                  {i + 1}
-                </span>
-
-                <div className="relative aspect-[16/9] w-full bg-fimo-gray sm:aspect-[21/9]">
-                  {cover ? (
-                    <Image
-                      src={toPublicUrl(cover.url)}
-                      alt={kos.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">
-                      Belum ada foto
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4 md:p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <h2 className="text-base font-bold text-gray-900 md:text-lg">{kos.name}</h2>
-                    {prices.length > 0 && (
-                      <p className="text-base font-bold text-fimo-navy md:text-lg">
-                        {priceMin === priceMax
-                          ? `Rp${priceMin.toLocaleString('id-ID')}`
-                          : `Mulai Rp${priceMin.toLocaleString('id-ID')}`}
-                        <span className="text-xs font-normal text-gray-400 md:text-sm">/bulan</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <p className="mt-1 flex items-start gap-1.5 text-sm text-gray-600 md:text-base">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                    {kos.address}
-                  </p>
-
-                  {isFull && (
-                    <div className="mt-3 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700 md:text-sm">
-                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span>
-                        Kamar di kos ini sedang penuh. Tim kami menjamin akan mencarikan kos
-                        pengganti tanpa biaya tambahan — hubungi kami via WhatsApp.
-                      </span>
-                    </div>
-                  )}
-
-                  {kos.facilities.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {kos.facilities.map((f) => (
-                        <span
-                          key={f}
-                          className="rounded-full bg-fimo-blue/10 px-2.5 py-1 text-xs text-fimo-navy md:text-sm"
-                        >
-                          {f}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {kos.nearby.length > 0 && (
-                    <div className="mt-3 space-y-1">
-                      {kos.nearby.slice(0, 3).map((n) => (
-                        <p key={n.id} className="text-xs text-gray-500 md:text-sm">
-                          <span className="font-medium text-gray-700">{n.distanceText}</span> ke{' '}
-                          {n.name}
-                        </p>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="my-4 h-px bg-fimo-gray" />
-
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="flex items-center gap-1.5 text-sm text-gray-600 md:text-base">
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-fimo-navy" />
-                      Owner: <b>{kos.owner.name}</b>
-                    </p>
-                    <a
-                      href={buildOwnerWhatsAppLink(kos.owner.phone, kos.name)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 md:text-base"
-                    >
-                      <Phone className="h-4 w-4" />
-                      Hubungi Owner
-                    </a>
-                  </div>
-                </div>
+        {hasSearched && (
+          <div className="mt-8">
+            {transactions.length === 0 ? (
+              <div className="rounded-xl border border-fimo-gray bg-gray-50 p-5 text-center">
+                <p className="text-sm text-gray-600 md:text-base">
+                  Tidak ada transaksi yang ditemukan untuk nomor ini.
+                </p>
+                <p className="mt-1 text-xs text-gray-400 md:text-sm">
+                  Pastikan nomor HP yang kamu masukkan sama persis dengan yang dipakai saat checkout.
+                </p>
               </div>
-            )
-          })}
-        </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-400 md:text-sm">
+                  {transactions.length} transaksi ditemukan
+                </p>
+                {transactions.map((trx) => {
+                  const meta = STATUS_META[trx.status] ?? STATUS_META.PENDING
+                  const Icon = meta.icon
+                  return (
+                    <Link
+                      key={trx.id}
+                      href={`/status/${trx.id}`}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-fimo-gray bg-white p-4 transition-colors hover:border-fimo-blue/50 hover:bg-fimo-blue/5 md:p-5"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-gray-900 md:text-base">
+                          {TYPE_LABEL[trx.type] ?? trx.type}
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-500 md:text-sm">
+                          Rp{trx.amount.toLocaleString('id-ID')} ·{' '}
+                          {trx.createdAt.toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                      <span
+                        className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium md:text-sm ${meta.className}`}
+                      >
+                        <Icon className="h-3 w-3" />
+                        {meta.label}
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   )

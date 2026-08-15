@@ -9,6 +9,8 @@ import {
   buildOwnerWhatsAppLink,
 } from '@/lib/constants'
 
+export const dynamic = 'force-dynamic'
+
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Menunggu verifikasi tim',
   VERIFIED: 'Terverifikasi',
