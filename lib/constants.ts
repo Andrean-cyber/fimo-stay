@@ -28,3 +28,11 @@ export const PAYMENT_INFO = {
   accountNumber: '1234567890',
   accountName: 'FimoStay',
 }
+
+export function buildOwnerWhatsAppLink(phone: string, kosName: string) {
+  const normalized = phone.replace(/\D/g, '').replace(/^0/, '62')
+  const message = encodeURIComponent(
+    `Halo, saya dapat kontak Anda dari FimoStay. Saya tertarik dengan ${kosName}, apakah masih tersedia?`
+  )
+  return `https://wa.me/${normalized}?text=${message}`
+}

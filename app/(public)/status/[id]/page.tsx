@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation'
+import { MapPin, Phone, ShieldCheck } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { PublicHeader } from '@/components/public-header'
 import {
   PAYMENT_INFO,
   getReferenceCode,
   buildWhatsAppLink,
+  buildOwnerWhatsAppLink,
 } from '@/lib/constants'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -39,11 +41,7 @@ export default async function StatusPage({
 
   if (!trx) notFound()
 
-  const label =
-    trx.type === 'SELF_SEARCH'
-      ? 'Buka Kontak Kos'
-      : 'Rekomendasi 3 Kos'
-
+  const label = trx.type === 'SELF_SEARCH' ? 'Buka Kontak Kos' : 'Rekomendasi 3 Kos'
   const waLink = buildWhatsAppLink(trx.id, label, trx.amount)
 
   return (
@@ -118,13 +116,29 @@ export default async function StatusPage({
                 {trx.targetKos.name}
               </p>
 
-              <p className="mt-1 text-sm text-gray-700 md:text-base">
-                Owner: {trx.targetKos.owner.name}
+              <p className="mt-2 flex items-start gap-1.5 text-sm text-gray-700 md:text-base">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-fimo-navy" />
+                {trx.targetKos.address}
               </p>
 
+              <div className="my-4 h-px bg-fimo-gray/60" />
+
+              <p className="text-sm text-gray-700 md:text-base">
+                Owner: <b>{trx.targetKos.owner.name}</b>
+              </p>
               <p className="text-sm text-gray-700 md:text-base">
                 Kontak: {trx.targetKos.owner.phone}
               </p>
+
+              <a
+                href={buildOwnerWhatsAppLink(trx.targetKos.owner.phone, trx.targetKos.name)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 md:text-base"
+              >
+                <Phone className="h-4 w-4" />
+                Hubungi Owner via WhatsApp
+              </a>
             </div>
           )}
 
