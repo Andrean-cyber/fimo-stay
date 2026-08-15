@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { requireSuperadmin } from '@/utils/auth/require-admin'
 import { removeAdminAction } from './actions'
-import { ShieldCheck, UserPlus } from 'lucide-react'
+import { ShieldCheck, UserPlus, Mail } from 'lucide-react'
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button'
 import { TeamInviteForm } from './team-invite-form'
 import { RoleForm } from './role-form'
@@ -27,7 +27,49 @@ export default async function TeamPage() {
           </h2>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* ===== Mobile: card list (tampil < md) ===== */}
+        <div className="space-y-3 p-4 md:hidden">
+          {admins.map((a) => {
+            const isSuperadmin = a.role === 'SUPERADMIN'
+            const target = isSuperadmin ? 'STAFF' : 'SUPERADMIN'
+            return (
+              <div
+                key={a.id}
+                className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-base font-semibold text-gray-800">{a.fullName}</h3>
+                    <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+                      <Mail className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{a.email}</span>
+                    </div>
+                  </div>
+                  <span
+                    className={`shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                      isSuperadmin ? 'bg-fimo-navy/10 text-fimo-navy' : 'bg-fimo-gray text-gray-600'
+                    }`}
+                  >
+                    {isSuperadmin && <ShieldCheck className="h-3 w-3" />}
+                    {a.role}
+                  </span>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between border-t border-fimo-gray pt-3">
+                  <RoleForm adminId={a.id} target={target} isSuperadmin={isSuperadmin} />
+                  <ConfirmDeleteButton
+                    action={removeAdminAction.bind(null, a.id)}
+                    itemName={a.fullName}
+                    extraWarning="Dia tidak akan bisa login lagi."
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ===== Desktop: table (tampil >= md) ===== */}
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-sm lg:text-[15px]">
             <thead>
               <tr className="border-b border-fimo-gray text-left text-xs uppercase tracking-wide text-gray-500">
@@ -42,7 +84,7 @@ export default async function TeamPage() {
                 const isSuperadmin = a.role === 'SUPERADMIN'
                 const target = isSuperadmin ? 'STAFF' : 'SUPERADMIN'
                 return (
-                  <tr key={a.id}>
+                  <tr key={a.id} className="transition-colors hover:bg-fimo-gray/30">
                     <td className="whitespace-nowrap px-5 py-3.5 font-medium text-gray-800">{a.fullName}</td>
                     <td className="whitespace-nowrap px-5 py-3.5 text-gray-500">{a.email}</td>
                     <td className="whitespace-nowrap px-5 py-3.5">
@@ -56,14 +98,14 @@ export default async function TeamPage() {
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-5 py-3.5">
-                      <RoleForm adminId={a.id} target={target} isSuperadmin={isSuperadmin} />
-                    </td>
-                    <td>
-                      <ConfirmDeleteButton
-                        action={removeAdminAction.bind(null, a.id)}
-                        itemName={a.fullName}
-                        extraWarning="Dia tidak akan bisa login lagi."
-                      />
+                      <div className="flex items-center gap-3">
+                        <RoleForm adminId={a.id} target={target} isSuperadmin={isSuperadmin} />
+                        <ConfirmDeleteButton
+                          action={removeAdminAction.bind(null, a.id)}
+                          itemName={a.fullName}
+                          extraWarning="Dia tidak akan bisa login lagi."
+                        />
+                      </div>
                     </td>
                   </tr>
                 )
