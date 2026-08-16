@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
 import { verifyTransaction, rejectTransaction } from './actions'
 import { getReferenceCode } from '@/lib/constants'
+import { TransaksiLiveBanner } from '@/components/admin/transaksi-live-banner'
 import Link from 'next/link'
 import { Search, Check, X, ArrowRight } from 'lucide-react'
 
@@ -63,6 +64,8 @@ export default async function TransaksiPage({
             : 'Tidak ada transaksi yang menunggu verifikasi'}
         </p>
       </div>
+
+      <TransaksiLiveBanner />
 
       <form className="flex max-w-lg gap-2">
         <div className="relative flex-1">

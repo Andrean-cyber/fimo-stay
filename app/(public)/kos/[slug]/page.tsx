@@ -1,10 +1,54 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, ShieldCheck } from 'lucide-react'
+import {
+  ArrowLeft,
+  MapPin,
+  ShieldCheck,
+  Wind,
+  BedDouble,
+  DoorClosed,
+  BookOpen,
+  Bath,
+  Wifi,
+  Refrigerator,
+  Droplets,
+  Car,
+  Bike,
+  Shirt,
+  Camera,
+  Lock,
+  Sparkles,
+  type LucideIcon,
+} from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { PublicHeader } from '@/components/public-header'
 import { SelfSearchForm } from './self-search-form'
 import { PhotoGallery } from './photo-gallery'
+
+// Pemetaan nama fasilitas (bebas teks dari admin) ke icon yang masuk akal.
+// Dicocokkan pakai keyword, case-insensitive, supaya tetap jalan walau
+// nama fasilitas ditulis agak beda-beda oleh admin.
+const FACILITY_ICON_RULES: { keywords: string[]; icon: LucideIcon }[] = [
+  { keywords: ['ac'], icon: Wind },
+  { keywords: ['kasur', 'bed'], icon: BedDouble },
+  { keywords: ['lemari', 'wardrobe', 'closet'], icon: DoorClosed },
+  { keywords: ['meja belajar', 'meja'], icon: BookOpen },
+  { keywords: ['kamar mandi', 'mandi', 'toilet', 'wc'], icon: Bath },
+  { keywords: ['wifi', 'internet'], icon: Wifi },
+  { keywords: ['kulkas', 'fridge'], icon: Refrigerator },
+  { keywords: ['dispenser', 'air'], icon: Droplets },
+  { keywords: ['parkir mobil', 'mobil'], icon: Car },
+  { keywords: ['parkir motor', 'motor'], icon: Bike },
+  { keywords: ['jemuran', 'laundry', 'cuci'], icon: Shirt },
+  { keywords: ['cctv', 'kamera'], icon: Camera },
+  { keywords: ['security', 'satpam', 'kunci'], icon: Lock },
+]
+
+function getFacilityIcon(name: string): LucideIcon {
+  const lower = name.toLowerCase()
+  const match = FACILITY_ICON_RULES.find((rule) => rule.keywords.some((kw) => lower.includes(kw)))
+  return match?.icon ?? Sparkles
+}
 
 export default async function KosDetailPage({
   params,
@@ -118,6 +162,30 @@ export default async function KosDetailPage({
                                 {rt.availableRooms != null && (
                                   <p className="mt-0.5 text-xs text-gray-400 md:text-sm">{rt.availableRooms} kamar tersedia</p>
                                 )}
+                                {/* FIX: fasilitas kamar sebelumnya tidak pernah dirender.
+                                    Ditambah label & icon supaya jelas ini fasilitas kamar,
+                                    bukan fasilitas umum kos di bawah. */}
+                                {rt.facilities.length > 0 && (
+                                  <div className="mt-2">
+                                    <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-gray-400 md:text-[11px]">
+                                      Fasilitas kamar
+                                    </p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {rt.facilities.map((f) => {
+                                        const Icon = getFacilityIcon(f)
+                                        return (
+                                          <span
+                                            key={f}
+                                            className="flex items-center gap-1 rounded-full border border-fimo-blue/20 bg-fimo-blue/5 px-2 py-0.5 text-[11px] text-fimo-navy md:text-xs"
+                                          >
+                                            <Icon className="h-3 w-3 shrink-0 md:h-3.5 md:w-3.5" />
+                                            {f}
+                                          </span>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                               <p className="shrink-0 text-sm font-semibold text-fimo-navy md:text-base">
                                 Rp{rt.priceMonthly.toLocaleString('id-ID')}
@@ -136,14 +204,18 @@ export default async function KosDetailPage({
               <div className="mt-8">
                 <h2 className="mb-3 text-base font-semibold text-gray-900 md:text-lg">Fasilitas Umum</h2>
                 <div className="flex flex-wrap gap-2">
-                  {kos.facilities.map((f) => (
-                    <span
-                      key={f}
-                      className="rounded-full bg-fimo-blue/10 px-3 py-1.5 text-sm text-fimo-navy md:text-base"
-                    >
-                      {f}
-                    </span>
-                  ))}
+                  {kos.facilities.map((f) => {
+                    const Icon = getFacilityIcon(f)
+                    return (
+                      <span
+                        key={f}
+                        className="flex items-center gap-1.5 rounded-full bg-fimo-blue/10 px-3 py-1.5 text-sm text-fimo-navy md:text-base"
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        {f}
+                      </span>
+                    )
+                  })}
                 </div>
               </div>
             )}
