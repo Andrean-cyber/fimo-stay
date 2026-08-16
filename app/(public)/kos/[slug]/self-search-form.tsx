@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Phone, ShieldCheck } from 'lucide-react'
+import { PhoneIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
 import { createSelfSearchTransaction } from './actions'
 import { TurnstileWidget } from '@/components/turnstile-widget'
 
@@ -32,7 +32,7 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
       </p>
 
       <div className="relative">
-        <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <PhoneIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
           name="phone"
           type="tel"
@@ -57,7 +57,7 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
       </button>
 
       <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 md:text-sm">
-        <ShieldCheck className="h-3.5 w-3.5" />
+        <ShieldCheckIcon className="h-3.5 w-3.5" />
         Pembayaran diverifikasi manual oleh tim kami, prosesnya biasanya kurang dari 1x24 jam.
       </p>
     </form>

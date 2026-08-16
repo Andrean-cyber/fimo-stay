@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { ImageOff, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { PhotoIcon, XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 
 type Media = { id: string; url: string }
 
@@ -39,7 +39,7 @@ export function PhotoGallery({ media, name }: { media: Media[]; name: string }) 
   if (media.length === 0) {
     return (
       <div className="mb-6 flex h-48 flex-col items-center justify-center gap-2 rounded-2xl bg-fimo-gray/60 text-gray-400">
-        <ImageOff className="h-6 w-6" />
+        <PhotoIcon className="h-6 w-6" />
         <p className="text-sm md:text-base">Belum ada foto</p>
       </div>
     )
@@ -116,7 +116,7 @@ export function PhotoGallery({ media, name }: { media: Media[]; name: string }) 
             aria-label="Tutup"
             className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
           >
-            <X className="h-5 w-5" />
+            <XMarkIcon className="h-5 w-5" />
           </button>
 
           <button
@@ -128,7 +128,7 @@ export function PhotoGallery({ media, name }: { media: Media[]; name: string }) 
             aria-label="Foto sebelumnya"
             className="absolute left-2 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20 sm:left-4"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeftIcon className="h-6 w-6" />
           </button>
 
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -148,7 +148,7 @@ export function PhotoGallery({ media, name }: { media: Media[]; name: string }) 
             aria-label="Foto berikutnya"
             className="absolute right-2 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20 sm:right-4"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRightIcon className="h-6 w-6" />
           </button>
 
           <div className="absolute bottom-4 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white md:text-sm">

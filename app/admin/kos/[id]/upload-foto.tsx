@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { attachKosMedia } from '../actions'
 import { compressImage } from '@/lib/compress-image'
-import { Upload, Loader2 } from 'lucide-react'
+import { ArrowUpTrayIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export function UploadFoto({ kosId }: { kosId: string }) {
   const [status, setStatus] = useState<'idle' | 'compressing' | 'uploading'>('idle')
@@ -45,9 +45,9 @@ export function UploadFoto({ kosId }: { kosId: string }) {
       }`}
     >
       {uploading ? (
-        <Loader2 className="h-4 w-4 animate-spin lg:h-[18px] lg:w-[18px]" />
+        <ArrowPathIcon className="h-4 w-4 animate-spin lg:h-[18px] lg:w-[18px]" />
       ) : (
-        <Upload className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+        <ArrowUpTrayIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
       )}
       {label}
       <input

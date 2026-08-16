@@ -4,7 +4,7 @@ import { requireAdmin } from '@/utils/auth/require-admin'
 import { updateKos, hideKosManual } from '../../actions'
 import { KosForm } from '../../kos-form'
 import { UploadFoto } from '../upload-foto'
-import { ImageIcon } from 'lucide-react'
+import { PhotoIcon } from '@heroicons/react/24/outline'
 
 export default async function EditKosPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
@@ -45,7 +45,7 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
           </div>
         ) : (
           <div className="mb-4 flex flex-col items-center gap-2 rounded-xl border border-dashed border-fimo-gray py-8 text-center">
-            <ImageIcon className="h-5 w-5 text-gray-300" />
+            <PhotoIcon className="h-5 w-5 text-gray-300" />
             <p className="text-xs text-gray-400 sm:text-sm">Belum ada foto</p>
           </div>
         )}

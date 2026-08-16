@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CheckCircle2, MessageCircle } from 'lucide-react'
+import { CheckCircleIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { PAYMENT_INFO, getReferenceCode, buildWhatsAppLink } from '@/lib/constants'
 
@@ -93,7 +93,7 @@ export function StatusView({ initialTrx }: { initialTrx: Trx }) {
       {trx.status === 'VERIFIED' && (
         <div className="rounded-xl border border-fimo-gray bg-green-50 p-4 md:p-5">
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+            <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
             <div>
               <p className="text-sm font-semibold text-gray-900 md:text-base">Pembayaran terverifikasi</p>
               <p className="mt-1 text-sm text-gray-700 md:text-base">
@@ -105,7 +105,7 @@ export function StatusView({ initialTrx }: { initialTrx: Trx }) {
           </div>
 
           <a href={waLink} target="_blank" rel="noopener noreferrer" className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 md:text-base">
-            <MessageCircle className="h-4 w-4" />
+            <ChatBubbleLeftRightIcon className="h-4 w-4" />
             Buka Chat WhatsApp
           </a>
 

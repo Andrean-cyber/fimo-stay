@@ -5,7 +5,17 @@ import { KosCard } from '@/components/kos-card'
 import { SearchForm } from '@/app/(public)/kos/search-form'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShieldCheck, RefreshCw, Headphones, ArrowRight, MapPin, GraduationCap, Search, Sparkles, CheckCircle2 } from 'lucide-react'
+import {
+  ShieldCheckIcon,
+  ArrowPathIcon,
+  LifebuoyIcon,
+  ArrowRightIcon,
+  MapPinIcon,
+  AcademicCapIcon,
+  MagnifyingGlassIcon,
+  SparklesIcon,
+  CheckCircleIcon,
+} from '@heroicons/react/24/outline'
 import type { Prisma } from '@prisma/client'
 import { toPublicUrl } from '@/lib/r2'
 import { KAMPUS_POPULER } from '@/lib/campuses'
@@ -72,7 +82,7 @@ export default async function HomePage() {
             <div className="relative z-10 mx-auto flex min-h-[400px] max-w-6xl flex-col px-4 pb-4 pt-8 sm:min-h-0 sm:block sm:px-8 sm:pb-8 sm:pt-24 lg:px-12 lg:pb-10 lg:pt-24 xl:px-14">
               <div className="flex flex-1 flex-col items-start justify-end sm:flex-none sm:justify-start">
                 <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/85 px-3 py-1.5 text-[11px] font-semibold text-fimo-navy shadow-sm backdrop-blur-md sm:mb-5 sm:gap-2 sm:px-4 sm:py-2 sm:text-xs">
-                  <Sparkles className="h-3.5 w-3.5 text-fimo-blue sm:h-4 sm:w-4" />
+                  <SparklesIcon className="h-3.5 w-3.5 text-fimo-blue sm:h-4 sm:w-4" />
                   <span>Kos pilihan yang selalu diperbarui</span>
                 </div>
                 <h1 className="max-w-[720px] text-[24px] font-extrabold leading-[1.15] tracking-[-0.02em] text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)] sm:text-3xl sm:leading-[1.05] sm:tracking-[-0.03em] md:text-4xl lg:text-5xl xl:text-6xl">
@@ -82,9 +92,9 @@ export default async function HomePage() {
                   Cari kos yang masih tersedia, lokasi yang sesuai, dan harga yang cocok dengan kebutuhanmu. Semua lebih mudah dalam satu tempat.
                 </p>
                 <div className="hidden sm:mt-6 sm:flex sm:flex-wrap sm:gap-2.5">
-                  <HeroBadge icon={CheckCircle2} text="Data kos aktif" />
-                  <HeroBadge icon={ShieldCheck} text="Diverifikasi tim" />
-                  <HeroBadge icon={RefreshCw} text="Update rutin" />
+                  <HeroBadge icon={CheckCircleIcon} text="Data kos aktif" />
+                  <HeroBadge icon={ShieldCheckIcon} text="Diverifikasi tim" />
+                  <HeroBadge icon={ArrowPathIcon} text="Update rutin" />
                 </div>
               </div>
               <div className="relative z-30 mt-4 w-full sm:mt-6 lg:mt-10">
@@ -95,7 +105,7 @@ export default async function HomePage() {
                       <p className="mt-0.5 text-[10px] text-white sm:text-xs">Pilih lokasi, kampus, atau kebutuhanmu</p>
                     </div>
                     <div className="hidden items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-fimo-navy sm:flex">
-                      <Search className="h-3.5 w-3.5" />
+                      <MagnifyingGlassIcon className="h-3.5 w-3.5" />
                       Cari sekarang
                     </div>
                   </div>
@@ -116,7 +126,7 @@ export default async function HomePage() {
             {KAMPUS_POPULER.map((k) => (
               <Link key={k.label} href={`/kos?kampus=${encodeURIComponent(k.label)}`} className="group flex items-center gap-2.5 rounded-xl border border-fimo-gray bg-white p-3 transition hover:-translate-y-1 hover:border-fimo-blue/30 hover:shadow-md sm:gap-3 sm:rounded-2xl sm:p-4">
                 <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-fimo-navy/5 text-fimo-navy transition group-hover:bg-fimo-blue/10 sm:h-10 sm:w-10 sm:rounded-xl">
-                  {k.logoUrl ? <Image src={k.logoUrl} alt={k.label} fill className="object-contain p-1.5" sizes="40px" /> : <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5" />}
+                  {k.logoUrl ? <Image src={k.logoUrl} alt={k.label} fill className="object-contain p-1.5" sizes="40px" /> : <AcademicCapIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </div>
                 <span className="text-[12px] font-semibold text-gray-700 sm:text-sm">{k.label}</span>
               </Link>
@@ -132,7 +142,7 @@ export default async function HomePage() {
               <h2 className="text-lg font-bold text-fimo-navy sm:text-2xl sm:text-3xl">Rekomendasi Kos</h2>
             </div>
             <Link href="/kos" className="flex items-center gap-1 text-xs font-semibold text-fimo-navy hover:text-fimo-blue sm:text-sm">
-              Lihat semua<ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              Lihat semua<ArrowRightIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
@@ -150,7 +160,7 @@ export default async function HomePage() {
               <h2 className="text-lg font-bold text-fimo-navy sm:text-2xl sm:text-3xl">Lokasi Populer</h2>
             </div>
             <Link href="/kos" className="flex items-center gap-1 text-xs font-semibold text-fimo-navy hover:text-fimo-blue sm:text-sm">
-              Lihat semua<ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              Lihat semua<ArrowRightIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
@@ -162,12 +172,12 @@ export default async function HomePage() {
                     <Image src={imageUrl} alt={l.display} fill className="object-cover transition duration-300 group-hover:scale-105" sizes="(min-width: 1024px) 16vw, (min-width: 640px) 33vw, 50vw" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-fimo-blue/10">
-                      <MapPin className="h-7 w-7 text-fimo-blue/50 sm:h-9 sm:w-9" />
+                      <MapPinIcon className="h-7 w-7 text-fimo-blue/50 sm:h-9 sm:w-9" />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 flex items-center gap-1 p-2.5 sm:p-3.5">
-                    <MapPin className="h-3.5 w-3.5 shrink-0 text-white sm:h-4 sm:w-4" />
+                    <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-white sm:h-4 sm:w-4" />
                     <span className="truncate text-xs font-semibold text-white sm:text-sm">{l.display}</span>
                   </div>
                 </Link>
@@ -184,7 +194,7 @@ export default async function HomePage() {
               <h2 className="text-lg font-bold text-fimo-navy sm:text-2xl sm:text-3xl">Pilih Jenis Kos</h2>
             </div>
             <Link href="/kos" className="hidden items-center gap-1 text-sm font-semibold text-fimo-navy hover:text-fimo-blue sm:flex">
-              Lihat semua<ArrowRight className="h-4 w-4" />
+              Lihat semua<ArrowRightIcon className="h-4 w-4" />
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
@@ -192,7 +202,7 @@ export default async function HomePage() {
               <Link key={k.value} href={`/kos?kategori=${encodeURIComponent(k.value)}`} className="group rounded-lg border border-fimo-gray bg-white p-2.5 transition hover:-translate-y-1 hover:border-fimo-blue/30 hover:shadow-lg sm:rounded-2xl sm:p-5">
                 <div className="flex items-center gap-2.5 sm:hidden">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-fimo-blue/10 text-fimo-navy">
-                    <Search className="h-4 w-4" />
+                    <MagnifyingGlassIcon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[12.5px] font-semibold text-gray-800 group-hover:text-fimo-navy">{k.label}</p>
@@ -201,7 +211,7 @@ export default async function HomePage() {
                 </div>
                 <div className="hidden sm:block">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fimo-blue/10 text-fimo-navy">
-                    <Search className="h-5 w-5" />
+                    <MagnifyingGlassIcon className="h-5 w-5" />
                   </div>
                   <p className="mt-4 text-base font-semibold text-gray-800 group-hover:text-fimo-navy">{k.label}</p>
                   <p className="mt-1 text-xs text-gray-500">Lihat kos tersedia</p>
@@ -227,7 +237,7 @@ export default async function HomePage() {
                 </p>
               </div>
               <Link href="/kos" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-xs font-bold text-fimo-navy transition hover:-translate-y-0.5 hover:bg-gray-100 sm:px-6 sm:py-3.5 sm:text-sm">
-                Cari Kos Sekarang<ArrowRight className="h-4 w-4" />
+                Cari Kos Sekarang<ArrowRightIcon className="h-4 w-4" />
               </Link>
             </div>
           </div>
@@ -236,9 +246,9 @@ export default async function HomePage() {
         {/* QUICK BENEFITS */}
         <section className="mx-auto max-w-6xl px-4 pb-7 sm:px-6 sm:pb-10 lg:pb-14">
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-5">
-            <BenefitCard icon={ShieldCheck} title="Sudah Dicek Tim" description="Kos yang tampil telah melalui proses pengecekan sebelum dipublikasikan." />
-            <BenefitCard icon={RefreshCw} title="Data Lebih Fresh" description="Informasi kos diperbarui secara rutin agar kamu tidak membuang waktu." />
-            <BenefitCard icon={Headphones} title="Bingung Memilih?" description="Minta rekomendasi kos yang sesuai dengan kebutuhanmu." />
+            <BenefitCard icon={ShieldCheckIcon} title="Sudah Dicek Tim" description="Kos yang tampil telah melalui proses pengecekan sebelum dipublikasikan." />
+            <BenefitCard icon={ArrowPathIcon} title="Data Lebih Fresh" description="Informasi kos diperbarui secara rutin agar kamu tidak membuang waktu." />
+            <BenefitCard icon={LifebuoyIcon} title="Bingung Memilih?" description="Minta rekomendasi kos yang sesuai dengan kebutuhanmu." />
           </div>
         </section>
       </main>

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createRecommendationTransaction } from './actions'
 import { TurnstileWidget } from '@/components/turnstile-widget'
 import { FACILITIES } from '@/lib/constants'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { ExclamationCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 const inputClass =
   'w-full rounded-xl border border-fimo-gray p-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-fimo-blue focus:outline-none focus:ring-2 focus:ring-fimo-blue/30 md:p-3 md:text-base'
@@ -106,7 +106,7 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
 
       {error && (
         <p className="flex items-center gap-1.5 text-sm text-red-500">
-          <AlertCircle className="h-4 w-4 shrink-0" />
+          <ExclamationCircleIcon className="h-4 w-4 shrink-0" />
           {error}
         </p>
       )}
@@ -116,7 +116,7 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
         disabled={submitting}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-fimo-navy/90 disabled:cursor-not-allowed disabled:opacity-50 md:py-3 md:text-base"
       >
-        {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+        {submitting && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
         {submitting ? 'Memproses...' : 'Lanjutkan — Rp100.000 (3 rekomendasi kos)'}
       </button>
     </form>

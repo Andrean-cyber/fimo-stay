@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export function SyncSearchButton() {
   const [loading, setLoading] = useState(false)
@@ -29,7 +29,7 @@ export function SyncSearchButton() {
         disabled={loading}
         className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-fimo-gray px-4 py-2.5 text-xs font-medium text-gray-600 transition-colors hover:bg-fimo-gray/40 disabled:opacity-50 sm:w-auto sm:text-sm lg:px-5 lg:py-3 lg:text-[15px]"
       >
-        <RefreshCw className={`h-4 w-4 lg:h-[18px] lg:w-[18px] ${loading ? 'animate-spin' : ''}`} />
+        <ArrowPathIcon className={`h-4 w-4 lg:h-[18px] lg:w-[18px] ${loading ? 'animate-spin' : ''}`} />
         {loading ? 'Menyinkronkan...' : 'Sinkronkan ke Pencarian'}
       </button>
       {message && (

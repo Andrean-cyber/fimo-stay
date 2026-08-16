@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react'
 import { Modal } from '@/components/modal'
-import { AlertTriangle } from 'lucide-react'
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import type { FormActionState } from '@/lib/action-state'
 
 const inputClass =
@@ -44,7 +44,7 @@ export function OwnerForm({
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Tidak Bisa Disimpan">
         <div className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 p-3">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-red-500" />
+          <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-red-500" />
           <p className="text-sm text-red-700">{generalError}</p>
         </div>
         <button onClick={() => setModalOpen(false)} className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white hover:bg-fimo-navy/90">

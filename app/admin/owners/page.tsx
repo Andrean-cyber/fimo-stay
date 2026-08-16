@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
 import Link from 'next/link'
-import { Plus, Users, Phone } from 'lucide-react'
+import { PlusIcon, UsersIcon, PhoneIcon } from '@heroicons/react/24/outline'
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button'
 import { deleteOwner } from './actions'
 import { EmptyState } from '@/components/empty-state'
@@ -21,7 +21,7 @@ export default async function OwnersPage() {
           href="/admin/owners/new"
           className="flex items-center gap-1.5 rounded-xl bg-fimo-navy px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-fimo-navy/90 sm:text-sm lg:px-5 lg:py-3 lg:text-[15px]"
         >
-          <Plus className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+          <PlusIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
           Tambah Owner
         </Link>
       </div>
@@ -29,7 +29,7 @@ export default async function OwnersPage() {
       {owners.length === 0 ? (
         <div className="rounded-2xl border border-fimo-gray bg-white shadow-sm">
           <EmptyState
-            icon={Users}
+            icon={UsersIcon}
             title="Belum ada owner"
             description="Tambahkan owner sebelum bisa menambahkan kos."
             actionLabel="+ Tambah Owner"
@@ -49,7 +49,7 @@ export default async function OwnersPage() {
                   <div className="min-w-0">
                     <h3 className="truncate text-base font-semibold text-gray-800">{o.name}</h3>
                     <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
-                      <Phone className="h-3 w-3 shrink-0" />
+                      <PhoneIcon className="h-3 w-3 shrink-0" />
                       <span className="truncate">{o.phone}</span>
                     </div>
                   </div>

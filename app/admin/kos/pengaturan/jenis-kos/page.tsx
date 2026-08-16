@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
-import { Plus, Tag } from "lucide-react"
+import { PlusIcon, TagIcon } from "@heroicons/react/24/outline"
 import {
   getKosTypes,
   createKosType,
@@ -97,7 +97,7 @@ export default function JenisKosPage() {
           disabled={isPending || !newName.trim()}
           className="flex items-center justify-center gap-1.5 rounded-lg bg-[#10367D] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#10367D]/90 disabled:opacity-50 lg:py-3 lg:text-[15px]"
         >
-          <Plus className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+          <PlusIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
           Tambah
         </button>
       </div>
@@ -116,7 +116,7 @@ export default function JenisKosPage() {
         </div>
       ) : kosTypes.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-[#EBEBEB] py-10 text-center">
-          <Tag className="h-6 w-6 text-gray-400" />
+          <TagIcon className="h-6 w-6 text-gray-400" />
           <p className="text-sm font-medium text-gray-600">Belum ada jenis kos</p>
           <p className="text-xs text-gray-400">Tambahkan jenis kos pertama di atas.</p>
         </div>

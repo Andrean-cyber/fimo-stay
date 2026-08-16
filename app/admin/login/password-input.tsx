@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 export function PasswordInput() {
   const [show, setShow] = useState(false)
@@ -24,7 +24,7 @@ export function PasswordInput() {
         aria-label={show ? 'Sembunyikan password' : 'Tampilkan password'}
         tabIndex={-1}
       >
-        {show ? <EyeOff className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> : <Eye className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />}
+        {show ? <EyeSlashIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> : <EyeIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />}
       </button>
     </div>
   )

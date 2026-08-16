@@ -2,15 +2,15 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
 import Link from 'next/link'
 import {
-  Building2,
-  EyeOff,
-  Ban,
-  Users,
-  Clock,
-  ListChecks,
-  ArrowRight,
-  AlertTriangle,
-} from 'lucide-react'
+  BuildingOffice2Icon,
+  EyeSlashIcon,
+  NoSymbolIcon,
+  UsersIcon,
+  ClockIcon,
+  ClipboardDocumentCheckIcon,
+  ArrowRightIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline'
 
 export default async function AdminDashboardPage() {
   const admin = await requireAdmin()
@@ -60,33 +60,33 @@ export default async function AdminDashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6 lg:gap-5">
-        <StatCard label="Kos Aktif" value={totalKosAktif} href="/admin/kos" icon={Building2} />
+        <StatCard label="Kos Aktif" value={totalKosAktif} href="/admin/kos" icon={BuildingOffice2Icon} />
         <StatCard
           label="Disembunyikan (Stale)"
           value={totalKosStale}
           href="/admin/kos"
-          icon={Clock}
+          icon={ClockIcon}
           tone={totalKosStale > 0 ? 'warning' : 'default'}
         />
         <StatCard
           label="Disembunyikan (Manual)"
           value={totalKosHiddenManual}
           href="/admin/kos"
-          icon={EyeOff}
+          icon={EyeSlashIcon}
         />
-        <StatCard label="Total Owner" value={totalOwner} href="/admin/owners" icon={Users} />
+        <StatCard label="Total Owner" value={totalOwner} href="/admin/owners" icon={UsersIcon} />
         <StatCard
           label="Transaksi Pending"
           value={transaksiPending}
           href="/admin/transaksi"
-          icon={Ban}
+          icon={NoSymbolIcon}
           tone={transaksiPending > 0 ? 'warning' : 'default'}
         />
         <StatCard
           label="Perlu Dipilihkan Rekomendasi"
           value={perluDipilihkanRekomendasi}
           href="/admin/transaksi"
-          icon={ListChecks}
+          icon={ClipboardDocumentCheckIcon}
           tone={perluDipilihkanRekomendasi > 0 ? 'warning' : 'default'}
         />
       </div>
@@ -107,14 +107,14 @@ export default async function AdminDashboardPage() {
             className="flex shrink-0 items-center gap-1 self-start text-xs font-medium text-fimo-navy hover:text-fimo-blue sm:self-auto sm:text-sm"
           >
             Lihat semua
-            <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <ArrowRightIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Link>
         </div>
 
         {kosAkanKedaluwarsa.length === 0 ? (
           <div className="flex flex-col items-center gap-2 px-5 py-10 text-center">
             <div className="rounded-full bg-fimo-blue/10 p-3">
-              <Clock className="h-5 w-5 text-fimo-blue" />
+              <ClockIcon className="h-5 w-5 text-fimo-blue" />
             </div>
             <p className="text-xs text-gray-500 sm:text-sm">
               Semua kos aktif sudah diperbarui tepat waktu. Tidak ada yang perlu ditindaklanjuti.
@@ -139,7 +139,7 @@ export default async function AdminDashboardPage() {
                         urgent ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
                       }`}
                     >
-                      {urgent && <AlertTriangle className="h-3 w-3" />}
+                      {urgent && <ExclamationTriangleIcon className="h-3 w-3" />}
                       {hari} hari sejak update terakhir
                     </span>
                   </Link>

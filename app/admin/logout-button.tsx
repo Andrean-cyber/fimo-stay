@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { LogOut } from 'lucide-react'
+import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 
 export function LogoutButton() {
   const router = useRouter()
@@ -19,7 +19,7 @@ export function LogoutButton() {
       onClick={handleLogout}
       className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-red-300 transition-colors hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/40 sm:text-sm"
     >
-      <LogOut className="h-3.5 w-3.5" />
+      <ArrowRightOnRectangleIcon className="h-3.5 w-3.5" />
       Logout
     </button>
   )

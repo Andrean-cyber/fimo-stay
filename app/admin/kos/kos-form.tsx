@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react'
 import { Modal } from '@/components/modal'
-import { AlertTriangle, Plus, Trash2 } from 'lucide-react'
+import { ExclamationTriangleIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { FACILITIES, ROOM_FACILITIES } from '@/lib/constants'
 import {
   Field,
@@ -261,7 +261,7 @@ export function KosForm({
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-800 lg:text-base">Segment & Tipe Kamar</h3>
             <button type="button" onClick={addSegment} className="flex items-center gap-1 text-sm font-medium text-fimo-navy hover:underline lg:text-[15px]">
-              <Plus className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> Tambah Segment
+              <PlusIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> Tambah Segment
             </button>
           </div>
 
@@ -288,7 +288,7 @@ export function KosForm({
                       className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 lg:w-11`}
                       aria-label="Hapus segment"
                     >
-                      <Trash2 className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                      <TrashIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                     </button>
                   </div>
                 )}
@@ -321,7 +321,7 @@ export function KosForm({
                           className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 lg:w-11`}
                           aria-label="Hapus tipe kamar"
                         >
-                          <Trash2 className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                          <TrashIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                         </button>
                       </div>
                     )}
@@ -354,7 +354,7 @@ export function KosForm({
                 </div>
                 ))}
                 <button type="button" onClick={() => addRoomType(segment.key)} className="flex items-center gap-1 text-xs font-medium text-fimo-navy hover:underline sm:text-xs lg:text-sm">
-                  <Plus className="h-3.5 w-3.5 lg:h-4 lg:w-4" /> Tambah Tipe Kamar
+                  <PlusIcon className="h-3.5 w-3.5 lg:h-4 lg:w-4" /> Tambah Tipe Kamar
                 </button>
               </div>
             </div>
@@ -365,7 +365,7 @@ export function KosForm({
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-800 lg:text-base">Lokasi Terdekat (Nearby)</h3>
             <button type="button" onClick={addNearby} className="flex items-center gap-1 text-sm font-medium text-fimo-navy hover:underline lg:text-[15px]">
-              <Plus className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> Tambah Nearby
+              <PlusIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> Tambah Nearby
             </button>
           </div>
 
@@ -409,7 +409,7 @@ export function KosForm({
                   className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 lg:w-11`}
                   aria-label="Hapus nearby"
                 >
-                  <Trash2 className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                  <TrashIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                 </button>
               </div>
             </div>
@@ -423,7 +423,7 @@ export function KosForm({
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Tidak Bisa Disimpan">
         <div className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 p-3">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-red-500" />
+          <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-red-500" />
           <p className="text-sm text-red-700">{generalError}</p>
         </div>
         <button onClick={() => setModalOpen(false)} className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white hover:bg-fimo-navy/90">

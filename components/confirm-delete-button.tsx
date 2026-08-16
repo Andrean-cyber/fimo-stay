@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Trash2, AlertTriangle } from 'lucide-react'
+import { TrashIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { Modal } from './modal'
 
 export function ConfirmDeleteButton({
@@ -37,14 +37,14 @@ export function ConfirmDeleteButton({
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 lg:text-[15px]"
       >
-        <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+        <TrashIcon className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
         {label}
       </button>
 
       <Modal open={open} onClose={() => !isPending && setOpen(false)} title="Hapus Data">
-      <div className="mb-4 flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 p-3">
-        <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
-        <p className="min-w-0 text-sm text-amber-800 lg:text-[15px]">
+        <div className="mb-4 flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 p-3">
+          <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-amber-500" />
+          <p className="min-w-0 text-sm text-amber-800 lg:text-[15px]">
             Yakin ingin menghapus <b>{itemName}</b>? Tindakan ini tidak bisa dibatalkan.
             {extraWarning && <span className="block mt-1">{extraWarning}</span>}
           </p>

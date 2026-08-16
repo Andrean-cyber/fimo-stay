@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Search, X } from 'lucide-react'
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 export function SearchForm({ defaultQuery = '' }: { defaultQuery?: string }) {
   const router = useRouter()
@@ -21,7 +21,7 @@ export function SearchForm({ defaultQuery = '' }: { defaultQuery?: string }) {
   return (
     <form onSubmit={handleSubmit} className="flex max-w-lg gap-2">
       <div className="relative flex-1">
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <MagnifyingGlassIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -35,7 +35,7 @@ export function SearchForm({ defaultQuery = '' }: { defaultQuery?: string }) {
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-fimo-navy"
             aria-label="Hapus pencarian"
           >
-            <X className="h-4 w-4" />
+            <XMarkIcon className="h-4 w-4" />
           </button>
         )}
       </div>

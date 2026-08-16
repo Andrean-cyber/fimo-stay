@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle2, AlertTriangle, MapPin, Tag } from 'lucide-react'
+import { CheckCircleIcon, ExclamationTriangleIcon, MapPinIcon, TagIcon } from '@heroicons/react/24/outline'
 import { saveRecommendations } from '../../actions'
 
 type KosOption = {
@@ -46,7 +46,7 @@ export function PilihRekomendasiForm({
     return (
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-green-200 bg-green-50 px-5 py-10 text-center">
         <div className="rounded-full bg-green-100 p-3">
-          <CheckCircle2 className="h-6 w-6 text-green-600" />
+          <CheckCircleIcon className="h-6 w-6 text-green-600" />
         </div>
         <p className="text-sm font-medium text-green-800 sm:text-base">Rekomendasi berhasil disimpan.</p>
         <Link
@@ -63,7 +63,7 @@ export function PilihRekomendasiForm({
     <form action={formAction} className="space-y-4">
       {state?.error && (
         <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-red-500" />
+          <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-red-500" />
           <p className="text-sm text-red-700">{state.error}</p>
         </div>
       )}
@@ -94,7 +94,7 @@ export function PilihRekomendasiForm({
               />
               <p className="pr-6 text-sm font-medium text-gray-900 sm:text-base">{k.name}</p>
               <p className="flex items-center gap-1 text-xs text-gray-500">
-                <MapPin className="h-3 w-3 shrink-0" />
+                <MapPinIcon className="h-3 w-3 shrink-0" />
                 <span className="truncate">
                   {k.address}, {k.city}
                 </span>
@@ -109,7 +109,7 @@ export function PilihRekomendasiForm({
               </div>
               {k.facilities.length > 0 && (
                 <p className="flex items-start gap-1 text-xs text-gray-400">
-                  <Tag className="mt-0.5 h-3 w-3 shrink-0" />
+                  <TagIcon className="mt-0.5 h-3 w-3 shrink-0" />
                   <span className="line-clamp-1">{k.facilities.join(', ')}</span>
                 </p>
               )}

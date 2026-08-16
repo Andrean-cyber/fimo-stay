@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { MapPin, Phone, ShieldCheck, AlertTriangle } from 'lucide-react'
+import { MapPinIcon, PhoneIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { prisma } from '@/lib/prisma'
 import { PublicHeader } from '@/components/public-header'
 import { toPublicUrl } from '@/lib/r2'
@@ -109,13 +109,13 @@ export default async function RekomendasiPage({
                   </div>
 
                   <p className="mt-1 flex items-start gap-1.5 text-sm text-gray-600 md:text-base">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                    <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0" />
                     {kos.address}
                   </p>
 
                   {isFull && (
                     <div className="mt-3 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700 md:text-sm">
-                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>
                         Kamar di kos ini sedang penuh. Tim kami menjamin akan mencarikan kos
                         pengganti tanpa biaya tambahan — hubungi kami via WhatsApp.
@@ -151,7 +151,7 @@ export default async function RekomendasiPage({
 
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <p className="flex items-center gap-1.5 text-sm text-gray-600 md:text-base">
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-fimo-navy" />
+                      <ShieldCheckIcon className="h-4 w-4 shrink-0 text-fimo-navy" />
                       Owner: <b>{kos.owner.name}</b>
                     </p>
                     <a
@@ -160,7 +160,7 @@ export default async function RekomendasiPage({
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 md:text-base"
                     >
-                      <Phone className="h-4 w-4" />
+                      <PhoneIcon className="h-4 w-4" />
                       Hubungi Owner
                     </a>
                   </div>

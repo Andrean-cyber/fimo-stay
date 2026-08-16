@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react'
 import { Modal } from '@/components/modal'
-import { AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { inviteAdmin } from './actions'
 
 export function TeamInviteForm() {
@@ -50,14 +50,14 @@ export function TeamInviteForm() {
         </button>
         {state?.success && (
           <p className="flex items-center gap-1 text-sm text-green-600 lg:text-[15px]">
-            <CheckCircle2 className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> Undangan berhasil dikirim.
+            <CheckCircleIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" /> Undangan berhasil dikirim.
           </p>
         )}
       </form>
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Gagal Mengirim Undangan">
         <div className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 p-3">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-red-500" />
+          <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-red-500" />
           <p className="min-w-0 text-sm text-red-700">{state?.error}</p>
         </div>
         <button onClick={() => setModalOpen(false)} className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white hover:bg-fimo-navy/90">

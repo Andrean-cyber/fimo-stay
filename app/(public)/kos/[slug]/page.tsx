@@ -1,53 +1,55 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft,
-  MapPin,
-  ShieldCheck,
-  Wind,
-  BedDouble,
-  DoorClosed,
-  BookOpen,
-  Bath,
-  Wifi,
-  Refrigerator,
-  Droplets,
-  Car,
-  Bike,
-  Shirt,
-  Camera,
-  Lock,
-  Sparkles,
-  type LucideIcon,
-} from 'lucide-react'
+  ArrowLeftIcon,
+  MapPinIcon,
+  ShieldCheckIcon,
+  CloudIcon,
+  MoonIcon,
+  ArchiveBoxIcon,
+  BookOpenIcon,
+  HomeModernIcon,
+  WifiIcon,
+  CubeIcon,
+  BeakerIcon,
+  TruckIcon,
+  RocketLaunchIcon,
+  ArrowPathIcon,
+  CameraIcon,
+  LockClosedIcon,
+  SparklesIcon,
+} from '@heroicons/react/24/outline'
+import type { ComponentType, SVGProps } from 'react'
 import { prisma } from '@/lib/prisma'
 import { PublicHeader } from '@/components/public-header'
 import { SelfSearchForm } from './self-search-form'
 import { PhotoGallery } from './photo-gallery'
 
+type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>
+
 // Pemetaan nama fasilitas (bebas teks dari admin) ke icon yang masuk akal.
 // Dicocokkan pakai keyword, case-insensitive, supaya tetap jalan walau
 // nama fasilitas ditulis agak beda-beda oleh admin.
-const FACILITY_ICON_RULES: { keywords: string[]; icon: LucideIcon }[] = [
-  { keywords: ['ac'], icon: Wind },
-  { keywords: ['kasur', 'bed'], icon: BedDouble },
-  { keywords: ['lemari', 'wardrobe', 'closet'], icon: DoorClosed },
-  { keywords: ['meja belajar', 'meja'], icon: BookOpen },
-  { keywords: ['kamar mandi', 'mandi', 'toilet', 'wc'], icon: Bath },
-  { keywords: ['wifi', 'internet'], icon: Wifi },
-  { keywords: ['kulkas', 'fridge'], icon: Refrigerator },
-  { keywords: ['dispenser', 'air'], icon: Droplets },
-  { keywords: ['parkir mobil', 'mobil'], icon: Car },
-  { keywords: ['parkir motor', 'motor'], icon: Bike },
-  { keywords: ['jemuran', 'laundry', 'cuci'], icon: Shirt },
-  { keywords: ['cctv', 'kamera'], icon: Camera },
-  { keywords: ['security', 'satpam', 'kunci'], icon: Lock },
+const FACILITY_ICON_RULES: { keywords: string[]; icon: HeroIcon }[] = [
+  { keywords: ['ac'], icon: CloudIcon },
+  { keywords: ['kasur', 'bed'], icon: MoonIcon },
+  { keywords: ['lemari', 'wardrobe', 'closet'], icon: ArchiveBoxIcon },
+  { keywords: ['meja belajar', 'meja'], icon: BookOpenIcon },
+  { keywords: ['kamar mandi', 'mandi', 'toilet', 'wc'], icon: HomeModernIcon },
+  { keywords: ['wifi', 'internet'], icon: WifiIcon },
+  { keywords: ['kulkas', 'fridge'], icon: CubeIcon },
+  { keywords: ['dispenser', 'air'], icon: BeakerIcon },
+  { keywords: ['parkir mobil', 'mobil'], icon: TruckIcon },
+  { keywords: ['parkir motor', 'motor'], icon: RocketLaunchIcon },
+  { keywords: ['jemuran', 'laundry', 'cuci'], icon: ArrowPathIcon },
+  { keywords: ['cctv', 'kamera'], icon: CameraIcon },
+  { keywords: ['security', 'satpam', 'kunci'], icon: LockClosedIcon },
 ]
 
-function getFacilityIcon(name: string): LucideIcon {
+function getFacilityIcon(name: string): HeroIcon {
   const lower = name.toLowerCase()
   const match = FACILITY_ICON_RULES.find((rule) => rule.keywords.some((kw) => lower.includes(kw)))
-  return match?.icon ?? Sparkles
+  return match?.icon ?? SparklesIcon
 }
 
 export default async function KosDetailPage({
@@ -93,7 +95,7 @@ export default async function KosDetailPage({
           href="/kos"
           className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-fimo-navy md:text-base"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeftIcon className="h-4 w-4" />
           Kembali ke pencarian
         </Link>
 
@@ -105,7 +107,7 @@ export default async function KosDetailPage({
           <div className="lg:col-span-2">
             <h1 className="text-2xl font-bold tracking-tight text-fimo-navy sm:text-3xl">{kos.name}</h1>
             <p className="mt-2 flex items-center gap-1.5 text-sm text-gray-500 md:text-base">
-              <MapPin className="h-4 w-4 shrink-0" />
+              <MapPinIcon className="h-4 w-4 shrink-0" />
               {kos.district ? `${kos.district}, ${kos.city}` : kos.city}
             </p>
 
@@ -230,7 +232,7 @@ export default async function KosDetailPage({
                       className="flex items-center gap-3 rounded-xl border border-fimo-gray px-3.5 py-2.5"
                     >
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-fimo-blue/10">
-                        <MapPin className="h-4 w-4 text-fimo-blue" />
+                        <MapPinIcon className="h-4 w-4 text-fimo-blue" />
                       </span>
                       <p className="text-sm text-gray-600 md:text-base">
                         <span className="font-medium text-gray-800">{n.distanceText}</span> ke {n.name}
@@ -244,7 +246,7 @@ export default async function KosDetailPage({
             {/* Kontak — versi mobile, inline di bawah konten */}
             <div className="mt-8 rounded-2xl border border-fimo-gray bg-fimo-gray/30 p-5 lg:hidden">
               <p className="mb-3 flex items-start gap-2 text-sm text-gray-600 md:text-base">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-fimo-navy" />
+                <ShieldCheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-fimo-navy" />
                 Kami bantu hubungkan kamu langsung dengan pemilik kos yang sudah terverifikasi tim kami.
               </p>
               <SelfSearchForm kosId={kos.id} />
@@ -267,7 +269,7 @@ export default async function KosDetailPage({
                 <div className="my-4 h-px bg-fimo-gray" />
 
                 <p className="mb-3 flex items-start gap-2 text-base text-gray-600">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-fimo-navy" />
+                  <ShieldCheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-fimo-navy" />
                   Kontak owner tersembunyi. Buka kontak untuk melihat nomor dan menghubungi langsung.
                 </p>
                 <SelfSearchForm kosId={kos.id} />

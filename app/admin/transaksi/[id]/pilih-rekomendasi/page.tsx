@@ -4,7 +4,7 @@ import { requireAdmin } from '@/utils/auth/require-admin'
 import { RECOMMENDATION_KOS_COUNT } from '@/lib/constants'
 import { PilihRekomendasiForm } from './pilih-rekomendasi-form'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 
 export default async function PilihRekomendasiPage({
   params,
@@ -64,7 +64,7 @@ export default async function PilihRekomendasiPage({
         href="/admin/transaksi"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-fimo-navy lg:text-[15px]"
       >
-        <ArrowLeft className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+        <ArrowLeftIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
         Kembali ke daftar transaksi
       </Link>
 

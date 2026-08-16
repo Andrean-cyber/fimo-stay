@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { requireSuperadmin } from '@/utils/auth/require-admin'
 import { removeAdminAction } from './actions'
-import { ShieldCheck, UserPlus, Mail } from 'lucide-react'
+import { ShieldCheckIcon, UserPlusIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button'
 import { TeamInviteForm } from './team-invite-form'
 import { RoleForm } from './role-form'
@@ -41,7 +41,7 @@ export default async function TeamPage() {
                   <div className="min-w-0">
                     <h3 className="truncate text-base font-semibold text-gray-800">{a.fullName}</h3>
                     <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
-                      <Mail className="h-3 w-3 shrink-0" />
+                      <EnvelopeIcon className="h-3 w-3 shrink-0" />
                       <span className="truncate">{a.email}</span>
                     </div>
                   </div>
@@ -50,7 +50,7 @@ export default async function TeamPage() {
                       isSuperadmin ? 'bg-fimo-navy/10 text-fimo-navy' : 'bg-fimo-gray text-gray-600'
                     }`}
                   >
-                    {isSuperadmin && <ShieldCheck className="h-3 w-3" />}
+                    {isSuperadmin && <ShieldCheckIcon className="h-3 w-3" />}
                     {a.role}
                   </span>
                 </div>
@@ -93,7 +93,7 @@ export default async function TeamPage() {
                           isSuperadmin ? 'bg-fimo-navy/10 text-fimo-navy' : 'bg-fimo-gray text-gray-600'
                         }`}
                       >
-                        {isSuperadmin && <ShieldCheck className="h-3 w-3" />}
+                        {isSuperadmin && <ShieldCheckIcon className="h-3 w-3" />}
                         {a.role}
                       </span>
                     </td>
@@ -119,7 +119,7 @@ export default async function TeamPage() {
       <div className="max-w-md rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-5 lg:p-6">
         <div className="mb-4 flex items-center gap-2">
           <div className="rounded-full bg-fimo-navy/5 p-2 text-fimo-navy">
-            <UserPlus className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+            <UserPlusIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
           </div>
           <h2 className="text-sm font-semibold text-gray-900 sm:text-base">Undang Admin Baru</h2>
         </div>

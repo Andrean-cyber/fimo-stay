@@ -1,23 +1,22 @@
 import {
-    LayoutDashboard,
-    Building2,
-    Users,
-    Receipt,
-    ShieldCheck,
-    type LucideIcon,
-  } from 'lucide-react'
-  
-  export type NavItem = {
-    href: string
-    label: string
-    icon: LucideIcon
-    superadminOnly?: boolean
-  }
-  
-  export const NAV_ITEMS: NavItem[] = [
-    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/admin/kos', label: 'Kos', icon: Building2 },
-    { href: '/admin/owners', label: 'Owner', icon: Users },
-    { href: '/admin/transaksi', label: 'Transaksi', icon: Receipt },
-    { href: '/admin/team', label: 'Tim', icon: ShieldCheck, superadminOnly: true },
-  ]
+  Squares2X2Icon,
+  BuildingOffice2Icon,
+  UsersIcon,
+  DocumentTextIcon,
+  ShieldCheckIcon,
+} from '@heroicons/react/24/outline'
+
+export type NavItem = {
+  href: string
+  label: string
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  superadminOnly?: boolean
+}
+
+export const NAV_ITEMS: NavItem[] = [
+  { href: '/admin', label: 'Dashboard', icon: Squares2X2Icon },
+  { href: '/admin/kos', label: 'Kos', icon: BuildingOffice2Icon },
+  { href: '/admin/owners', label: 'Owner', icon: UsersIcon },
+  { href: '/admin/transaksi', label: 'Transaksi', icon: DocumentTextIcon },
+  { href: '/admin/team', label: 'Tim', icon: ShieldCheckIcon, superadminOnly: true },
+]

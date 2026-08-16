@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { PublicHeader } from '@/components/public-header'
-import { Eye, EyeOff, CheckCircle2 } from 'lucide-react'
+import { EyeIcon, EyeSlashIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 
 export default function SetPasswordPage() {
   const router = useRouter()
@@ -118,9 +118,9 @@ export default function SetPasswordPage() {
                     aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                      <EyeSlashIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                     ) : (
-                      <Eye className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                      <EyeIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                     )}
                   </button>
                 </div>
@@ -142,7 +142,7 @@ export default function SetPasswordPage() {
                 />
                 {confirmPassword.length > 0 && password === confirmPassword && (
                   <p className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
-                    <CheckCircle2 className="h-3 w-3" /> Cocok
+                    <CheckCircleIcon className="h-3 w-3" /> Cocok
                   </p>
                 )}
               </div>

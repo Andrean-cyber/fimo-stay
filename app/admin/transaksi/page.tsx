@@ -4,7 +4,7 @@ import { verifyTransaction, rejectTransaction } from './actions'
 import { getReferenceCode } from '@/lib/constants'
 import { TransaksiLiveBanner } from '@/components/admin/transaksi-live-banner'
 import Link from 'next/link'
-import { Search, Check, X, ArrowRight } from 'lucide-react'
+import { MagnifyingGlassIcon, CheckIcon, XMarkIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Menunggu verifikasi',
@@ -69,7 +69,7 @@ export default async function TransaksiPage({
 
       <form className="flex max-w-lg gap-2">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <MagnifyingGlassIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             name="q"
             defaultValue={q}
@@ -132,7 +132,7 @@ export default async function TransaksiPage({
         {pendingAll.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-fimo-gray bg-white px-5 py-10 text-center">
             <div className="rounded-full bg-fimo-blue/10 p-3">
-              <Check className="h-5 w-5 text-fimo-blue" />
+              <CheckIcon className="h-5 w-5 text-fimo-blue" />
             </div>
             <p className="text-sm text-gray-500">Semua transaksi sudah diverifikasi.</p>
           </div>
@@ -181,7 +181,7 @@ export default async function TransaksiPage({
                     type="submit"
                     className="flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 lg:px-5 lg:py-2.5 lg:text-[15px]"
                   >
-                    <Check className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                    <CheckIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                     Verifikasi
                   </button>
                 </form>
@@ -190,7 +190,7 @@ export default async function TransaksiPage({
                     type="submit"
                     className="flex items-center gap-1.5 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 lg:px-5 lg:py-2.5 lg:text-[15px]"
                   >
-                    <X className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                    <XMarkIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                     Tolak
                   </button>
                 </form>
@@ -220,7 +220,7 @@ export default async function TransaksiPage({
                   </div>
                   <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-fimo-navy lg:text-[15px]">
                     Pilih 3 Kos
-                    <ArrowRight className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                    <ArrowRightIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
                   </span>
                 </Link>
               </li>

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, TrainFront } from 'lucide-react'
+import { MapPinIcon, MapIcon } from '@heroicons/react/24/outline'
 
 type KosCardProps = {
   slug: string
@@ -34,7 +34,6 @@ export function KosCard({
 
   return (
     <Link href={`/kos/${slug}`} className="group flex flex-col gap-2">
-      {/* Foto — rounded murni, tanpa card border/shadow di sekitarnya */}
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-fimo-gray">
         {imageUrl ? (
           <Image
@@ -49,24 +48,22 @@ export function KosCard({
           </div>
         )}
 
-        {/* Badge logo — kotak flat, bukan pill */}
         <div className="absolute left-3 top-2 rounded-md bg-white px-3 py-1.5">
-        <Image src="/lgfimostay-blue.webp" alt="" width={50} height={50}  />
+          <Image src="/lgfimostay-blue.webp" alt="" width={50} height={50} />
         </div>
       </div>
 
-      {/* Deskripsi — di luar foto, tanpa border/shadow */}
       <div className="flex flex-col gap-0.5">
         <p className="truncate text-sm font-semibold text-gray-900 sm:text-base">{name}</p>
 
         <p className="flex items-center gap-1 truncate text-xs text-gray-500 sm:text-sm">
-          <MapPin className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+          <MapPinIcon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
           {locationText}
         </p>
 
         {nearbyText && (
           <p className="flex items-center gap-1 truncate text-xs text-gray-500 sm:text-sm">
-            <TrainFront className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+            <MapIcon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
             {nearbyText}
           </p>
         )}

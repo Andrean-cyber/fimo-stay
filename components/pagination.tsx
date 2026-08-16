@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 
 export function Pagination({
   currentPage,
@@ -22,7 +22,7 @@ export function Pagination({
           currentPage === 1 ? 'pointer-events-none opacity-40' : 'hover:border-fimo-blue'
         }`}
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeftIcon className="h-4 w-4" />
       </Link>
 
       {pages.map((p, i) =>
@@ -54,7 +54,7 @@ export function Pagination({
           currentPage === totalPages ? 'pointer-events-none opacity-40' : 'hover:border-fimo-blue'
         }`}
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRightIcon className="h-4 w-4" />
       </Link>
     </nav>
   )
