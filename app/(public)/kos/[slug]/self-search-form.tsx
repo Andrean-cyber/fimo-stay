@@ -53,7 +53,7 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
         disabled={submitting || !turnstileToken}
         className="w-full rounded-lg bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:opacity-50 disabled:hover:bg-fimo-navy md:text-base"
       >
-        {submitting ? 'Memproses...' : `Proses Sekarang — Rp${(30000).toLocaleString('id-ID')}`}
+        {submitting ? 'Memproses...' : `Proses Sekarang — Rp${(40000).toLocaleString('id-ID')}`}
       </button>
 
       <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 md:text-sm">

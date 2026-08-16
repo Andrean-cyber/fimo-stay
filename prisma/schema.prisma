@@ -250,7 +250,7 @@ model Searcher {
 model Transaction {
   id     String             @id @default(uuid())
   type   TransactionType
-  amount Int                // 30000 atau 90000
+  amount Int                // 40000 atau 100000
   status TransactionStatus  @default(PENDING)
 
   proofUrl String? // bukti transfer, path di R2

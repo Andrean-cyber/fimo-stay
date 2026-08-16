@@ -32,7 +32,7 @@ export async function createSelfSearchTransaction(kosId: string, formData: FormD
   const trx = await prisma.transaction.create({
     data: {
       type: 'SELF_SEARCH',
-      amount: 30000,
+      amount: 40000,
       status: 'PENDING',
       searcherId: searcher.id,
       targetKosId: parsed.data.kosId,

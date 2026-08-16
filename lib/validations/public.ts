@@ -7,5 +7,12 @@ export const selfSearchSchema = z.object({
 
 export const recommendationSchema = z.object({
   phone: z.string().min(8, 'Nomor HP tidak valid').max(20),
-  preferenceNotes: z.string().min(10, 'Jelaskan preferensimu (min. 10 karakter)'),
+  name: z.string().optional(),
+  kosTypes: z.array(z.string()).optional(),
+  city: z.string().min(1, 'Kota wajib diisi'),
+  specificLocation: z.string().optional(),
+  facilities: z.array(z.string()).optional(),
+  budget: z.coerce.number().optional(),   // coerce karena FormData selalu kirim string
+  moveInDate: z.string().optional(),
+  notes: z.string().optional(),
 })

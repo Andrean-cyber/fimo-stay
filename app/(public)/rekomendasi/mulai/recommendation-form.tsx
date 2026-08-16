@@ -117,7 +117,7 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-fimo-navy/90 disabled:cursor-not-allowed disabled:opacity-50 md:py-3 md:text-base"
       >
         {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-        {submitting ? 'Memproses...' : 'Lanjutkan — Rp90.000 (3 rekomendasi kos)'}
+        {submitting ? 'Memproses...' : 'Lanjutkan — Rp100.000 (3 rekomendasi kos)'}
       </button>
     </form>
   )

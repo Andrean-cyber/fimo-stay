@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FimoStay — Temukan Kos Nyaman Dekat Kampus",
+  title: "FimoStay — Temukan Kos yang Tepat untukmu.",
   description:
-    "Cari dan booking kos terverifikasi di sekitar kampus favoritmu. Aman, mudah, dan cepat bersama FimoStay.",
+    "Cari dan booking kos terverifikasi di tempat favoritmu. Aman, mudah, dan cepat bersama FimoStay.",
   icons: {
     icon: "/icon.png",
   },

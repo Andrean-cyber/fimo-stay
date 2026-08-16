@@ -63,7 +63,7 @@ export async function createRecommendationTransaction(formData: FormData) {
   const trx = await prisma.transaction.create({
     data: {
       type: 'RECOMMENDATION',
-      amount: 90000,
+      amount: 100000,
       status: 'PENDING',
       searcherId: searcher.id,
       preferenceNotes: buildPreferenceNotes(parsed.data),
