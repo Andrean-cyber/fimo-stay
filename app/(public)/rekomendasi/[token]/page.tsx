@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { PublicHeader } from '@/components/public-header'
 import { toPublicUrl } from '@/lib/r2'
 import { buildOwnerWhatsAppLink } from '@/lib/constants'
+import { parsePreference, formatPreferenceSummary } from '@/lib/format-preference'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,20 +40,22 @@ export default async function RekomendasiPage({
     },
   })
 
-  // token tidak ditemukan / transaksi belum terverifikasi -> tidak boleh diakses
   if (!trx || trx.type !== 'RECOMMENDATION' || trx.status !== 'VERIFIED') notFound()
+
+  const preferenceSummary = formatPreferenceSummary(trx.preferenceNotes)
 
   return (
     <div className="min-h-screen bg-white">
       <PublicHeader />
       <main className="mx-auto max-w-3xl px-4 py-8 md:py-12">
         <h1 className="text-xl font-bold text-fimo-navy md:text-2xl">Rekomendasi Kos Untukmu</h1>
-        {trx.preferenceNotes && (
+        {preferenceSummary ? (
           <p className="mb-6 mt-1 text-sm text-gray-500 md:text-base">
-            Berdasarkan preferensi: {trx.preferenceNotes}
+            Berdasarkan preferensi: {preferenceSummary}
           </p>
+        ) : (
+          <div className="mb-6" />
         )}
-        {!trx.preferenceNotes && <div className="mb-6" />}
 
         <div className="space-y-5">
           {trx.recommendationItems.map((item, i) => {
@@ -66,7 +69,6 @@ export default async function RekomendasiPage({
             const priceMin = prices.length > 0 ? Math.min(...prices) : 0
             const priceMax = prices.length > 0 ? Math.max(...prices) : 0
 
-            // jaminan: kalau semua room type yang tercatat availableRooms-nya 0
             const hasAvailabilityData = allRoomTypes.some((rt) => rt.availableRooms != null)
             const isFull =
               hasAvailabilityData && allRoomTypes.every((rt) => (rt.availableRooms ?? 0) === 0)

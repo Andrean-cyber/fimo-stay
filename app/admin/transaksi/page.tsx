@@ -5,6 +5,7 @@ import { getReferenceCode } from '@/lib/constants'
 import { TransaksiLiveBanner } from '@/components/admin/transaksi-live-banner'
 import Link from 'next/link'
 import { MagnifyingGlassIcon, CheckIcon, XMarkIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
+import { formatPreferenceSummary } from '@/lib/format-preference'
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Menunggu verifikasi',
@@ -38,8 +39,6 @@ export default async function TransaksiPage({
     include: { searcher: true },
   })
 
-  // Pencarian riwayat — lintas SEMUA status, query terpisah dari antrian kerja.
-  // Dijalankan hanya kalau ada kata kunci.
   const searchResults = q
     ? await prisma.transaction.findMany({
         where: {
@@ -85,7 +84,6 @@ export default async function TransaksiPage({
         </button>
       </form>
 
-      {/* Hasil pencarian riwayat — lintas semua status, cuma tampil kalau q diisi */}
       {q && (
         <div className="rounded-2xl border border-fimo-gray bg-white shadow-sm">
           <div className="border-b border-fimo-gray px-4 py-3.5 sm:px-5 sm:py-4">
@@ -127,7 +125,6 @@ export default async function TransaksiPage({
         </div>
       )}
 
-      {/* Daftar pending — antrian kerja, TIDAK dipengaruhi search */}
       <div className="space-y-3">
         {pendingAll.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-fimo-gray bg-white px-5 py-10 text-center">
@@ -137,70 +134,72 @@ export default async function TransaksiPage({
             <p className="text-sm text-gray-500">Semua transaksi sudah diverifikasi.</p>
           </div>
         ) : (
-          pendingAll.map((t) => (
-            <div key={t.id} className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-5">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      t.type === 'SELF_SEARCH' ? 'bg-fimo-gray text-gray-600' : 'bg-fimo-navy/10 text-fimo-navy'
-                    }`}
-                  >
-                    {t.type === 'SELF_SEARCH' ? 'Cari Sendiri' : 'Rekomendasi'}
+          pendingAll.map((t) => {
+            const preferenceSummary = formatPreferenceSummary(t.preferenceNotes)
+            return (
+              <div key={t.id} className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-5">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                        t.type === 'SELF_SEARCH' ? 'bg-fimo-gray text-gray-600' : 'bg-fimo-navy/10 text-fimo-navy'
+                      }`}
+                    >
+                      {t.type === 'SELF_SEARCH' ? 'Cari Sendiri' : 'Rekomendasi'}
+                    </span>
+                    <span className="font-mono text-xs text-gray-400">{getReferenceCode(t.id)}</span>
+                  </div>
+                  <span className="text-lg font-bold text-fimo-navy sm:text-xl lg:text-2xl">
+                    Rp{t.amount.toLocaleString('id-ID')}
                   </span>
-                  <span className="font-mono text-xs text-gray-400">{getReferenceCode(t.id)}</span>
                 </div>
-                <span className="text-lg font-bold text-fimo-navy sm:text-xl lg:text-2xl">
-                  Rp{t.amount.toLocaleString('id-ID')}
-                </span>
-              </div>
 
-              <div className="space-y-1 text-sm text-gray-700 lg:text-[15px]">
-                <p>
-                  <span className="text-gray-400">Pencari:</span> {t.searcher.phone}
+                <div className="space-y-1 text-sm text-gray-700 lg:text-[15px]">
+                  <p>
+                    <span className="text-gray-400">Pencari:</span> {t.searcher.phone}
+                  </p>
+                  {t.targetKos && (
+                    <p>
+                      <span className="text-gray-400">Target kos:</span> {t.targetKos.name}
+                    </p>
+                  )}
+                  {preferenceSummary && (
+                    <p>
+                      <span className="text-gray-400">Preferensi:</span> {preferenceSummary}
+                    </p>
+                  )}
+                </div>
+
+                <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  Cocokkan kode referensi di atas dengan pesan WhatsApp sebelum verifikasi
                 </p>
-                {t.targetKos && (
-                  <p>
-                    <span className="text-gray-400">Target kos:</span> {t.targetKos.name}
-                  </p>
-                )}
-                {t.preferenceNotes && (
-                  <p>
-                    <span className="text-gray-400">Preferensi:</span> {t.preferenceNotes}
-                  </p>
-                )}
-              </div>
 
-              <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                Cocokkan kode referensi di atas dengan pesan WhatsApp sebelum verifikasi
-              </p>
-
-              <div className="mt-4 flex gap-2">
-                <form action={verifyTransaction.bind(null, t.id)}>
-                  <button
-                    type="submit"
-                    className="flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 lg:px-5 lg:py-2.5 lg:text-[15px]"
-                  >
-                    <CheckIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
-                    Verifikasi
-                  </button>
-                </form>
-                <form action={rejectTransaction.bind(null, t.id)}>
-                  <button
-                    type="submit"
-                    className="flex items-center gap-1.5 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 lg:px-5 lg:py-2.5 lg:text-[15px]"
-                  >
-                    <XMarkIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
-                    Tolak
-                  </button>
-                </form>
+                <div className="mt-4 flex gap-2">
+                  <form action={verifyTransaction.bind(null, t.id)}>
+                    <button
+                      type="submit"
+                      className="flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 lg:px-5 lg:py-2.5 lg:text-[15px]"
+                    >
+                      <CheckIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                      Verifikasi
+                    </button>
+                  </form>
+                  <form action={rejectTransaction.bind(null, t.id)}>
+                    <button
+                      type="submit"
+                      className="flex items-center gap-1.5 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 lg:px-5 lg:py-2.5 lg:text-[15px]"
+                    >
+                      <XMarkIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                      Tolak
+                    </button>
+                  </form>
+                </div>
               </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
 
-      {/* Perlu dipilihkan rekomendasi */}
       {verifiedNeedPick.length > 0 && (
         <div className="rounded-2xl border border-fimo-gray bg-white shadow-sm">
           <div className="border-b border-fimo-gray px-4 py-3.5 sm:px-5 sm:py-4">
@@ -208,23 +207,28 @@ export default async function TransaksiPage({
             <p className="text-xs text-gray-500">{verifiedNeedPick.length} transaksi menunggu dipilihkan kos</p>
           </div>
           <ul className="divide-y divide-fimo-gray">
-            {verifiedNeedPick.map((t) => (
-              <li key={t.id}>
-                <Link
-                  href={`/admin/transaksi/${t.id}/pilih-rekomendasi`}
-                  className="flex items-center justify-between gap-3 px-4 py-3.5 transition-colors hover:bg-fimo-gray/40 sm:px-5"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-gray-800 lg:text-[15px]">{t.searcher.phone}</p>
-                    <p className="truncate text-xs text-gray-500">{t.preferenceNotes}</p>
-                  </div>
-                  <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-fimo-navy lg:text-[15px]">
-                    Pilih 3 Kos
-                    <ArrowRightIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
-                  </span>
-                </Link>
-              </li>
-            ))}
+            {verifiedNeedPick.map((t) => {
+              const preferenceSummary = formatPreferenceSummary(t.preferenceNotes)
+              return (
+                <li key={t.id}>
+                  <Link
+                    href={`/admin/transaksi/${t.id}/pilih-rekomendasi`}
+                    className="flex items-center justify-between gap-3 px-4 py-3.5 transition-colors hover:bg-fimo-gray/40 sm:px-5"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-gray-800 lg:text-[15px]">{t.searcher.phone}</p>
+                      <p className="truncate text-xs text-gray-500">
+                        {preferenceSummary || 'Tanpa catatan preferensi'}
+                      </p>
+                    </div>
+                    <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-fimo-navy lg:text-[15px]">
+                      Pilih 3 Kos
+                      <ArrowRightIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
           </ul>
         </div>
       )}

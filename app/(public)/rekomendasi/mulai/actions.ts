@@ -7,26 +7,6 @@ import { verifyTurnstileToken } from '@/lib/turnstile'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
-function buildPreferenceNotes(data: {
-  kosTypes?: string[]
-  city: string
-  specificLocation?: string
-  facilities?: string[]
-  budget?: number
-  moveInDate?: string
-  notes?: string
-}) {
-  const lines: string[] = []
-  if (data.kosTypes?.length) lines.push(`Jenis kos: ${data.kosTypes.join(', ')}`)
-  lines.push(`Kota: ${data.city}`)
-  if (data.specificLocation) lines.push(`Lokasi spesifik: ${data.specificLocation}`)
-  if (data.facilities?.length) lines.push(`Fasilitas: ${data.facilities.join(', ')}`)
-  if (data.budget) lines.push(`Budget: Rp${data.budget.toLocaleString('id-ID')}/bulan`)
-  if (data.moveInDate) lines.push(`Rencana pindah: ${data.moveInDate}`)
-  if (data.notes) lines.push(`Catatan: ${data.notes}`)
-  return lines.join('\n')
-}
-
 export async function createRecommendationTransaction(formData: FormData) {
   const hdrs = await headers()
   const ip = hdrs.get('x-forwarded-for')?.split(',')[0] ?? 'unknown'
@@ -57,7 +37,10 @@ export async function createRecommendationTransaction(formData: FormData) {
       data: { phone: parsed.data.phone, name: parsed.data.name },
     })
   } else if (parsed.data.name && !searcher.name) {
-    searcher = await prisma.searcher.update({ where: { id: searcher.id }, data: { name: parsed.data.name } })
+    searcher = await prisma.searcher.update({
+      where: { id: searcher.id },
+      data: { name: parsed.data.name },
+    })
   }
 
   const trx = await prisma.transaction.create({
@@ -66,7 +49,16 @@ export async function createRecommendationTransaction(formData: FormData) {
       amount: 100000,
       status: 'PENDING',
       searcherId: searcher.id,
-      preferenceNotes: buildPreferenceNotes(parsed.data),
+      // Simpan sebagai JSON object, bukan plain text
+      preferenceNotes: {
+        kosTypes: parsed.data.kosTypes ?? [],
+        city: parsed.data.city,
+        specificLocation: parsed.data.specificLocation,
+        budget: parsed.data.budget,
+        facilities: parsed.data.facilities ?? [],
+        moveInDate: parsed.data.moveInDate,
+        notes: parsed.data.notes,
+      },
     },
   })
 

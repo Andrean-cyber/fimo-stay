@@ -56,6 +56,7 @@ model AdminProfile {
   updatedKos           Kos[]           @relation("KosUpdatedBy")
   verifiedTransactions Transaction[]   @relation("TransactionVerifiedBy")
   auditLogs            AuditLog[]
+  sentTransactions Transaction[] @relation("TransactionSentBy")
 
   @@map("admin_profiles")
 }
@@ -263,12 +264,16 @@ model Transaction {
   targetKos   Kos?    @relation("TransactionTargetKos", fields: [targetKosId], references: [id])
 
   // dipakai kalau type = RECOMMENDATION
-  preferenceNotes      String? // budget, lokasi, tipe kamar, dst (bebas teks/JSON)
+  preferenceNotes Json? // budget, lokasi, tipe kamar, dst (bebas teks/JSON)
   recommendationToken  String? @unique // dipakai di URL /rekomendasi/[token]
 
   verifiedById String?
   verifiedBy   AdminProfile? @relation("TransactionVerifiedBy", fields: [verifiedById], references: [id])
   verifiedAt   DateTime?
+
+  sentAt   DateTime?
+  sentById String?
+  sentBy   AdminProfile? @relation("TransactionSentBy", fields: [sentById], references: [id])
 
   createdAt DateTime @default(now())
 
