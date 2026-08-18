@@ -223,12 +223,13 @@ function KosCard({
         {kos.name}
       </p>
 
-      <p className="flex items-center gap-1 text-xs text-gray-500">
-        <MapPinIcon className="h-3 w-3 shrink-0" />
-        <span className="truncate">
-          {kos.address}, {kos.city}
-        </span>
-      </p>
+      <div className="flex items-start gap-1 text-xs text-gray-500">
+  <MapPinIcon className="mt-0.5 h-3 w-3 shrink-0" />
+  <div className="min-w-0">
+    <p className="font-medium text-gray-700">{kos.city}</p>
+    <p className="break-words leading-relaxed">{kos.address}</p>
+  </div>
+</div>
 
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="rounded-full bg-fimo-navy/10 px-2 py-0.5 font-medium text-fimo-navy">

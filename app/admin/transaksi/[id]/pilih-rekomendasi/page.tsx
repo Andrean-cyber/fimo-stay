@@ -119,6 +119,7 @@ export default async function PilihRekomendasiPage({
   // Ringkasan preferensi user untuk ditampilkan di header
   const prefSummaryParts = [
     pref?.city,
+    pref?.specificLocation ? `${pref.specificLocation}` : null,
     pref?.kosTypes?.join('/'),
     pref?.budget
       ? `≤ Rp${Number(pref.budget).toLocaleString('id-ID')}`
