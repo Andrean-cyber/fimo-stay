@@ -1,76 +1,11 @@
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
 import { getReferenceCode } from '@/lib/constants'
-import { buildWaLink } from '@/lib/whatsapp'
-import { formatSelfSearchMessage, formatRecommendationMessage, type KosMessageDetail } from '@/lib/format-kos-message'
-import { markTransactionSent } from './actions'
 import { PengirimanLiveBanner } from '@/components/admin/pengiriman-live-banner'
-import { ChatBubbleLeftRightIcon, CheckIcon, MapPinIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { formatPreferenceSummary } from '@/lib/format-preference'
-
-const QUEUE_LIMIT = 50
-
-const kosDetailInclude = {
-  owner: {
-    select: { name: true, phone: true },
-  },
-  segments: {
-    select: {
-      name: true,
-      kosType: { select: { name: true } },
-      roomTypes: {
-        where: { isActive: true },
-        select: {
-          name: true,
-          priceMonthly: true,
-          availableRooms: true,
-          description: true,
-          facilities: true,
-        },
-      },
-    },
-  },
-  nearby: {
-    where: { isActive: true },
-    orderBy: { order: 'asc' as const },
-    select: { name: true, distanceText: true },
-  },
-} as const
-
-type RawKos = {
-  name: string
-  description: string | null
-  city: string
-  district: string | null
-  address: string
-  facilities: string[]
-  owner: { name: string; phone: string }
-  segments: {
-    name: string | null
-    kosType: { name: string }
-    roomTypes: { name: string; priceMonthly: number; availableRooms: number | null; description: string | null; facilities: string[] }[]
-  }[]
-  nearby: { name: string; distanceText: string }[]
-}
-
-function toKosMessageDetail(kos: RawKos): KosMessageDetail {
-  return {
-    name: kos.name,
-    description: kos.description,
-    city: kos.city,
-    district: kos.district,
-    address: kos.address,
-    facilities: kos.facilities,
-    ownerName: kos.owner.name,
-    ownerPhone: kos.owner.phone,
-    segments: kos.segments.map((s) => ({
-      name: s.name,
-      kosTypeName: s.kosType.name,
-      roomTypes: s.roomTypes,
-    })),
-    nearby: kos.nearby,
-  }
-}
+import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { fetchSelfSearchPage, fetchRecommendationPage, PAGE_SIZE } from './queue-helpers'
+import { loadMoreSelfSearch, loadMoreRecommendation } from './actions'
+import { QueueSection } from './queue-section'
 
 export default async function PengirimanPage({
   searchParams,
@@ -97,21 +32,8 @@ export default async function PengirimanPage({
     recentlySent,
     searchResults,
   ] = await Promise.all([
-    prisma.transaction.findMany({
-      where: selfSearchWhere,
-      include: { searcher: true, targetKos: { include: kosDetailInclude } },
-      orderBy: { verifiedAt: 'asc' },
-      take: QUEUE_LIMIT,
-    }),
-    prisma.transaction.findMany({
-      where: recommendationWhere,
-      include: {
-        searcher: true,
-        recommendationItems: { orderBy: { order: 'asc' }, include: { kos: { include: kosDetailInclude } } },
-      },
-      orderBy: { verifiedAt: 'asc' },
-      take: QUEUE_LIMIT,
-    }),
+    fetchSelfSearchPage(0, PAGE_SIZE),
+    fetchRecommendationPage(0, PAGE_SIZE),
     prisma.transaction.count({ where: selfSearchWhere }),
     prisma.transaction.count({ where: recommendationWhere }),
     q
@@ -139,8 +61,6 @@ export default async function PengirimanPage({
   ])
 
   const totalQueue = selfSearchTotal + recommendationTotal
-  const shownQueue = selfSearchQueue.length + recommendationQueue.length
-  const sisaQueue = totalQueue - shownQueue
 
   return (
     <div className="space-y-8">
@@ -148,7 +68,7 @@ export default async function PengirimanPage({
         <h1 className="text-xl font-bold text-fimo-navy sm:text-2xl lg:text-3xl">Kirim Detail Kos</h1>
         <p className="mt-1 text-xs text-gray-500 sm:text-sm">
           {totalQueue > 0
-            ? `${totalQueue} transaksi siap dikirim ke WhatsApp pencari${sisaQueue > 0 ? ` (menampilkan ${shownQueue} terlama)` : ''}`
+            ? `${totalQueue} transaksi siap dikirim ke WhatsApp pencari`
             : 'Tidak ada transaksi yang perlu dikirim'}
         </p>
       </div>
@@ -218,48 +138,8 @@ export default async function PengirimanPage({
           </div>
         ) : (
           <>
-            {selfSearchQueue.map((t) => {
-              if (!t.targetKos) return null
-              const message = formatSelfSearchMessage(t.id, toKosMessageDetail(t.targetKos))
-              return (
-                <PengirimanCard
-                  key={t.id}
-                  transactionId={t.id}
-                  badgeLabel="Cari Sendiri"
-                  badgeClass="bg-fimo-gray text-gray-600"
-                  refCode={getReferenceCode(t.id)}
-                  phone={t.searcher.phone}
-                  subtitle={t.targetKos.name}
-                  message={message}
-                  waLink={buildWaLink(t.searcher.phone, message)}
-                />
-              )
-            })}
-
-            {recommendationQueue.map((t) => {
-              const kosList = t.recommendationItems.map((r) => toKosMessageDetail(r.kos))
-              const preferenceSummary = formatPreferenceSummary(t.preferenceNotes)
-              const message = formatRecommendationMessage(t.id, preferenceSummary, kosList)
-              return (
-                <PengirimanCard
-                  key={t.id}
-                  transactionId={t.id}
-                  badgeLabel="Rekomendasi"
-                  badgeClass="bg-fimo-navy/10 text-fimo-navy"
-                  refCode={getReferenceCode(t.id)}
-                  phone={t.searcher.phone}
-                  subtitle={`${kosList.length} kos${preferenceSummary ? ` — ${preferenceSummary}` : ''}`}
-                  message={message}
-                  waLink={buildWaLink(t.searcher.phone, message)}
-                />
-              )
-            })}
-
-            {sisaQueue > 0 && (
-              <div className="rounded-2xl border border-dashed border-fimo-gray bg-white px-5 py-4 text-center text-sm text-gray-500">
-                Masih ada {sisaQueue} transaksi lagi di antrian. Tandai yang di atas sebagai terkirim untuk memunculkan berikutnya.
-              </div>
-            )}
+            <QueueSection initialItems={selfSearchQueue} total={selfSearchTotal} loadMore={loadMoreSelfSearch} />
+            <QueueSection initialItems={recommendationQueue} total={recommendationTotal} loadMore={loadMoreRecommendation} />
           </>
         )}
       </div>
@@ -288,58 +168,6 @@ export default async function PengirimanPage({
           </ul>
         </div>
       )}
-    </div>
-  )
-}
-
-function PengirimanCard({
-  transactionId, badgeLabel, badgeClass, refCode, phone, subtitle, message, waLink,
-}: {
-  transactionId: string; badgeLabel: string; badgeClass: string; refCode: string
-  phone: string; subtitle: string; message: string; waLink: string
-}) {
-  return (
-    <div className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-5">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass}`}>{badgeLabel}</span>
-          <span className="font-mono text-xs text-gray-400">{refCode}</span>
-        </div>
-      </div>
-
-      <div className="space-y-1 text-sm text-gray-700 lg:text-[15px]">
-        <p><span className="text-gray-400">Pencari:</span> {phone}</p>
-        <p className="flex items-start gap-1">
-          <MapPinIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
-          <span>{subtitle}</span>
-        </p>
-      </div>
-
-      <details className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
-        <summary className="cursor-pointer select-none font-medium text-gray-700">Pratinjau pesan</summary>
-        <pre className="mt-2 whitespace-pre-wrap font-sans">{message}</pre>
-      </details>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-       <a 
-          href={waLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 lg:px-5 lg:py-2.5 lg:text-[15px]"
-        >
-          <ChatBubbleLeftRightIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
-          Buka WhatsApp
-        </a>
-        <form action={markTransactionSent.bind(null, transactionId)}>
-          <button
-            type="submit"
-            className="flex items-center gap-1.5 rounded-xl border border-fimo-gray px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-fimo-gray/40 lg:px-5 lg:py-2.5 lg:text-[15px]"
-          >
-            <CheckIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
-            Tandai Terkirim
-          </button>
-        </form>
-      </div>
     </div>
   )
 }

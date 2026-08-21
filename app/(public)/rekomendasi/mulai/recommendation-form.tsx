@@ -17,6 +17,40 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
   const [error, setError] = useState<string | null>(null)
   const [turnstileToken, setTurnstileToken] = useState('')
 
+  // Semua input ditrack di state supaya tombol submit tahu kapan form BENAR-BENAR lengkap.
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [selectedKosTypes, setSelectedKosTypes] = useState<string[]>([])
+  const [city, setCity] = useState('')
+  const [specificLocation, setSpecificLocation] = useState('')
+  const [selectedFacilities, setSelectedFacilities] = useState<string[]>([])
+  const [budgetDigits, setBudgetDigits] = useState('')
+  const [moveInDate, setMoveInDate] = useState('')
+  const [notes, setNotes] = useState('')
+
+  const budgetDisplay = budgetDigits ? new Intl.NumberFormat('id-ID').format(Number(budgetDigits)) : ''
+
+  function handleBudgetChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const digitsOnly = e.target.value.replace(/\D/g, '')
+    setBudgetDigits(digitsOnly)
+  }
+
+  function toggleValue(list: string[], value: string, setList: (v: string[]) => void) {
+    setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value])
+  }
+
+  const isFormComplete =
+    name.trim() !== '' &&
+    phone.trim() !== '' &&
+    selectedKosTypes.length > 0 &&
+    city.trim() !== '' &&
+    specificLocation.trim() !== '' &&
+    selectedFacilities.length > 0 &&
+    budgetDigits !== '' &&
+    moveInDate !== '' &&
+    notes.trim() !== '' &&
+    turnstileToken !== ''
+
   async function handleSubmit(formData: FormData) {
     if (!turnstileToken) {
       setError('Verifikasi keamanan belum selesai, tunggu sebentar.')
@@ -36,21 +70,42 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Nama Lengkap</label>
-          <input name="name" placeholder="Masukkan nama lengkap" className={inputClass} />
+          <input
+            name="name"
+            placeholder="Masukkan nama lengkap"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Nomor HP</label>
-          <input name="phone" placeholder="08xxxxxxxxxx" required className={inputClass} />
+          <input
+            name="phone"
+            placeholder="08xxxxxxxxxx"
+            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className={inputClass}
+          />
         </div>
       </div>
 
       {kosTypes.length > 0 && (
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">Jenis Kos (boleh lebih dari satu)</label>
+          <label className="mb-2 block text-sm font-medium text-gray-700">Jenis Kos (pilih minimal satu)</label>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {kosTypes.map((jt) => (
               <label key={jt} className={checkboxItemClass}>
-                <input type="checkbox" name="kosTypes" value={jt} className="h-4 w-4 accent-fimo-navy" />
+                <input
+                  type="checkbox"
+                  name="kosTypes"
+                  value={jt}
+                  checked={selectedKosTypes.includes(jt)}
+                  onChange={() => toggleValue(selectedKosTypes, jt, setSelectedKosTypes)}
+                  className="h-4 w-4 accent-fimo-navy"
+                />
                 {jt}
               </label>
             ))}
@@ -61,21 +116,42 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Kota</label>
-          <input name="city" placeholder="cth. Malang" required className={inputClass} />
+          <input
+            name="city"
+            placeholder="cth. Malang"
+            required
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Lokasi Spesifik (opsional)</label>
-          <input name="specificLocation" placeholder="cth. Dekat kampus UB, Seturan" className={inputClass} />
+          <label className="mb-1 block text-sm font-medium text-gray-700">Lokasi Spesifik</label>
+          <input
+            name="specificLocation"
+            placeholder="cth. Dekat kampus UB, Seturan"
+            required
+            value={specificLocation}
+            onChange={(e) => setSpecificLocation(e.target.value)}
+            className={inputClass}
+          />
         </div>
       </div>
 
       {FACILITIES.length > 0 && (
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">Fasilitas yang Diinginkan (opsional)</label>
+          <label className="mb-2 block text-sm font-medium text-gray-700">Fasilitas yang Diinginkan (pilih minimal satu)</label>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {FACILITIES.map((f) => (
               <label key={f} className={checkboxItemClass}>
-                <input type="checkbox" name="facilities" value={f} className="h-4 w-4 accent-fimo-navy" />
+                <input
+                  type="checkbox"
+                  name="facilities"
+                  value={f}
+                  checked={selectedFacilities.includes(f)}
+                  onChange={() => toggleValue(selectedFacilities, f, setSelectedFacilities)}
+                  className="h-4 w-4 accent-fimo-navy"
+                />
                 <span className="line-clamp-1">{f}</span>
               </label>
             ))}
@@ -85,21 +161,45 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Budget per Bulan (opsional)</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Budget per Bulan</label>
           <div className="flex items-center gap-2 rounded-xl border border-fimo-gray p-2.5 md:p-3">
             <span className="text-sm text-gray-400">Rp</span>
-            <input name="budget" type="number" placeholder="1.500.000" className="w-full text-sm outline-none md:text-base" />
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="1.500.000"
+              required
+              value={budgetDisplay}
+              onChange={handleBudgetChange}
+              className="w-full text-sm outline-none md:text-base"
+            />
+            <input type="hidden" name="budget" value={budgetDigits} />
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Rencana Tanggal Dihuni (opsional)</label>
-          <input name="moveInDate" type="date" className={inputClass} />
+          <label className="mb-1 block text-sm font-medium text-gray-700">Rencana Tanggal Dihuni</label>
+          <input
+            name="moveInDate"
+            type="date"
+            required
+            value={moveInDate}
+            onChange={(e) => setMoveInDate(e.target.value)}
+            className={inputClass}
+          />
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">Catatan Tambahan (opsional)</label>
-        <textarea name="notes" rows={3} placeholder="Ada kebutuhan lain? Ceritakan di sini." className={inputClass} />
+        <label className="mb-1 block text-sm font-medium text-gray-700">Catatan Tambahan</label>
+        <textarea
+          name="notes"
+          rows={3}
+          placeholder="Ada kebutuhan lain? Ceritakan di sini."
+          required
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          className={inputClass}
+        />
       </div>
 
       <TurnstileWidget onVerify={setTurnstileToken} />
@@ -113,7 +213,7 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
 
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !isFormComplete}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-fimo-navy/90 disabled:cursor-not-allowed disabled:opacity-50 md:py-3 md:text-base"
       >
         {submitting && <ArrowPathIcon className="h-4 w-4 animate-spin" />}

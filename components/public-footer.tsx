@@ -8,34 +8,7 @@ export function PublicFooter() {
 
   return (
     <footer className="bg-white text-fimo-navy">
-      {/* CTA */}
-      <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-10 lg:px-8 lg:pt-12">
-        <div className="relative overflow-hidden rounded-[24px] bg-fimo-navy px-6 py-8 sm:px-8 sm:py-9 lg:px-10 lg:py-10">
-          <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-32 h-72 w-72 rounded-full bg-white/[0.05] blur-2xl" />
-          <div aria-hidden="true" className="pointer-events-none absolute -bottom-40 left-1/3 h-72 w-72 rounded-full bg-fimo-blue/[0.12] blur-3xl" />
 
-          <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between md:gap-8">
-            <div className="max-w-2xl">
-              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-fimo-blue sm:text-xs">
-                Punya kos?
-              </p>
-              <h2 className="max-w-[340px] text-xl font-bold leading-[1.2] text-white sm:max-w-2xl sm:text-2xl lg:text-[30px]">
-                Punya kos yang ingin ditemukan lebih banyak orang?
-              </h2>
-              <p className="mt-2 max-w-xl text-[13px] leading-5 text-white/60 sm:text-sm sm:leading-6">
-                Daftarkan kosmu di FimoStay dan bantu lebih banyak orang menemukan tempat tinggal yang tepat.
-              </p>
-            </div>
-
-            <a href={`https://wa.me/${waNumber}?text=${waDaftarKosMessage}`} target="_blank" rel="noopener noreferrer" className="group inline-flex w-fit shrink-0 items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-fimo-navy transition-all duration-200 hover:bg-gray-100 sm:px-5 sm:py-3.5">
-              Daftarkan Kos
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5">
-                <path d="M4.5 10H15.5M15.5 10L10.5 5M15.5 10L10.5 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
 
       {/* Main footer */}
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">

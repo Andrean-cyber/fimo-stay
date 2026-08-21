@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
 import { revalidatePath } from 'next/cache'
+import { fetchSelfSearchPage, fetchRecommendationPage } from './queue-helpers'
 
 export async function markTransactionSent(transactionId: string) {
   const admin = await requireAdmin()
@@ -21,4 +22,14 @@ export async function markTransactionSent(transactionId: string) {
   })
 
   revalidatePath('/admin/pengiriman')
+}
+
+export async function loadMoreSelfSearch(skip: number) {
+  await requireAdmin()
+  return fetchSelfSearchPage(skip)
+}
+
+export async function loadMoreRecommendation(skip: number) {
+  await requireAdmin()
+  return fetchRecommendationPage(skip)
 }

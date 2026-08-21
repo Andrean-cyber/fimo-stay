@@ -87,7 +87,7 @@ export default async function HomePage() {
         </div>
 
         {/* Heading */}
-        <h1 className="max-w-[680px] text-[28px] font-semibold leading-[1.12] tracking-[-0.025em] text-fimo-navy sm:text-[38px] md:text-[42px] lg:text-[46px]">
+        <h1 className="max-w-[680px] text-[28px] font-bold leading-[1.12] tracking-[-0.025em] text-fimo-navy sm:text-[38px] md:text-[42px] lg:text-[46px]">
           Temukan Kos yang Nyaman,
           <br />
           <span>Tepat untukmu.</span>

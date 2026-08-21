@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { randomUUID } from 'crypto'
 import { RECOMMENDATION_KOS_COUNT } from '@/lib/constants'
 import type { FormActionState } from '@/lib/action-state'
+import { fetchPendingPage, fetchVerifiedNeedPickPage } from './queue-helpers'
 
 export async function verifyTransaction(transactionId: string) {
   const admin = await requireAdmin()
@@ -50,6 +51,16 @@ export async function rejectTransaction(transactionId: string) {
     data: { entityType: 'transaction', entityId: transactionId, action: 'reject', adminId: admin.id, transactionId },
   })
   revalidatePath('/admin/transaksi')
+}
+
+export async function loadMorePending(skip: number) {
+  await requireAdmin()
+  return fetchPendingPage(skip)
+}
+
+export async function loadMoreVerifiedNeedPick(skip: number) {
+  await requireAdmin()
+  return fetchVerifiedNeedPickPage(skip)
 }
 
 export async function saveRecommendations(
