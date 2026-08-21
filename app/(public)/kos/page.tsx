@@ -13,9 +13,9 @@ import { PublicFooter } from '@/components/public-footer'
 
 const PAGE_SIZE = 20
 
-export default async function KosSearchPage({ searchParams }: { searchParams: Promise<{ q?: string; kategori?: string; priceMin?: string; priceMax?: string; kampus?: string; page?: string }> }) {
-  const { q = '', kategori = '', priceMin = '', priceMax = '', kampus = '', page = '1' } = await searchParams
-  const activeFilterCount = [kategori, priceMin, priceMax, kampus].filter(Boolean).length
+export default async function KosSearchPage({ searchParams }: { searchParams: Promise<{ q?: string; kategori?: string; priceMin?: string; priceMax?: string; kampus?: string; city?: string; page?: string }> }) {
+  const { q = '', kategori = '', priceMin = '', priceMax = '', kampus = '', city = '', page = '1' } = await searchParams
+  const activeFilterCount = [kategori, priceMin, priceMax, kampus, city].filter(Boolean).length
   const isFiltered = Boolean(q) || activeFilterCount > 0
   const priceMinNum = priceMin ? Number(priceMin) : null
   const priceMaxNum = priceMax ? Number(priceMax) : null
@@ -23,6 +23,7 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
 
   const where: Prisma.KosWhereInput = {
     status: 'ACTIVE',
+    ...(city ? { city: { equals: city, mode: 'insensitive' } } : {}),
     ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { city: { contains: q, mode: 'insensitive' } }, { district: { contains: q, mode: 'insensitive' } }] } : {}),
     ...(kategori ? { segments: { some: { kosTypeId: kategori } } } : {}),
     ...(kampus ? { nearby: { some: { OR: (KAMPUS_POPULER.find((k) => k.label === kampus)?.aliases ?? [kampus]).map((alias) => ({ name: { contains: alias, mode: 'insensitive' as const } })) } } } : {}),
@@ -122,6 +123,11 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
                 {' '}untuk <span className="font-medium text-gray-700">&ldquo;{q}&rdquo;</span>
               </>
             )}
+            {city && (
+              <>
+                {' '}di <span className="font-medium text-gray-700">{city}</span>
+              </>
+            )}
             {kampus && (
               <>
                 {' '}dekat <span className="font-medium text-gray-700">{kampus}</span>
@@ -169,6 +175,7 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
                   if (priceMin) params.set('priceMin', priceMin)
                   if (priceMax) params.set('priceMax', priceMax)
                   if (kampus) params.set('kampus', kampus)
+                  if (city) params.set('city', city)
                   if (p > 1) params.set('page', String(p))
                   const qs = params.toString()
                   return qs ? `/kos?${qs}` : '/kos'
