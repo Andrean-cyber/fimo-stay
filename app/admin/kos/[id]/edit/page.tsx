@@ -5,6 +5,7 @@ import { updateKos, hideKosManual } from '../../actions'
 import { KosForm } from '../../kos-form'
 import { UploadFoto } from '../upload-foto'
 import { PhotoIcon } from '@heroicons/react/24/outline'
+import { DeleteFotoButton } from './delete-foto-button'
 
 export default async function EditKosPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
@@ -39,8 +40,11 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
         {kos.media.length > 0 ? (
           <div className="mb-4 grid grid-cols-3 gap-2">
             {kos.media.map((m) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={m.id} src={m.url} alt="" className="h-24 w-full rounded-xl object-cover sm:h-28 lg:h-32" />
+              <div key={m.id} className="group relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={m.url} alt="" className="h-24 w-full rounded-xl object-cover sm:h-28 lg:h-32" />
+                <DeleteFotoButton mediaId={m.id} />
+              </div>
             ))}
           </div>
         ) : (

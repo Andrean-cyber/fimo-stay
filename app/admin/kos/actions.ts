@@ -9,10 +9,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { FormActionState } from '@/lib/action-state'
 import { normalizeCityName } from '@/lib/constants'
+import { toPublicUrl, deleteFromR2 } from '@/lib/r2'
 
-// ⚠️ Dipakai di kedua transaksi (create & update) supaya `kos` yang
-// dikirim ke syncKosToIndex punya semua relasi yang dibutuhkan
-// (kosType.name untuk label jenis kos, media untuk cover image).
 const KOS_INDEX_INCLUDE = {
   segments: { include: { roomTypes: true, kosType: true } },
   nearby: true,
@@ -21,7 +19,6 @@ const KOS_INDEX_INCLUDE = {
 
 function parseNearby(formData: FormData) {
   const raw = formData.get('nearbyJson')
-  // beda dari segment: nearby boleh tidak dikirim sama sekali → anggap kosong
   if (typeof raw !== 'string') {
     return { success: true as const, data: [] as import('@/lib/validations/kos').NearbyPayload }
   }
@@ -154,7 +151,7 @@ export async function createKos(_prevState: FormActionState, formData: FormData)
     return created
   })
 
-  await syncKosToIndex(kos) // ⚠️ pastikan syncKosToIndex di lib/meilisearch.ts sudah dibaca ulang shape-nya (lihat catatan)
+  await syncKosToIndex(kos)
 
   revalidatePath('/admin/kos')
   redirect(`/admin/kos/${kos.id}/edit`)
@@ -190,7 +187,6 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
     const existingSegmentIds = new Set(existingSegments.map((s) => s.id))
     const incomingSegmentIds = new Set(segmentsResult.data.filter((s) => s.id).map((s) => s.id!))
 
-    // hapus segment yang dibuang dari form (cascade otomatis hapus roomTypes-nya)
     const segmentIdsToDelete = [...existingSegmentIds].filter((id) => !incomingSegmentIds.has(id))
     if (segmentIdsToDelete.length > 0) {
       await tx.kosSegment.deleteMany({ where: { id: { in: segmentIdsToDelete } } })
@@ -231,7 +227,6 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
       }
     }
 
-    // sync nearby — pola sama persis dengan sync segment di atas
     const existingNearby = await tx.kosNearby.findMany({ where: { kosId }, select: { id: true } })
     const existingNearbyIds = new Set(existingNearby.map((n) => n.id))
     const incomingNearbyIds = new Set(nearbyResult.data.filter((n) => n.id).map((n) => n.id!))
@@ -269,7 +264,6 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
   redirect('/admin/kos')
 }
 
-// hideKosManual, attachKosMedia, deleteKos: TIDAK berubah, tetap sama seperti sebelumnya.
 export async function hideKosManual(kosId: string) {
   const admin = await requireAdmin()
   const kos = await prisma.kos.update({ where: { id: kosId }, data: { status: 'HIDDEN_MANUAL' }, include: KOS_INDEX_INCLUDE })
@@ -298,4 +292,15 @@ export async function deleteKos(kosId: string): Promise<{ error?: string }> {
   await prisma.kos.delete({ where: { id: kosId } })
   revalidatePath('/admin/kos')
   redirect('/admin/kos')
+}
+
+export async function deleteKosMedia(mediaId: string) {
+  await requireAdmin()
+  const media = await prisma.kosMedia.findUnique({ where: { id: mediaId } })
+  if (!media) return
+
+  await deleteFromR2(media.url)
+
+  await prisma.kosMedia.delete({ where: { id: mediaId } })
+  revalidatePath(`/admin/kos/${media.kosId}/edit`)
 }
