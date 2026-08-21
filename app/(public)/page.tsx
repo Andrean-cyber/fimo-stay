@@ -72,49 +72,73 @@ export default async function HomePage() {
     <div className="min-h-screen bg-white">
       <PublicHeader />
       <main>
-        {/* HERO */}
-        <section className="px-3 pt-3 sm:px-5 sm:pt-5">
-          <div className="relative overflow-hidden rounded-[24px] sm:rounded-[28px]">
-            <Image src="/hero-bali.webp" alt="Pemandangan Bali Indonesia" fill priority className="object-cover object-[65%_center]" sizes="100vw" />
-            <div className="absolute inset-0 bg-black/25" />
-            <div className="absolute inset-0 bg-gradient-to-br from-black/45 via-black/10 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/40 to-transparent" />
-            <div className="relative z-10 mx-auto flex min-h-[400px] max-w-6xl flex-col px-4 pb-4 pt-8 sm:min-h-0 sm:block sm:px-8 sm:pb-8 sm:pt-24 lg:px-12 lg:pb-10 lg:pt-24 xl:px-14">
-              <div className="flex flex-1 flex-col items-start justify-end sm:flex-none sm:justify-start">
-                <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/85 px-3 py-1.5 text-[11px] font-semibold text-fimo-navy shadow-sm backdrop-blur-md sm:mb-5 sm:gap-2 sm:px-4 sm:py-2 sm:text-xs">
-                  <SparklesIcon className="h-3.5 w-3.5 text-fimo-blue sm:h-4 sm:w-4" />
-                  <span>Kos pilihan yang selalu diperbarui</span>
-                </div>
-                <h1 className="max-w-[720px] text-[24px] font-extrabold leading-[1.15] tracking-[-0.02em] text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)] sm:text-3xl sm:leading-[1.05] sm:tracking-[-0.03em] md:text-4xl lg:text-5xl xl:text-6xl">
-                  Temukan Kos yang<br /><span className="text-sky-300">Tepat untukmu.</span>
-                </h1>
-                <p className="mt-2 line-clamp-2 max-w-[600px] text-[12px] leading-[18px] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.4)] sm:mt-5 sm:line-clamp-none sm:text-base sm:leading-7 lg:text-lg">
-                  Cari kos yang masih tersedia, lokasi yang sesuai, dan harga yang cocok dengan kebutuhanmu. Semua lebih mudah dalam satu tempat.
-                </p>
-                <div className="hidden sm:mt-6 sm:flex sm:flex-wrap sm:gap-2.5">
-                  <HeroBadge icon={CheckCircleIcon} text="Data kos aktif" />
-                  <HeroBadge icon={ShieldCheckIcon} text="Diverifikasi tim" />
-                  <HeroBadge icon={ArrowPathIcon} text="Update rutin" />
-                </div>
-              </div>
-              <div className="relative z-30 mt-4 w-full sm:mt-6 lg:mt-10">
-                <div className="rounded-2xl border border-white/50 bg-white/40 p-2.5 shadow-[0_15px_45px_rgba(15,23,42,0.15)] backdrop-blur-xl sm:rounded-2xl sm:p-4">
-                  <div className="mb-2 flex items-center justify-between px-1 sm:mb-3 sm:px-2">
-                    <div>
-                      <p className="text-[13px] font-bold text-fimo-navy sm:text-base">Cari kos impianmu</p>
-                      <p className="mt-0.5 text-[10px] text-white sm:text-xs">Pilih lokasi, kampus, atau kebutuhanmu</p>
-                    </div>
-                    <div className="hidden items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-fimo-navy sm:flex">
-                      <MagnifyingGlassIcon className="h-3.5 w-3.5" />
-                      Cari sekarang
-                    </div>
-                  </div>
-                  <SearchForm />
-                </div>
-              </div>
-            </div>
+{/* HERO */}
+<section className="relative px-3 pt-3 sm:px-5 sm:pt-5">
+  <div className="relative mx-auto max-w-[1400px]">
+    {/* HERO BACKGROUND */}
+    <div className="relative h-[355px] overflow-hidden rounded-[22px] sm:h-[410px] sm:rounded-[28px] lg:h-[400px]">
+      <Image src="/bg.webp" alt="Background hero" fill priority sizes="100vw" className="object-cover object-center" />
+
+      {/* HERO CONTENT */}
+      <div className="relative z-10 flex h-full flex-col items-center justify-start px-4 pt-6 text-center sm:px-10 sm:pt-10 lg:justify-center lg:pt-0 lg:pb-12">
+        {/* Badge */}
+        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/80 px-3 py-1.5 text-[10px] font-medium text-fimo-navy shadow-sm backdrop-blur-md sm:mb-5 sm:px-4 sm:text-[11px]">
+          <span>Kos pilihan yang selalu diperbarui</span>
+        </div>
+
+        {/* Heading */}
+        <h1 className="max-w-[680px] text-[28px] font-semibold leading-[1.12] tracking-[-0.025em] text-fimo-navy sm:text-[38px] md:text-[42px] lg:text-[46px]">
+          Temukan Kos yang Nyaman,
+          <br />
+          <span>Tepat untukmu.</span>
+        </h1>
+
+        {/* Description */}
+        <p className="mt-3 max-w-[520px] px-2 text-[11px] font-normal leading-[1.7] text-slate-700 sm:mt-4 sm:px-0 sm:text-xs md:text-sm">
+          Cari kos yang masih tersedia, lokasi yang sesuai, dan harga yang cocok dengan kebutuhanmu. Semua lebih mudah dalam satu tempat.
+        </p>
+
+        {/* HERO ACTIONS */}
+        <div className="mt-4 flex items-center justify-center gap-2 sm:mt-5 sm:gap-2.5">
+          <Link href="/kos" className="inline-flex h-9 items-center justify-center rounded-full bg-fimo-navy px-4 text-[11px] font-medium text-white shadow-sm transition-all hover:bg-fimo-navy/90 active:scale-[0.98] sm:h-10 sm:px-5 sm:text-xs">
+            Cari Kos
+          </Link>
+
+          <Link href="/rekomendasi/mulai" className="inline-flex h-9 items-center justify-center rounded-full border border-fimo-navy/30 bg-white/70 px-4 text-[11px] font-medium text-fimo-navy backdrop-blur-sm transition-all hover:border-fimo-navy hover:bg-white active:scale-[0.98] sm:h-10 sm:px-5 sm:text-xs">
+            Minta Rekomendasi
+          </Link>
+        </div>
+      </div>
+    </div>
+
+    {/* FLOATING SEARCH */}
+    <div className="relative z-30 mx-auto -mt-6 w-[calc(100%-24px)] max-w-5xl sm:-mt-9 sm:w-[calc(100%-40px)] lg:-mt-10">
+      <div className="rounded-[18px] border border-slate-200/80 bg-white p-3 shadow-[0_16px_45px_rgba(15,23,42,0.12)] sm:rounded-[22px] sm:p-4 lg:p-5">
+        {/* Search Header */}
+        <div className="mb-2.5 flex items-center justify-between gap-3 px-1 sm:mb-4 sm:px-2">
+          <div>
+            <p className="text-[13px] font-medium text-fimo-navy sm:text-sm lg:text-base">
+              Cari Kos Impianmu
+            </p>
+            <p className="mt-0.5 text-[9px] text-slate-500 sm:text-[11px] lg:text-xs">
+              Masukkan lokasi, kampus, atau alamat tujuanmu
+            </p>
           </div>
-        </section>
+
+          <div className="hidden shrink-0 items-center gap-1.5 rounded-full bg-fimo-blue/10 px-3 py-1.5 text-[10px] font-medium text-fimo-navy sm:flex sm:text-xs">
+            <MagnifyingGlassIcon className="h-3.5 w-3.5 text-fimo-blue" />
+            <span>Cari sekarang</span>
+          </div>
+        </div>
+
+        {/* Search Form */}
+        <div className="rounded-xl bg-slate-50 p-1.5 sm:rounded-2xl sm:p-2">
+          <SearchForm />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
         {/* DEKAT KAMPUS POPULER */}
         <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-6 sm:pt-14 lg:pt-20">

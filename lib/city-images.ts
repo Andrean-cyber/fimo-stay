@@ -14,7 +14,7 @@
 // ✏️ Tambah/lengkapi sesuai kota yang paling sering muncul di Kos.city.
 export const CITY_IMAGES: Record<string, string> = {
   malang: '/malang.webp',
-  surabaya: '/surabaya.jpg',
+  surabaya: '/surabaya.webp',
   // jakarta: '/cities/jakarta.jpg',
   // yogyakarta: '/cities/yogyakarta.jpg',
 }

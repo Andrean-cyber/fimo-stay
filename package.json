@@ -17,7 +17,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1105.0",
     "@heroicons/react": "^2.2.0",
     "@marsidev/react-turnstile": "^1.5.5",
-    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/adapter-pg": "^6.19.3",
     "@prisma/client": "^6.19.3",
     "@prisma/extension-accelerate": "^3.0.1",
     "@supabase/ssr": "^0.12.4",

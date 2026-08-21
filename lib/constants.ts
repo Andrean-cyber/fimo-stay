@@ -7,7 +7,7 @@ export const ROOM_FACILITIES = [
   'AC', 'Kasur', 'Lemari', 'Meja Belajar', 'Kamar Mandi Dalam',
 ]
 
-export const WHATSAPP_NUMBER = '628993503094' // GANTI dengan nomor WA official FimoStay, format 62xxx tanpa +
+export const WHATSAPP_NUMBER = '6289666783030' // GANTI dengan nomor WA official FimoStay, format 62xxx tanpa +
 
 // Jumlah kos yang harus dipilihkan admin untuk transaksi tipe RECOMMENDATION.
 // Satu-satunya tempat yang perlu diubah kalau angkanya berubah di masa depan.

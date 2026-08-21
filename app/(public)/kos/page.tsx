@@ -9,61 +9,23 @@ import { Pagination } from '@/components/pagination'
 import { toPublicUrl } from '@/lib/r2'
 import { KAMPUS_POPULER } from '@/lib/campuses'
 import type { Prisma } from '@prisma/client'
+import { PublicFooter } from '@/components/public-footer'
 
 const PAGE_SIZE = 20
 
-export default async function KosSearchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{
-    q?: string
-    kategori?: string
-    priceMin?: string
-    priceMax?: string
-    kampus?: string
-    page?: string
-  }>
-}) {
+export default async function KosSearchPage({ searchParams }: { searchParams: Promise<{ q?: string; kategori?: string; priceMin?: string; priceMax?: string; kampus?: string; page?: string }> }) {
   const { q = '', kategori = '', priceMin = '', priceMax = '', kampus = '', page = '1' } = await searchParams
-
   const activeFilterCount = [kategori, priceMin, priceMax, kampus].filter(Boolean).length
   const isFiltered = Boolean(q) || activeFilterCount > 0
-
   const priceMinNum = priceMin ? Number(priceMin) : null
   const priceMaxNum = priceMax ? Number(priceMax) : null
   const currentPage = Math.max(1, Number(page) || 1)
 
   const where: Prisma.KosWhereInput = {
     status: 'ACTIVE',
-    ...(q
-      ? {
-          OR: [
-            { name: { contains: q, mode: 'insensitive' } },
-            { city: { contains: q, mode: 'insensitive' } },
-            { district: { contains: q, mode: 'insensitive' } },
-          ],
-        }
-      : {}),
-    // kategori = kosType.id (jenis kos yang admin kelola di
-    // admin/kos/pengaturan/jenis-kos). Dicocokkan lewat ID (bukan nama)
-    // karena nama bisa diubah admin kapan saja.
-    ...(kategori
-      ? { segments: { some: { kosTypeId: kategori } } }
-      : {}),
-    // kampus dicocokkan lewat KosNearby.name — karena belum ada tabel master
-    // kampus, admin nulis bebas ("UB", "Universitas Brawijaya", dst), jadi
-    // dicek terhadap semua alias yang terdaftar di lib/campuses.ts.
-    ...(kampus
-      ? {
-          nearby: {
-            some: {
-              OR: (KAMPUS_POPULER.find((k) => k.label === kampus)?.aliases ?? [kampus]).map(
-                (alias) => ({ name: { contains: alias, mode: 'insensitive' as const } })
-              ),
-            },
-          },
-        }
-      : {}),
+    ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { city: { contains: q, mode: 'insensitive' } }, { district: { contains: q, mode: 'insensitive' } }] } : {}),
+    ...(kategori ? { segments: { some: { kosTypeId: kategori } } } : {}),
+    ...(kampus ? { nearby: { some: { OR: (KAMPUS_POPULER.find((k) => k.label === kampus)?.aliases ?? [kampus]).map((alias) => ({ name: { contains: alias, mode: 'insensitive' as const } })) } } } : {}),
   }
 
   const kosTypes = await prisma.kosType.findMany({
@@ -104,8 +66,6 @@ export default async function KosSearchPage({
     },
   })
 
-  // Kos tanpa room type aktif dikeluarkan — sama seperti logika lama di
-  // syncKosToIndex, supaya tidak tampil dengan harga kosong/ngaco
   const kosListFiltered = kosListRaw
     .map((k) => {
       const allPrices = k.segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
@@ -114,13 +74,11 @@ export default async function KosSearchPage({
       const priceMinKos = Math.min(...allPrices)
       const priceMaxKos = Math.max(...allPrices)
 
-      // Filter harga dilakukan di sini (bukan di query Prisma) karena harga
-      // per kos berasal dari MIN/MAX antar beberapa roomType — perlu dihitung
-      // dulu sebelum bisa dibandingkan dengan rentang yang diminta.
       if (priceMinNum != null && priceMaxKos < priceMinNum) return null
       if (priceMaxNum != null && priceMinKos > priceMaxNum) return null
 
       const nearby = k.nearby[0]
+
       return {
         id: k.id,
         slug: k.slug,
@@ -137,8 +95,6 @@ export default async function KosSearchPage({
     })
     .filter((k): k is NonNullable<typeof k> => k !== null)
 
-  // Pagination diterapkan SETELAH filter harga selesai, karena harga
-  // hasil turunan MIN/MAX yang cuma bisa dihitung setelah fetch.
   const totalItems = kosListFiltered.length
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE))
   const safePage = Math.min(currentPage, totalPages)
@@ -148,19 +104,14 @@ export default async function KosSearchPage({
   return (
     <div className="min-h-screen bg-white">
       <PublicHeader />
+
       <main className="mx-auto max-w-5xl px-4 py-8">
         <div className="mb-6 flex items-start gap-2">
           <div className="flex-1">
             <SearchForm defaultQuery={q} />
           </div>
-          <FilterPanel
-            q={q}
-            kategori={kategori}
-            priceMin={priceMin}
-            priceMax={priceMax}
-            activeFilterCount={activeFilterCount}
-            kosTypes={kosTypes}
-          />
+
+          <FilterPanel q={q} kategori={kategori} priceMin={priceMin} priceMax={priceMax} activeFilterCount={activeFilterCount} kosTypes={kosTypes} />
         </div>
 
         {isFiltered && (
@@ -227,6 +178,8 @@ export default async function KosSearchPage({
           </>
         )}
       </main>
+
+      <PublicFooter />
     </div>
   )
 }
