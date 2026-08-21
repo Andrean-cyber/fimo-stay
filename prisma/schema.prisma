@@ -68,9 +68,9 @@ model AdminProfile {
 model Owner {
   id        String   @id @default(uuid())
   name      String
-  phone     String
+  phone     String   @unique          // ← tambahkan @unique
   address   String?
-  notes     String?  // catatan internal tim, tidak tampil ke publik
+  notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -84,10 +84,9 @@ model Kos {
   slug         String    @unique
   name         String
   description  String?
-  city         String    // tampil publik sebelum bayar
-  district String?
-  address      String    // alamat lengkap — TIDAK pernah di-select di query publik,
-                          // baru boleh diambil setelah ada Transaction VERIFIED milik searcher utk kos ini
+  city         String
+  district     String?
+  address      String
   latitude     Float?
   longitude    Float?
   facilities   String[]  @default([])
@@ -100,7 +99,7 @@ model Kos {
   segments KosSegment[]
   nearby   KosNearby[]
 
-  lastUpdatedAt DateTime @default(now()) // dibump manual tiap kali segment/roomtype/nearby berubah — dipakai cron auto-hide 7 hari
+  lastUpdatedAt DateTime @default(now())
   updatedById   String?
   updatedBy     AdminProfile? @relation("KosUpdatedBy", fields: [updatedById], references: [id])
 
@@ -114,6 +113,7 @@ model Kos {
   @@index([status])
   @@index([city])
   @@index([lastUpdatedAt])
+  @@unique([name, city])              // ← tambahkan, sesuai logic di createKos/updateKos
   @@map("kos")
 }
 
