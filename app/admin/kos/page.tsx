@@ -2,10 +2,11 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
 import Link from 'next/link'
 import { SyncSearchButton } from './sync-search-button'
-import { Plus, AlertTriangle, Home, Settings, MapPin, User } from 'lucide-react'
+import { Plus, AlertTriangle, Home, Settings, MapPin, User, Search } from 'lucide-react'
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button'
 import { deleteKos } from './actions'
 import { EmptyState } from '@/components/empty-state'
+import { Pagination } from '@/components/pagination'
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: 'Aktif',
@@ -13,13 +14,57 @@ const STATUS_LABEL: Record<string, string> = {
   HIDDEN_MANUAL: 'Disembunyikan (Manual)',
 }
 
-export default async function KosListPage() {
+const PAGE_SIZE = 20
+
+export default async function KosListPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; q?: string }>
+}) {
   await requireAdmin()
 
-  const daftarKos = await prisma.kos.findMany({
-    orderBy: { lastUpdatedAt: 'desc' },
-    include: { owner: true },
-  })
+  const { page: pageParam, q } = await searchParams
+  const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1)
+  const query = (q ?? '').trim()
+
+  const where = query
+    ? {
+        OR: [
+          { name: { contains: query, mode: 'insensitive' as const } },
+          { city: { contains: query, mode: 'insensitive' as const } },
+          { owner: { name: { contains: query, mode: 'insensitive' as const } } },
+        ],
+      }
+    : {}
+
+  const [daftarKos, total] = await Promise.all([
+    prisma.kos.findMany({
+      where,
+      orderBy: { lastUpdatedAt: 'desc' },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      select: {
+        id: true,
+        name: true,
+        city: true,
+        status: true,
+        lastUpdatedAt: true,
+        owner: { select: { name: true } },
+      },
+    }),
+    prisma.kos.count({ where }),
+  ])
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const start = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
+  const end = Math.min(page * PAGE_SIZE, total)
+
+  const buildHref = (p: number) => {
+    const params = new URLSearchParams()
+    if (query) params.set('q', query)
+    params.set('page', String(p))
+    return `/admin/kos?${params.toString()}`
+  }
 
   const now = Date.now()
 
@@ -29,7 +74,9 @@ export default async function KosListPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-fimo-navy sm:text-2xl lg:text-3xl">Daftar Kos</h1>
-          <p className="mt-1 text-xs text-gray-500 sm:text-sm">{daftarKos.length} kos terdaftar</p>
+          <p className="mt-1 text-xs text-gray-500 sm:text-sm">
+            {total === 0 ? '0 kos terdaftar' : `Menampilkan ${start}–${end} dari ${total} kos`}
+          </p>
         </div>
         {/* Actions: full-width stack di mobile, inline di desktop */}
         <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
@@ -53,14 +100,38 @@ export default async function KosListPage() {
         </div>
       </div>
 
+      {/* ===== Search bar ===== */}
+      <form action="/admin/kos" method="get" className="flex max-w-sm gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            name="q"
+            defaultValue={query}
+            placeholder="Cari nama, kota, atau owner..."
+            className="w-full rounded-xl border border-fimo-gray py-2.5 pl-10 pr-4 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30"
+          />
+        </div>
+        <button
+          type="submit"
+          className="shrink-0 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90"
+        >
+          Cari
+        </button>
+      </form>
+
       {daftarKos.length === 0 ? (
         <div className="rounded-2xl border border-fimo-gray bg-white shadow-sm">
           <EmptyState
             icon={Home}
-            title="Belum ada kos"
-            description="Mulai dengan menambahkan kos pertama."
-            actionLabel="+ Tambah Kos"
-            actionHref="/admin/kos/new"
+            title={query ? 'Kos tidak ditemukan' : 'Belum ada kos'}
+            description={
+              query
+                ? `Tidak ada kos yang cocok dengan "${query}".`
+                : 'Mulai dengan menambahkan kos pertama.'
+            }
+            actionLabel={query ? undefined : '+ Tambah Kos'}
+            actionHref={query ? undefined : '/admin/kos/new'}
           />
         </div>
       ) : (
@@ -192,6 +263,8 @@ export default async function KosListPage() {
               </tbody>
             </table>
           </div>
+
+          <Pagination currentPage={page} totalPages={totalPages} buildHref={buildHref} />
         </>
       )}
     </div>
