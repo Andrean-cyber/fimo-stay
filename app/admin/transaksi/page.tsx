@@ -124,10 +124,16 @@ export default async function TransaksiPage({
       )}
 
       <div className="space-y-3">
-        <PendingQueueSection initialItems={pendingAll} total={pendingTotal} loadMore={loadMorePending} />
+        <PendingQueueSection
+          key={pendingAll.map((t) => t.id).join(',')}
+          initialItems={pendingAll}
+          total={pendingTotal}
+          loadMore={loadMorePending}
+        />
       </div>
 
       <VerifiedNeedPickSection
+        key={verifiedNeedPick.map((t) => t.id).join(',')}
         initialItems={verifiedNeedPick}
         total={verifiedNeedPickTotal}
         loadMore={loadMoreVerifiedNeedPick}

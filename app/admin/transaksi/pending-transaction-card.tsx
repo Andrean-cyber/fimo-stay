@@ -1,8 +1,38 @@
+'use client'
+
+import { useTransition } from 'react'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { verifyTransaction, rejectTransaction } from './actions'
 import type { PendingCardData } from './queue-helpers'
 
-export function PendingTransactionCard({ t }: { t: PendingCardData }) {
+export function PendingTransactionCard({
+  t,
+  onDone,
+}: {
+  t: PendingCardData
+  onDone: (id: string) => void
+}) {
+  const [isPending, startTransition] = useTransition()
+
+  function handleVerify() {
+    startTransition(async () => {
+      const result = await verifyTransaction(t.id)
+      if (!result?.error) {
+        onDone(t.id)
+      }
+      // TODO: kalau ada result.error, tampilkan (misal toast) — jangan panggil onDone
+    })
+  }
+
+  function handleReject() {
+    startTransition(async () => {
+      const result = await rejectTransaction(t.id)
+      if (!result?.error) {
+        onDone(t.id)
+      }
+    })
+  }
+
   return (
     <div className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-5">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -42,24 +72,24 @@ export function PendingTransactionCard({ t }: { t: PendingCardData }) {
       </p>
 
       <div className="mt-4 flex gap-2">
-        <form action={verifyTransaction.bind(null, t.id)}>
-          <button
-            type="submit"
-            className="flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 lg:px-5 lg:py-2.5 lg:text-[15px]"
-          >
-            <CheckIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
-            Verifikasi
-          </button>
-        </form>
-        <form action={rejectTransaction.bind(null, t.id)}>
-          <button
-            type="submit"
-            className="flex items-center gap-1.5 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 lg:px-5 lg:py-2.5 lg:text-[15px]"
-          >
-            <XMarkIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
-            Tolak
-          </button>
-        </form>
+        <button
+          type="button"
+          onClick={handleVerify}
+          disabled={isPending}
+          className="flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 lg:px-5 lg:py-2.5 lg:text-[15px]"
+        >
+          <CheckIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+          Verifikasi
+        </button>
+        <button
+          type="button"
+          onClick={handleReject}
+          disabled={isPending}
+          className="flex items-center gap-1.5 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 lg:px-5 lg:py-2.5 lg:text-[15px]"
+        >
+          <XMarkIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+          Tolak
+        </button>
       </div>
     </div>
   )

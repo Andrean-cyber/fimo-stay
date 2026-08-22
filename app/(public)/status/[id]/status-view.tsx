@@ -98,7 +98,7 @@ export function StatusView({ initialTrx }: { initialTrx: Trx }) {
               <p className="text-sm font-semibold text-gray-900 md:text-base">Pembayaran terverifikasi</p>
               <p className="mt-1 text-sm text-gray-700 md:text-base">
                 {trx.type === 'SELF_SEARCH'
-                  ? 'Detail kos dan kontak owner sudah kami kirimkan ke WhatsApp kamu.'
+                  ? 'Detail kos dan kontak owner akan kami kirimkan ke WhatsApp kamu dalam 1-4 Hari Kerja.'
                   : 'Rekomendasi 3 kos akan kami kirimkan ke WhatsApp kamu dalam 1-4 Hari Kerja.'}
               </p>
             </div>

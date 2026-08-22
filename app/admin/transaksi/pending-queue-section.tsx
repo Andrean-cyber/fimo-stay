@@ -24,6 +24,10 @@ export function PendingQueueSection({
     })
   }
 
+  function handleDone(id: string) {
+    setItems((prev) => prev.filter((item) => item.id !== id))
+  }
+
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 rounded-2xl border border-fimo-gray bg-white px-5 py-10 text-center">
@@ -35,7 +39,7 @@ export function PendingQueueSection({
   return (
     <>
       {items.map((t) => (
-        <PendingTransactionCard key={t.id} t={t} />
+        <PendingTransactionCard key={t.id} t={t} onDone={handleDone} />
       ))}
       {hasMore && (
         <button
