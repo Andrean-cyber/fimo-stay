@@ -22,7 +22,7 @@ import { KAMPUS_POPULER } from '@/lib/campuses'
 import { getCityImage } from '@/lib/city-images'
 
 export default async function HomePage() {
-  const [kosRekomendasiRaw, kosAktifCities, kosTypes] = await Promise.all([
+  const [kosRekomendasiRaw, cityGroups, kosTypes] = await Promise.all([
     prisma.kos.findMany({
       where: { status: 'ACTIVE' },
       orderBy: { lastUpdatedAt: 'desc' },
@@ -34,7 +34,11 @@ export default async function HomePage() {
         nearby: { where: { isActive: true }, orderBy: { order: 'asc' }, take: 1, select: { name: true, distanceText: true } },
       },
     }),
-    prisma.kos.findMany({ where: { status: 'ACTIVE' }, select: { city: true } }),
+    prisma.kos.groupBy({
+      by: ['city'],
+      where: { status: 'ACTIVE' },
+      _count: { _all: true },
+    }),
     prisma.kosType.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true } }),
   ])
 
@@ -58,15 +62,17 @@ export default async function HomePage() {
     }
   })
 
-  // Group kota case-insensitive. count dipakai untuk urutan popularitas, tidak ditampilkan ke publik.
+  // Group kota case-insensitive (groupBy Prisma tidak case-insensitive secara native,
+  // jadi tetap perlu digabung manual — tapi datanya sudah ringkas per-kota, bukan per-kos).
   const cityCountMap = new Map<string, { display: string; count: number }>()
-  for (const { city } of kosAktifCities) {
+  for (const { city, _count } of cityGroups) {
     const key = city.trim().toLowerCase()
     const existing = cityCountMap.get(key)
-    if (existing) existing.count++
-    else cityCountMap.set(key, { display: city.trim(), count: 1 })
+    if (existing) existing.count += _count._all
+    else cityCountMap.set(key, { display: city.trim(), count: _count._all })
   }
-  const lokasiPopuler = Array.from(cityCountMap.values()).sort((a, b) => b.count - a.count).slice(0, 6)
+  // Tampilkan semua kota (jumlahnya masih sedikit, ~10-20), urut dari yang paling banyak kosnya.
+  const lokasiPopuler = Array.from(cityCountMap.values()).sort((a, b) => b.count - a.count)
 
   return (
     <div className="min-h-screen bg-white">
@@ -178,14 +184,9 @@ export default async function HomePage() {
 
         {/* LOKASI POPULER */}
         <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-6 sm:pt-14 lg:pt-20">
-          <div className="mb-3 flex items-end justify-between sm:mb-5">
-            <div>
-              <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-fimo-blue sm:mb-1 sm:text-xs sm:tracking-[0.18em]">Jelajahi lokasi</p>
-              <h2 className="text-lg font-bold text-fimo-navy sm:text-2xl sm:text-3xl">Lokasi Populer</h2>
-            </div>
-            <Link href="/kos" className="flex items-center gap-1 text-xs font-semibold text-fimo-navy hover:text-fimo-blue sm:text-sm">
-              Lihat semua<ArrowRightIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            </Link>
+          <div className="mb-3 sm:mb-5">
+            <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-fimo-blue sm:mb-1 sm:text-xs sm:tracking-[0.18em]">Jelajahi lokasi</p>
+            <h2 className="text-lg font-bold text-fimo-navy sm:text-2xl sm:text-3xl">Lokasi Populer</h2>
           </div>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
             {lokasiPopuler.map((l) => {
