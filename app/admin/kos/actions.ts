@@ -17,6 +17,21 @@ const KOS_INDEX_INCLUDE = {
   media: { where: { isCover: true }, take: 1 },
 } as const
 
+// Hitung ulang harga min/max dari payload segments yang sudah tervalidasi.
+// Dipakai di createKos & updateKos supaya priceMinCache/priceMaxCache di
+// tabel Kos selalu sinkron dengan harga roomType terbaru — tanpa perlu
+// query aggregate terpisah, karena datanya sudah ada di tangan.
+function computePriceCache(segments: ReturnType<typeof segmentsPayloadSchema.parse>) {
+  const allPrices = segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
+  if (allPrices.length === 0) {
+    return { priceMinCache: null, priceMaxCache: null }
+  }
+  return {
+    priceMinCache: Math.min(...allPrices),
+    priceMaxCache: Math.max(...allPrices),
+  }
+}
+
 function parseNearby(formData: FormData) {
   const raw = formData.get('nearbyJson')
   if (typeof raw !== 'string') {
@@ -114,6 +129,7 @@ export async function createKos(_prevState: FormActionState, formData: FormData)
         status: 'ACTIVE',
         lastUpdatedAt: new Date(),
         updatedById: admin.id,
+        ...computePriceCache(segmentsResult.data),
         segments: {
           create: segmentsResult.data.map((segment, segmentOrder) => ({
             kosTypeId: segment.kosTypeId,
@@ -247,7 +263,13 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
 
     const updated = await tx.kos.update({
       where: { id: kosId },
-      data: { ...parsed.data, status: 'ACTIVE', lastUpdatedAt: new Date(), updatedById: admin.id },
+      data: {
+        ...parsed.data,
+        status: 'ACTIVE',
+        lastUpdatedAt: new Date(),
+        updatedById: admin.id,
+        ...computePriceCache(segmentsResult.data),
+      },
       include: KOS_INDEX_INCLUDE,
     })
 

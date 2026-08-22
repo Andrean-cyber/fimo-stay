@@ -92,6 +92,15 @@ model Kos {
   facilities   String[]  @default([])
   status       KosStatus @default(ACTIVE)
 
+  // Cache harga — hasil agregasi MIN/MAX dari KosRoomType.priceMonthly
+  // (yang isActive: true). Di-recompute lewat recomputeKosPriceCache()
+  // setiap kali ada create/update/delete pada KosRoomType/KosSegment
+  // milik kos ini. Nullable karena kos tanpa roomType aktif memang
+  // tidak punya harga — kos begini otomatis tersingkir dari listing
+  // publik lewat filter `priceMinCache: { not: null }`.
+  priceMinCache Int?
+  priceMaxCache Int?
+
   ownerId String
   owner   Owner  @relation(fields: [ownerId], references: [id])
 
@@ -113,7 +122,10 @@ model Kos {
   @@index([status])
   @@index([city])
   @@index([lastUpdatedAt])
-  @@unique([name, city])              // ← tambahkan, sesuai logic di createKos/updateKos
+  @@index([priceMinCache])
+  @@index([priceMaxCache])
+  @@index([status, priceMinCache, priceMaxCache]) // composite — cocok untuk query listing publik (where status + range harga sekaligus)
+  @@unique([name, city])
   @@map("kos")
 }
 

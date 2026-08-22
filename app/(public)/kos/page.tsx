@@ -23,20 +23,36 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
 
   const where: Prisma.KosWhereInput = {
     status: 'ACTIVE',
+    // kos tanpa roomType aktif tidak punya cache harga sama sekali —
+    // singkirkan dari listing publik, sama seperti perilaku lama
+    // (allPrices.length === 0 → return null).
+    priceMinCache: { not: null },
     ...(city ? { city: { equals: city, mode: 'insensitive' } } : {}),
     ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { city: { contains: q, mode: 'insensitive' } }, { district: { contains: q, mode: 'insensitive' } }] } : {}),
     ...(kategori ? { segments: { some: { kosTypeId: kategori } } } : {}),
     ...(kampus ? { nearby: { some: { OR: (KAMPUS_POPULER.find((k) => k.label === kampus)?.aliases ?? [kampus]).map((alias) => ({ name: { contains: alias, mode: 'insensitive' as const } })) } } } : {}),
+    // range overlap: kos ikut ditampilkan kalau rentang harganya
+    // bersinggungan dengan rentang yang dicari user
+    ...(priceMinNum != null ? { priceMaxCache: { gte: priceMinNum } } : {}),
+    ...(priceMaxNum != null ? { priceMinCache: { lte: priceMaxNum } } : {}),
   }
 
-  const kosTypes = await prisma.kosType.findMany({
-    orderBy: { name: 'asc' },
-    select: { id: true, name: true },
-  })
+  const [kosTypes, totalItems] = await Promise.all([
+    prisma.kosType.findMany({
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true },
+    }),
+    prisma.kos.count({ where }),
+  ])
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
 
   const kosListRaw = await prisma.kos.findMany({
     where,
     orderBy: { lastUpdatedAt: 'desc' },
+    skip: (safePage - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
     select: {
       id: true,
       slug: true,
@@ -44,14 +60,11 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
       city: true,
       district: true,
       facilities: true,
+      priceMinCache: true,
+      priceMaxCache: true,
       segments: {
-        select: {
-          kosType: { select: { name: true } },
-          roomTypes: {
-            where: { isActive: true },
-            select: { priceMonthly: true },
-          },
-        },
+        take: 1,
+        select: { kosType: { select: { name: true } } },
       },
       media: {
         orderBy: [{ isCover: 'desc' }, { order: 'asc' }],
@@ -67,40 +80,19 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
     },
   })
 
-  const kosListFiltered = kosListRaw
-    .map((k) => {
-      const allPrices = k.segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
-      if (allPrices.length === 0) return null
-
-      const priceMinKos = Math.min(...allPrices)
-      const priceMaxKos = Math.max(...allPrices)
-
-      if (priceMinNum != null && priceMaxKos < priceMinNum) return null
-      if (priceMaxNum != null && priceMinKos > priceMaxNum) return null
-
-      const nearby = k.nearby[0]
-
-      return {
-        id: k.id,
-        slug: k.slug,
-        name: k.name,
-        city: k.city,
-        district: k.district,
-        facilities: k.facilities,
-        priceMin: priceMinKos,
-        priceMax: priceMaxKos,
-        roomType: k.segments[0]?.kosType.name ?? null,
-        imageUrl: k.media[0]?.url ? toPublicUrl(k.media[0].url) : null,
-        nearbyText: nearby ? `${nearby.distanceText} ke ${nearby.name}` : null,
-      }
-    })
-    .filter((k): k is NonNullable<typeof k> => k !== null)
-
-  const totalItems = kosListFiltered.length
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE))
-  const safePage = Math.min(currentPage, totalPages)
-  const startIdx = (safePage - 1) * PAGE_SIZE
-  const kosList = kosListFiltered.slice(startIdx, startIdx + PAGE_SIZE)
+  const kosList = kosListRaw.map((k) => ({
+    id: k.id,
+    slug: k.slug,
+    name: k.name,
+    city: k.city,
+    district: k.district,
+    facilities: k.facilities,
+    priceMin: k.priceMinCache!,
+    priceMax: k.priceMaxCache!,
+    roomType: k.segments[0]?.kosType.name ?? null,
+    imageUrl: k.media[0]?.url ? toPublicUrl(k.media[0].url) : null,
+    nearbyText: k.nearby[0] ? `${k.nearby[0].distanceText} ke ${k.nearby[0].name}` : null,
+  }))
 
   return (
     <div className="min-h-screen bg-white">

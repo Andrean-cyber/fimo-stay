@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "backfill:search": "tsx scripts/backfill-meilisearch.mts",
+    "backfill:price-cache": "tsx scripts/backfill-price-cache.ts",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
