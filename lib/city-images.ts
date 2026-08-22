@@ -13,10 +13,16 @@
 //
 // ✏️ Tambah/lengkapi sesuai kota yang paling sering muncul di Kos.city.
 export const CITY_IMAGES: Record<string, string> = {
-  malang: '/malang.webp',
-  surabaya: '/surabaya.webp',
-  // jakarta: '/cities/jakarta.jpg',
-  // yogyakarta: '/cities/yogyakarta.jpg',
+  malang: 'kota/malang.webp',
+  surabaya: 'kota/surabaya.webp',
+  jakarta: 'kota/jakarta.webp',
+  bali: 'kota/bali.webp',
+  jogja: 'kota/jogja.webp',
+  bandung: 'kota/bandung.webp',
+  batam: 'kota/batam.webp',
+  bogor: 'kota/bogor.webp',
+  medan: 'kota/medan.webp',
+  semarang: 'kota/semarang.webp',
 }
 
 export function getCityImage(city: string): string | undefined {
