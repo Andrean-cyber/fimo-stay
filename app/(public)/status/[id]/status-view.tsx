@@ -73,7 +73,7 @@ export function StatusView({ initialTrx }: { initialTrx: Trx }) {
               <b className="text-gray-900">{PAYMENT_INFO.bank} {PAYMENT_INFO.accountNumber} a.n. {PAYMENT_INFO.accountName}</b>
             </p>
             <p className="mb-2 text-sm text-gray-700 md:text-base">
-              2. Kirim screenshot bukti transfer ke WhatsApp kami, sertakan kode referensi:
+              2. Kirim screenshot bukti transfer dan atas nama ke WhatsApp kami, sertakan kode referensi:
             </p>
             <p className="rounded-lg border bg-white py-2 text-center font-mono text-lg font-bold text-fimo-navy md:text-xl">
               {getReferenceCode(trx.id)}

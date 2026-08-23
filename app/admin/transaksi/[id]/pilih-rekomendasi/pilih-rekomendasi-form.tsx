@@ -1,27 +1,34 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   MapPinIcon,
+  MapIcon,
   TagIcon,
-  SparklesIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
 import { saveRecommendations } from '../../actions'
+
+type NearbyItem = { name: string; distanceText: string }
 
 type KosOption = {
   id: string
   name: string
   city: string
+  district: string | null
   address: string
+  nearby: NearbyItem[]
   priceMonthly: number
   roomType: string | null
   facilities: string[]
   matchScore: number
   matchReasons: string[]
 }
+
+const PAGE_SIZE = 12
 
 export function PilihRekomendasiForm({
   transactionId,
@@ -39,7 +46,8 @@ export function PilihRekomendasiForm({
     undefined
   )
   const [selected, setSelected] = useState<string[]>(initialSelectedIds)
-  const [showAll, setShowAll] = useState(false)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -51,10 +59,25 @@ export function PilihRekomendasiForm({
 
   const isComplete = selected.length === requiredCount
 
-  // Pisahkan kos yang cocok (skor > 0) dan yang tidak
-  const matched = kosList.filter((k) => k.matchScore > 0)
-  const unmatched = kosList.filter((k) => k.matchScore <= 0)
-  const hasFilter = kosList.some((k) => k.matchScore !== 0)
+  // Filter pencarian manual — admin bisa ketik nama kecamatan/kampus/jalan
+  // (mis. "UB") untuk menyaring, di luar skor kecocokan otomatis. Ini murni
+  // client-side (data sudah lengkap di kosList), jadi tidak perlu ke server
+  // dan tidak mengganggu state seleksi kos yang sudah dicentang.
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return kosList
+    return kosList.filter((k) => {
+      const haystack = [k.name, k.district ?? '', k.address, ...k.nearby.map((n) => n.name)]
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(q)
+    })
+  }, [kosList, search])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+  const matchedCount = filtered.filter((k) => k.matchScore > 0).length
 
   if (state?.success) {
     return (
@@ -84,69 +107,35 @@ export function PilihRekomendasiForm({
         </div>
       )}
 
-      {/* Kos yang cocok kriteria */}
-      {hasFilter ? (
-        <>
-          {matched.length > 0 ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <SparklesIcon className="h-4 w-4 text-fimo-navy" />
-                <p className="text-sm font-semibold text-fimo-navy">
-                  Cocok kriteria ({matched.length})
-                </p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {matched.map((k) => (
-                  <KosCard
-                    key={k.id}
-                    kos={k}
-                    isChecked={selected.includes(k.id)}
-                    isDisabled={!selected.includes(k.id) && selected.length >= requiredCount}
-                    onToggle={toggle}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-              Tidak ada kos yang cocok dengan kriteria pencari. Pilih secara manual dari daftar di bawah.
-            </div>
-          )}
+      {/* Cari manual — berguna kalau lokasi yang disebut pencari tidak
+          otomatis kecocok skor (mis. admin di kota lain tidak familiar
+          dengan nama jalan/kampus yang disebut pencari). */}
+      <div className="relative">
+        <MagnifyingGlassIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setPage(1)
+          }}
+          placeholder="Cari nama kos, kecamatan, jalan, atau lokasi terdekat (mis. UB)..."
+          className="w-full rounded-xl border border-fimo-gray py-2.5 pl-10 pr-4 text-sm text-gray-900 outline-none transition-colors focus:border-fimo-blue focus:ring-2 focus:ring-fimo-blue/30"
+        />
+      </div>
 
-          {/* Kos yang tidak cocok — collapsed by default */}
-          {unmatched.length > 0 && (
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => setShowAll((v) => !v)}
-                className="flex items-center gap-1.5 text-sm font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
-              >
-                {showAll
-                  ? `Sembunyikan kos lainnya`
-                  : `Tampilkan ${unmatched.length} kos lainnya (tidak cocok kriteria)`}
-              </button>
+      <p className="text-xs text-gray-500">
+        {filtered.length} kos ditemukan
+        {matchedCount > 0 && ` · ${matchedCount} cocok kriteria`}
+      </p>
 
-              {showAll && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {unmatched.map((k) => (
-                    <KosCard
-                      key={k.id}
-                      kos={k}
-                      isChecked={selected.includes(k.id)}
-                      isDisabled={!selected.includes(k.id) && selected.length >= requiredCount}
-                      onToggle={toggle}
-                      dimmed
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </>
+      {paginated.length === 0 ? (
+        <div className="rounded-xl border border-fimo-gray bg-white px-5 py-10 text-center text-sm text-gray-500">
+          Tidak ada kos yang cocok pencarian ini.
+        </div>
       ) : (
-        // Tidak ada preferensi — tampilkan semua flat
         <div className="grid gap-3 sm:grid-cols-2">
-          {kosList.map((k) => (
+          {paginated.map((k) => (
             <KosCard
               key={k.id}
               kos={k}
@@ -158,9 +147,27 @@ export function PilihRekomendasiForm({
         </div>
       )}
 
-      {kosList.length === 0 && (
-        <div className="rounded-xl border border-fimo-gray bg-white px-5 py-10 text-center text-sm text-gray-500">
-          Tidak ada kos aktif yang tersedia.
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 pt-1">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage <= 1}
+            className="rounded-xl border border-fimo-gray px-3 py-1.5 text-xs font-medium text-fimo-navy hover:bg-fimo-gray/30 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Sebelumnya
+          </button>
+          <span className="text-xs text-gray-500">
+            Halaman {safePage} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage >= totalPages}
+            className="rounded-xl border border-fimo-gray px-3 py-1.5 text-xs font-medium text-fimo-navy hover:bg-fimo-gray/30 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Berikutnya
+          </button>
         </div>
       )}
 
@@ -189,14 +196,14 @@ function KosCard({
   isChecked,
   isDisabled,
   onToggle,
-  dimmed = false,
 }: {
   kos: KosOption
   isChecked: boolean
   isDisabled: boolean
   onToggle: (id: string) => void
-  dimmed?: boolean
 }) {
+  const primaryNearby = kos.nearby[0]
+
   return (
     <label
       className={`relative flex cursor-pointer flex-col gap-2 rounded-2xl border p-4 shadow-sm transition-colors ${
@@ -204,9 +211,7 @@ function KosCard({
           ? 'border-fimo-navy bg-fimo-navy/5'
           : isDisabled
             ? 'cursor-not-allowed border-fimo-gray bg-gray-50 opacity-50'
-            : dimmed
-              ? 'border-fimo-gray bg-white opacity-60 hover:opacity-100 hover:border-fimo-blue/40'
-              : 'border-fimo-gray bg-white hover:border-fimo-blue/40'
+            : 'border-fimo-gray bg-white hover:border-fimo-blue/40'
       }`}
     >
       <input
@@ -224,12 +229,21 @@ function KosCard({
       </p>
 
       <div className="flex items-start gap-1 text-xs text-gray-500">
-  <MapPinIcon className="mt-0.5 h-3 w-3 shrink-0" />
-  <div className="min-w-0">
-    <p className="font-medium text-gray-700">{kos.city}</p>
-    <p className="break-words leading-relaxed">{kos.address}</p>
-  </div>
-</div>
+        <MapPinIcon className="mt-0.5 h-3 w-3 shrink-0" />
+        <div className="min-w-0">
+          <p className="font-medium text-gray-700">
+            {kos.district ? `${kos.district}, ${kos.city}` : kos.city}
+          </p>
+          <p className="break-words leading-relaxed">{kos.address}</p>
+        </div>
+      </div>
+
+      {primaryNearby && (
+        <p className="flex items-center gap-1 text-xs text-gray-500">
+          <MapIcon className="h-3 w-3 shrink-0" />
+          {primaryNearby.distanceText} ke {primaryNearby.name}
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="rounded-full bg-fimo-navy/10 px-2 py-0.5 font-medium text-fimo-navy">
@@ -249,7 +263,6 @@ function KosCard({
         </p>
       )}
 
-      {/* Match reasons */}
       {kos.matchReasons.length > 0 && (
         <div className="flex flex-wrap gap-1 pt-0.5">
           {kos.matchReasons.map((r) => (

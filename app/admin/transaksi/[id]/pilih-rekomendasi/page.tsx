@@ -42,8 +42,14 @@ export default async function PilihRekomendasiPage({
       id: true,
       name: true,
       city: true,
+      district: true,
       address: true,
       facilities: true,
+      nearby: {
+        where: { isActive: true },
+        orderBy: { order: 'asc' },
+        select: { name: true, distanceText: true },
+      },
       segments: {
         select: {
           kosType: { select: { name: true } },
@@ -100,12 +106,27 @@ export default async function PilihRekomendasiPage({
         }
       }
 
+      // Lokasi spesifik (mis. "Dekat UB") — sebelumnya cuma ditampilkan
+      // sebagai badge ringkasan, tidak pernah dipakai untuk mencocokkan.
+      // Sekarang dicek terhadap kecamatan (district) dan daftar nearby kos.
+      if (pref?.specificLocation) {
+        const loc = pref.specificLocation.trim().toLowerCase()
+        const districtMatch = k.district?.toLowerCase().includes(loc) ?? false
+        const nearbyMatch = k.nearby.some((n) => n.name.toLowerCase().includes(loc))
+        if (districtMatch || nearbyMatch) {
+          matchScore += 3
+          matchReasons.push(`Dekat ${pref.specificLocation}`)
+        }
+      }
+
       return {
         id: k.id,
         name: k.name,
         city: k.city,
+        district: k.district,
         address: k.address,
         facilities: k.facilities,
+        nearby: k.nearby,
         priceMonthly,
         roomType,
         matchScore,
