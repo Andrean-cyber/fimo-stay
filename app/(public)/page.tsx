@@ -29,6 +29,7 @@ export default async function HomePage() {
       take: 5,
       select: {
         id: true, slug: true, name: true, city: true, district: true, facilities: true,
+        lastUpdatedAt: true,
         segments: { select: { kosType: { select: { name: true } }, roomTypes: { where: { isActive: true }, select: { priceMonthly: true } } } },
         media: { orderBy: [{ isCover: 'desc' }, { order: 'asc' }], take: 1, select: { url: true } },
         nearby: { where: { isActive: true }, orderBy: { order: 'asc' }, take: 1, select: { name: true, distanceText: true } },
@@ -49,6 +50,8 @@ export default async function HomePage() {
     filter: { segments: { some: { kosTypeId: kt.id } } },
   }))
 
+  const now = Date.now()
+
   // Format data rekomendasi.
   const kosRekomendasi = kosRekomendasiRaw.map((k) => {
     const allPrices = k.segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
@@ -59,6 +62,7 @@ export default async function HomePage() {
       roomType: k.segments[0]?.kosType.name ?? null,
       imageUrl: k.media[0]?.url ? toPublicUrl(k.media[0].url) : null,
       nearbyText: nearby ? `${nearby.distanceText} ke ${nearby.name}` : null,
+      updatedDaysAgo: Math.floor((now - k.lastUpdatedAt.getTime()) / 86400000),
     }
   })
 
@@ -177,7 +181,7 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
             {kosRekomendasi.map((k) => (
-              <KosCard key={k.id} slug={k.slug} name={k.name} city={k.city} district={k.district} priceMonthly={k.priceMonthly} roomType={k.roomType} facilities={k.facilities} imageUrl={k.imageUrl} nearbyText={k.nearbyText} />
+              <KosCard key={k.id} slug={k.slug} name={k.name} city={k.city} district={k.district} priceMonthly={k.priceMonthly} roomType={k.roomType} facilities={k.facilities} imageUrl={k.imageUrl} nearbyText={k.nearbyText} updatedDaysAgo={k.updatedDaysAgo} />
             ))}
           </div>
         </section>

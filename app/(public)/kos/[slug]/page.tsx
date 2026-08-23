@@ -18,6 +18,7 @@ import {
   CameraIcon,
   LockClosedIcon,
   SparklesIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline'
 import type { ComponentType, SVGProps } from 'react'
 import { prisma } from '@/lib/prisma'
@@ -50,6 +51,12 @@ function getFacilityIcon(name: string): HeroIcon {
   const lower = name.toLowerCase()
   const match = FACILITY_ICON_RULES.find((rule) => rule.keywords.some((kw) => lower.includes(kw)))
   return match?.icon ?? SparklesIcon
+}
+
+function formatUpdatedText(days: number) {
+  if (days <= 0) return 'Diperbarui hari ini'
+  if (days === 1) return 'Diperbarui kemarin'
+  return `Diperbarui ${days} hari lalu`
 }
 
 export default async function KosDetailPage({
@@ -86,6 +93,7 @@ export default async function KosDetailPage({
   const cheapestId = allRoomTypes.length > 0
     ? allRoomTypes.reduce((a, b) => (a.priceMonthly <= b.priceMonthly ? a : b)).id
     : null
+  const updatedDaysAgo = Math.floor((Date.now() - kos.lastUpdatedAt.getTime()) / 86400000)
 
   return (
     <div className="min-h-screen bg-white">
@@ -109,6 +117,10 @@ export default async function KosDetailPage({
             <p className="mt-2 flex items-center gap-1.5 text-sm text-gray-500 md:text-base">
               <MapPinIcon className="h-4 w-4 shrink-0" />
               {kos.district ? `${kos.district}, ${kos.city}` : kos.city}
+            </p>
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-400 md:text-sm">
+              <ClockIcon className="h-3.5 w-3.5 shrink-0" />
+              {formatUpdatedText(updatedDaysAgo)}
             </p>
 
             {/* Harga: tampil di sini juga untuk mobile (sidebar tersembunyi di mobile) */}

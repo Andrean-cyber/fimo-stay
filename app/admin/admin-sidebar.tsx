@@ -1,21 +1,75 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 import { NavLink } from './nav-link'
 import { LogoutButton } from './logout-button'
-import { NAV_ITEMS } from './nav-items'
+import { NAV_ITEMS, type NavItem, type NavBadgeKey } from './nav-items'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
+import { getKosNeedConfirmationCount } from './kos/actions'
+
+function getActiveHref(pathname: string, items: NavItem[]) {
+  const matches = items.filter((item) =>
+    item.href === '/admin' ? pathname === item.href : pathname.startsWith(item.href)
+  )
+  if (matches.length === 0) return null
+  return matches.reduce((longest, item) => (item.href.length > longest.length ? item.href : longest), matches[0].href)
+}
 
 export function AdminSidebar({
   role,
   displayName,
+  badgeCounts = {},
 }: {
   role: string | null
   displayName: string
+  badgeCounts?: Partial<Record<NavBadgeKey, number>>
 }) {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
   const items = NAV_ITEMS.filter((item) => !item.superadminOnly || role === 'SUPERADMIN')
+  const activeHref = getActiveHref(pathname, items)
+
+  // Badge "Konfirmasi Kos" di-refresh realtime — nilai awal dari server,
+  // lalu di-update lagi tiap ada perubahan di tabel kos, tanpa reload halaman.
+  const [kosNeedConfirmationCount, setKosNeedConfirmationCount] = useState(
+    badgeCounts.kosNeedConfirmation ?? 0
+  )
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient()
+
+    const channel = supabase
+      .channel('kos-confirmation-badge')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'kos' },
+        () => {
+          // Debounce: confirmKosAvailabilityBulk bisa update banyak baris
+          // sekaligus, tiap baris memicu event terpisah — tunggu 500ms
+          // sepi dulu baru fetch ulang count, biar tidak spam query.
+          if (debounceRef.current) clearTimeout(debounceRef.current)
+          debounceRef.current = setTimeout(async () => {
+            const count = await getKosNeedConfirmationCount()
+            setKosNeedConfirmationCount(count)
+          }, 500)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  const resolvedBadgeCounts: Partial<Record<NavBadgeKey, number>> = {
+    ...badgeCounts,
+    kosNeedConfirmation: kosNeedConfirmationCount,
+  }
 
   return (
     <>
@@ -55,7 +109,12 @@ export function AdminSidebar({
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3 lg:space-y-1.5 lg:p-4">
           {items.map((item) => (
-            <NavLink key={item.href} {...item} />
+            <NavLink
+              key={item.href}
+              {...item}
+              isActive={item.href === activeHref}
+              badgeCount={item.badgeKey ? resolvedBadgeCounts[item.badgeKey] : undefined}
+            />
           ))}
         </nav>
 

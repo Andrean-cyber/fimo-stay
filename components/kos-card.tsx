@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPinIcon, MapIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, MapIcon, ClockIcon } from '@heroicons/react/24/outline'
 
 type KosCardProps = {
   slug: string
@@ -15,6 +15,13 @@ type KosCardProps = {
   facilities?: string[]
   imageUrl?: string | null
   nearbyText?: string | null
+  updatedDaysAgo?: number
+}
+
+function formatUpdatedText(days: number) {
+  if (days <= 0) return 'Diperbarui hari ini'
+  if (days === 1) return 'Diperbarui kemarin'
+  return `Diperbarui ${days} hari lalu`
 }
 
 export function KosCard({
@@ -28,6 +35,7 @@ export function KosCard({
   facilities = [],
   imageUrl,
   nearbyText,
+  updatedDaysAgo,
 }: KosCardProps) {
   const showRange = priceMax != null && priceMax !== priceMonthly
   const locationText = district ? `${district}, ${city}` : city
@@ -92,6 +100,13 @@ export function KosCard({
               </span>
             ))}
           </div>
+        )}
+
+        {updatedDaysAgo != null && (
+          <p className="mt-0.5 flex items-center gap-1 text-[10px] text-gray-400 sm:text-[11px]">
+            <ClockIcon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+            {formatUpdatedText(updatedDaysAgo)}
+          </p>
         )}
       </div>
     </Link>

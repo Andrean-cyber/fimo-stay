@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation'
 import type { FormActionState } from '@/lib/action-state'
 import { normalizeCityName } from '@/lib/constants'
 import { toPublicUrl, deleteFromR2 } from '@/lib/r2'
+import { countKosNeedConfirmation } from '@/lib/kos-confirmation'
 
 const KOS_INDEX_INCLUDE = {
   segments: { include: { roomTypes: true, kosType: true } },
@@ -198,6 +199,13 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
     return { error: `Kos "${parsed.data.name}" di kota ${parsed.data.city} sudah terdaftar.` }
   }
 
+  // Ambil status lama dulu — supaya edit biasa (misal benerin typo)
+  // tidak diam-diam mengaktifkan kembali kos yang sengaja disembunyikan
+  // manual (HIDDEN_MANUAL). Kos itu cuma boleh aktif lagi lewat aksi
+  // eksplisit "Aktifkan Kembali" (unhideKosManual), bukan efek samping simpan form.
+  const currentKos = await prisma.kos.findUniqueOrThrow({ where: { id: kosId }, select: { status: true } })
+  const nextStatus = currentKos.status === 'HIDDEN_MANUAL' ? 'HIDDEN_MANUAL' : 'ACTIVE'
+
   const kos = await prisma.$transaction(async (tx) => {
     const existingSegments = await tx.kosSegment.findMany({ where: { kosId }, select: { id: true } })
     const existingSegmentIds = new Set(existingSegments.map((s) => s.id))
@@ -265,7 +273,7 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
       where: { id: kosId },
       data: {
         ...parsed.data,
-        status: 'ACTIVE',
+        status: nextStatus,
         lastUpdatedAt: new Date(),
         updatedById: admin.id,
         ...computePriceCache(segmentsResult.data),
@@ -291,6 +299,21 @@ export async function hideKosManual(kosId: string) {
   const kos = await prisma.kos.update({ where: { id: kosId }, data: { status: 'HIDDEN_MANUAL' }, include: KOS_INDEX_INCLUDE })
   await syncKosToIndex(kos)
   await prisma.auditLog.create({ data: { entityType: 'kos', entityId: kosId, action: 'hide', adminId: admin.id, kosId } })
+  revalidatePath('/admin/kos')
+  revalidatePath(`/admin/kos/${kosId}/edit`)
+}
+
+export async function unhideKosManual(kosId: string) {
+  const admin = await requireAdmin()
+  const kos = await prisma.kos.update({
+    where: { id: kosId },
+    data: { status: 'ACTIVE', lastUpdatedAt: new Date(), updatedById: admin.id },
+    include: KOS_INDEX_INCLUDE,
+  })
+  await syncKosToIndex(kos)
+  await prisma.auditLog.create({
+    data: { entityType: 'kos', entityId: kosId, action: 'unhide', adminId: admin.id, kosId },
+  })
   revalidatePath('/admin/kos')
   revalidatePath(`/admin/kos/${kosId}/edit`)
 }
@@ -325,4 +348,56 @@ export async function deleteKosMedia(mediaId: string) {
 
   await prisma.kosMedia.delete({ where: { id: mediaId } })
   revalidatePath(`/admin/kos/${media.kosId}/edit`)
+}
+
+export async function confirmKosAvailability(kosId: string) {
+  const admin = await requireAdmin()
+  const kos = await prisma.kos.update({
+    where: { id: kosId },
+    data: { lastUpdatedAt: new Date(), updatedById: admin.id, status: 'ACTIVE' },
+    include: KOS_INDEX_INCLUDE,
+  })
+  await syncKosToIndex(kos)
+  await prisma.auditLog.create({
+    data: { entityType: 'kos', entityId: kosId, action: 'confirm_availability', adminId: admin.id, kosId },
+  })
+  revalidatePath('/admin/kos')
+  revalidatePath('/admin/kos/konfirmasi')
+}
+
+export async function confirmKosAvailabilityBulk(kosIds: string[]) {
+  const admin = await requireAdmin()
+  if (kosIds.length === 0) return
+
+  const kosList = await prisma.kos.findMany({ where: { id: { in: kosIds } }, include: KOS_INDEX_INCLUDE })
+
+  await prisma.$transaction(async (tx) => {
+    await tx.kos.updateMany({
+      where: { id: { in: kosIds } },
+      data: { lastUpdatedAt: new Date(), updatedById: admin.id, status: 'ACTIVE' },
+    })
+    await tx.auditLog.createMany({
+      data: kosIds.map((kosId) => ({
+        entityType: 'kos',
+        entityId: kosId,
+        action: 'confirm_availability',
+        adminId: admin.id,
+        kosId,
+      })),
+    })
+  })
+
+  await Promise.all(
+    kosList.map((kos) =>
+      syncKosToIndex({ ...kos, status: 'ACTIVE', lastUpdatedAt: new Date(), updatedById: admin.id })
+    )
+  )
+
+  revalidatePath('/admin/kos')
+  revalidatePath('/admin/kos/konfirmasi')
+}
+
+export async function getKosNeedConfirmationCount() {
+  await requireAdmin()
+  return countKosNeedConfirmation()
 }

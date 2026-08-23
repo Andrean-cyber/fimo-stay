@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "main": ".open-next/worker.js",
+  "main": "worker.ts",
   "name": "cloudflare",
   "compatibility_date": "2026-08-10",
   "compatibility_flags": ["nodejs_compat"],
@@ -10,5 +10,8 @@
   },
   "limits": {
     "cpu_ms": 30000
+  },
+  "triggers": {
+    "crons": ["0 1 * * *"]
   }
 }

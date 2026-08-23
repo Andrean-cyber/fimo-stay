@@ -1,13 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import type { NavItem } from './nav-items'
 
-export function NavLink({ href, label, icon: Icon }: NavItem) {
-  const pathname = usePathname()
-  const isActive = href === '/admin' ? pathname === href : pathname.startsWith(href)
-
+export function NavLink({
+  href,
+  label,
+  icon: Icon,
+  isActive,
+  badgeCount,
+}: NavItem & { isActive: boolean; badgeCount?: number }) {
   return (
     <Link
       href={href}
@@ -18,7 +20,12 @@ export function NavLink({ href, label, icon: Icon }: NavItem) {
       }`}
     >
       <Icon className="h-4 w-4 shrink-0 lg:h-[18px] lg:w-[18px]" />
-      {label}
+      <span className="flex-1 truncate">{label}</span>
+      {!!badgeCount && badgeCount > 0 && (
+        <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
+          {badgeCount > 99 ? '99+' : badgeCount}
+        </span>
+      )}
     </Link>
   )
 }

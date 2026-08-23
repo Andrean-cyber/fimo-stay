@@ -1,11 +1,12 @@
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
-import { updateKos, hideKosManual } from '../../actions'
+import { updateKos, hideKosManual, unhideKosManual } from '../../actions'
 import { KosForm } from '../../kos-form'
 import { UploadFoto } from '../upload-foto'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import { DeleteFotoButton } from './delete-foto-button'
+import { toPublicUrl } from '@/lib/r2'
 
 export default async function EditKosPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
@@ -26,6 +27,8 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
 
   if (!kos) notFound()
 
+  const isHiddenManual = kos.status === 'HIDDEN_MANUAL'
+
   return (
     <div className="max-w-4xl space-y-6">
       <div>
@@ -42,7 +45,7 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
             {kos.media.map((m) => (
               <div key={m.id} className="group relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={m.url} alt="" className="h-24 w-full rounded-xl object-cover sm:h-28 lg:h-32" />
+                <img src={toPublicUrl(m.url)} alt="" className="h-24 w-full rounded-xl object-cover sm:h-28 lg:h-32" />
                 <DeleteFotoButton mediaId={m.id} />
               </div>
             ))}
@@ -59,18 +62,29 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
       <div className="rounded-2xl border border-red-200 bg-red-50 p-4 sm:p-6 lg:p-8">
         <h2 className="mb-1 text-sm font-semibold text-red-900 sm:text-base">Zona Berbahaya</h2>
         <p className="mb-4 text-xs text-red-700 sm:text-sm">
-          Sembunyikan kos ini dari pencarian publik secara manual.
-          {kos.status === 'HIDDEN_MANUAL' && ' Kos ini saat ini sedang disembunyikan manual.'}
+          {isHiddenManual
+            ? 'Kos ini saat ini sedang disembunyikan manual dan tidak tampil di pencarian publik.'
+            : 'Sembunyikan kos ini dari pencarian publik secara manual.'}
         </p>
-        <form action={hideKosManual.bind(null, kos.id)}>
-          <button
-            type="submit"
-            disabled={kos.status === 'HIDDEN_MANUAL'}
-            className="rounded-xl border border-red-300 bg-white px-4 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
-          >
-            {kos.status === 'HIDDEN_MANUAL' ? 'Sudah Disembunyikan' : 'Sembunyikan Manual'}
-          </button>
-        </form>
+        {isHiddenManual ? (
+          <form action={unhideKosManual.bind(null, kos.id)}>
+            <button
+              type="submit"
+              className="rounded-xl border border-green-300 bg-white px-4 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-50 sm:text-sm"
+            >
+              Aktifkan Kembali
+            </button>
+          </form>
+        ) : (
+          <form action={hideKosManual.bind(null, kos.id)}>
+            <button
+              type="submit"
+              className="rounded-xl border border-red-300 bg-white px-4 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 sm:text-sm"
+            >
+              Sembunyikan Manual
+            </button>
+          </form>
+        )}
       </div>
     </div>
   )

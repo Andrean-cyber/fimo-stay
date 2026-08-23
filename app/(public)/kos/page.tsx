@@ -62,6 +62,7 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
       facilities: true,
       priceMinCache: true,
       priceMaxCache: true,
+      lastUpdatedAt: true,
       segments: {
         take: 1,
         select: { kosType: { select: { name: true } } },
@@ -80,6 +81,8 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
     },
   })
 
+  const now = Date.now()
+
   const kosList = kosListRaw.map((k) => ({
     id: k.id,
     slug: k.slug,
@@ -92,6 +95,7 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
     roomType: k.segments[0]?.kosType.name ?? null,
     imageUrl: k.media[0]?.url ? toPublicUrl(k.media[0].url) : null,
     nearbyText: k.nearby[0] ? `${k.nearby[0].distanceText} ke ${k.nearby[0].name}` : null,
+    updatedDaysAgo: Math.floor((now - k.lastUpdatedAt.getTime()) / 86400000),
   }))
 
   return (
@@ -152,6 +156,7 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
                   facilities={kos.facilities}
                   imageUrl={kos.imageUrl}
                   nearbyText={kos.nearbyText}
+                  updatedDaysAgo={kos.updatedDaysAgo}
                 />
               ))}
             </div>
