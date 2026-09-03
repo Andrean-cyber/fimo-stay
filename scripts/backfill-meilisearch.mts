@@ -7,15 +7,21 @@
 //
 // Butuh env var:
 //   DIRECT_URL / DATABASE_URL  -> koneksi database (lewat Prisma)
-//   MEILISEARCH_HOST           -> contoh: https://search.fimostay.com
+//   MEILISEARCH_HOST           -> contoh: http://<container-name>:7700
 //   MEILISEARCH_API_KEY        -> WAJIB pakai Admin API Key (bukan search key)
 //                                 saat menjalankan script ini, karena butuh
 //                                 akses tulis (createIndex, addDocuments, dst)
+//
+// Catatan:
+//   Settings index (searchable/filterable/sortable attributes) SEKARANG
+//   diambil dari satu sumber saja: setupKosIndex() di @/lib/search.
+//   Jangan duplikasi updateSettings() di file ini lagi — supaya app
+//   runtime (syncKosToIndex) dan backfill script selalu konsisten.
 // ============================================================
 
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
-import { Meilisearch } from 'meilisearch'
+import { setupKosIndex, kosIndex } from '@/lib/search'
 
 const prisma = new PrismaClient()
 
@@ -29,16 +35,14 @@ if (!MEILISEARCH_HOST || !MEILISEARCH_API_KEY) {
   process.exit(1)
 }
 
-const client = new Meilisearch({
-  host: MEILISEARCH_HOST,
-  apiKey: MEILISEARCH_API_KEY,
-})
+// Ukuran batch dokumen yang dikirim per request ke Meilisearch.
+// Kecil karena VPS masih terbatas RAM-nya — naikkan pelan-pelan
+// kalau nanti resource VPS sudah di-upgrade.
+const BATCH_SIZE = 50
 
-const INDEX_NAME = 'kos'
+// Jeda antar batch (ms) supaya Meilisearch sempat "napas" di RAM terbatas.
+const BATCH_DELAY_MS = 500
 
-// Satu dokumen Meilisearch = satu Kos.
-// roomType & priceMonthly sekarang berasal dari relasi segments -> roomTypes,
-// jadi diringkas jadi array (roomTypes) dan range harga (priceMin/priceMax).
 type KosDocument = {
   id: string
   slug: string
@@ -50,13 +54,19 @@ type KosDocument = {
   longitude: number | null
   facilities: string[]
   coverImageUrl: string | null
-
-  // hasil ringkasan dari segments & roomTypes
-  kosTypes: string[]      // contoh: ["Putra", "Campur"] — dari KosType.name
-  roomTypes: string[]     // contoh: ["Standard", "Deluxe"] — dari KosRoomType.name
+  kosTypes: string[]
+  roomTypes: string[]
   priceMin: number | null
   priceMax: number | null
   totalAvailableRooms: number
+}
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const result: T[][] = []
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size))
+  }
+  return result
 }
 
 async function main() {
@@ -109,34 +119,35 @@ async function main() {
     }
   })
 
-  console.log(`⚙️  Memastikan index "${INDEX_NAME}" ada...`)
-  await client.createIndex(INDEX_NAME, { primaryKey: 'id' }).catch((err) => {
-    // Index sudah ada -> aman untuk diabaikan
-    if (err?.cause?.code !== 'index_already_exists') throw err
-  })
+  console.log('⚙️  Memastikan index & settings sesuai (single source: lib/search.ts)...')
+  await setupKosIndex()
 
-  const index = client.index(INDEX_NAME)
+  const batches = chunk(documents, BATCH_SIZE)
+  console.log(
+    `🚀 Mengirim ${documents.length} dokumen dalam ${batches.length} batch (${BATCH_SIZE}/batch)...`
+  )
 
-  console.log('⚙️  Mengatur attribute pencarian & filter...')
-  await index.updateSettings({
-    searchableAttributes: ['name', 'description', 'address', 'city'],
-    filterableAttributes: ['city', 'kosTypes', 'roomTypes', 'facilities', 'priceMin', 'priceMax'],
-    sortableAttributes: ['priceMin', 'priceMax'],
-  })
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i]
+    console.log(`  → Batch ${i + 1}/${batches.length} (${batch.length} dokumen)...`)
 
-  console.log('🚀 Mengirim data ke Meilisearch...')
-  const task = await index.addDocuments(documents)
-  console.log(`✅ Task terkirim (taskUid: ${task.taskUid}). Menunggu selesai diproses...`)
+    const task = await kosIndex.addDocuments(batch)
+    const finishedTask = await kosIndex.client.tasks.waitForTask(task.taskUid)
 
-  const finishedTask = await client.tasks.waitForTask(task.taskUid)
+    if (finishedTask.status !== 'succeeded') {
+      throw new Error(
+        `Batch ${i + 1} gagal dengan status "${finishedTask.status}": ${JSON.stringify(finishedTask.error)}`
+      )
+    }
 
-  if (finishedTask.status !== 'succeeded') {
-    throw new Error(
-      `Task gagal dengan status "${finishedTask.status}": ${JSON.stringify(finishedTask.error)}`
-    )
+    if (i < batches.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS))
+    }
   }
 
-  console.log(`🎉 Selesai! ${documents.length} kos berhasil di-index ke Meilisearch.`)
+  console.log(
+    `🎉 Selesai! ${documents.length} kos berhasil di-index ke Meilisearch dalam ${batches.length} batch.`
+  )
 }
 
 main()
