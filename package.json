@@ -4,23 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate --no-engine && next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "backfill:search": "tsx scripts/backfill-meilisearch.mts",
-    "backfill:price-cache": "tsx scripts/backfill-price-cache.ts",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
+    "backfill:price-cache": "tsx scripts/backfill-price-cache.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1104.0",
     "@aws-sdk/s3-request-presigner": "^3.1105.0",
     "@heroicons/react": "^2.2.0",
     "@marsidev/react-turnstile": "^1.5.5",
-    "@prisma/adapter-pg": "^6.19.3",
     "@prisma/client": "^6.19.3",
-    "@prisma/extension-accelerate": "^3.0.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.110.8",
     "@upstash/ratelimit": "^2.0.8",
@@ -28,17 +23,14 @@
     "lucide-react": "^1.30.0",
     "meilisearch": "^0.60.0",
     "next": "16.2.11",
-    "pg": "^8.23.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "styled-jsx": "^5.1.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.20.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/pg": "^8.21.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
@@ -48,7 +40,6 @@
     "tailwind-scrollbar-hide": "^4.0.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
-    "typescript": "^5",
-    "wrangler": "^4.120.0"
+    "typescript": "^5"
   }
 }
