@@ -19,6 +19,8 @@ import { toPublicUrl } from '@/lib/r2'
 import { KAMPUS_POPULER } from '@/lib/campuses'
 import { getCityImage } from '@/lib/city-images'
 
+const AVATAR_COUNT = 5
+
 export default async function HomePage() {
   const [kosRekomendasiRaw, cityGroups, kosTypes] = await Promise.all([
     prisma.kos.findMany({
@@ -78,7 +80,7 @@ export default async function HomePage() {
       <main className="flex flex-col gap-5 pb-4 sm:gap-0 sm:pb-0">
 
         {/* ============ HERO ============ */}
-        <section className="order-1">
+        <section className="order-1 sm:order-1">
           {/* --- MOBILE: tanpa foto, tanpa avatar/notif, langsung judul --- */}
           <div className="bg-white px-5 pb-6 pt-8 sm:hidden">
             <h1 className="font-display text-[28px] font-bold leading-[1.15] tracking-[-0.02em] text-fimo-navy">
@@ -91,48 +93,102 @@ export default async function HomePage() {
             </p>
           </div>
 
-          {/* --- DESKTOP: hero foto + floating search, tidak berubah --- */}
-          <div className="relative hidden px-3 pt-3 sm:block sm:px-5 sm:pt-5">
-            <div className="relative mx-auto max-w-[1400px]">
-              <div className="relative h-[410px] overflow-hidden rounded-[28px] lg:h-[400px]">
-                <Image src="/bg.webp" alt="Background hero" fill priority sizes="100vw" className="object-cover object-center" />
-                <div className="relative z-10 flex h-full flex-col items-center justify-start px-10 pt-10 text-center lg:justify-center lg:pt-0 lg:pb-12">
-                  <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/80 px-4 py-1.5 text-[11px] font-medium text-fimo-navy shadow-sm backdrop-blur-md">
-                    <span>Kos pilihan yang selalu diperbarui</span>
+          {/* --- DESKTOP + TABLET: split hero seperti referensi --- */}
+          <div className="relative hidden px-3 pt-3 sm:block sm:px-5 sm:pt-5 lg:pt-6">
+            <div className="mx-auto max-w-[1400px]">
+              <div className="relative overflow-visible rounded-[30px] border border-slate-200/80 bg-[#f5f9fc] p-3 shadow-[0_18px_60px_rgba(15,23,42,0.08)] sm:p-4 lg:p-5">
+                <div className="grid min-h-[430px] grid-cols-2 overflow-hidden rounded-[24px] bg-[#f5f9fc] md:min-h-[455px] lg:min-h-[485px]">
+                  <div className="flex flex-col justify-center px-6 py-10 sm:px-8 md:px-10 lg:px-14">
+                    <div className="mb-5 w-fit rounded-full border border-fimo-navy/10 bg-white px-3.5 py-1.5 text-[10px] font-semibold tracking-wide text-fimo-navy shadow-sm md:text-[11px]">
+                      Kos pilihan yang selalu diperbarui
+                    </div>
+
+                    <h1 className="font-display max-w-[620px] text-[28px] font-bold leading-[1.08] tracking-[-0.035em] text-fimo-navy md:text-[32px] lg:text-[42px]">
+                      Temukan Kos yang Nyaman,
+                      <br />
+                      <span>Tepat untukmu.</span>
+                    </h1>
+
+                    <p className="mt-5 max-w-[500px] text-xs leading-[1.75] text-slate-600 md:text-sm lg:text-[15px]">
+                      Cari kos yang masih tersedia, lokasi yang sesuai, dan harga yang cocok dengan kebutuhanmu. Semua lebih mudah dalam satu tempat.
+                    </p>
+
+                    <div className="mt-6 flex flex-wrap items-center gap-2.5">
+                      <Link href="/kos" className="inline-flex h-10 items-center justify-center rounded-full bg-fimo-navy px-5 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-fimo-navy/90 active:scale-[0.98]">
+                        Cari Kos
+                      </Link>
+                      <Link href="/rekomendasi/mulai" className="inline-flex h-10 items-center justify-center rounded-full border border-fimo-navy/20 bg-white px-5 text-xs font-semibold text-fimo-navy transition hover:-translate-y-0.5 hover:border-fimo-navy/40 active:scale-[0.98]">
+                        Minta Rekomendasi
+                      </Link>
+                    </div>
+
+                    {/* Social proof avatar row, seperti referensi */}
+                    <div className="mt-5 flex items-center gap-3">
+                      <div className="flex -space-x-3">
+                        {Array.from({ length: AVATAR_COUNT }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-white shadow-sm md:h-10 md:w-10"
+                          >
+                            <Image
+                              src={`/avatar-${i + 1}.webp`}
+                              alt="Pengguna FimoStay"
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[11px] font-medium leading-snug text-slate-500 md:text-xs">
+                        Sudah dipakai ratusan pencari kos
+                        <br className="hidden md:block" /> untuk temukan kos yang pas.
+                      </p>
+                    </div>
                   </div>
-                  <h1 className="font-display max-w-[680px] text-[38px] font-bold leading-[1.12] tracking-[-0.025em] text-fimo-navy md:text-[42px] lg:text-[46px]">
-                    Temukan Kos yang Nyaman,
-                    <br />
-                    <span>Tepat untukmu.</span>
-                  </h1>
-                  <p className="mt-4 max-w-[520px] text-xs font-normal leading-[1.7] text-slate-700 md:text-sm">
-                    Cari kos yang masih tersedia, lokasi yang sesuai, dan harga yang cocok dengan kebutuhanmu. Semua lebih mudah dalam satu tempat.
-                  </p>
-                  <div className="mt-5 flex items-center justify-center gap-2.5">
-                    <Link href="/kos" className="inline-flex h-10 items-center justify-center rounded-full bg-fimo-navy px-5 text-xs font-medium text-white shadow-sm transition-all hover:bg-fimo-navy/90 active:scale-[0.98]">
-                      Cari Kos
-                    </Link>
-                    <Link href="/rekomendasi/mulai" className="inline-flex h-10 items-center justify-center rounded-full border border-fimo-navy/30 bg-white/70 px-5 text-xs font-medium text-fimo-navy backdrop-blur-sm transition-all hover:border-fimo-navy hover:bg-white active:scale-[0.98]">
-                      Minta Rekomendasi
-                    </Link>
+
+                  <div className="relative min-h-[390px] overflow-hidden rounded-[20px] md:min-h-[420px] lg:min-h-[445px]">
+                    <Image
+                      src="/fasad.webp"
+                      alt="Pilihan kos FimoStay"
+                      fill
+                      priority
+                      sizes="(min-width: 1024px) 50vw, 50vw"
+                      className="object-cover object-center"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+                    <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/40 bg-white/85 p-4 shadow-lg backdrop-blur-md md:inset-x-6 md:bottom-6">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-fimo-navy/70">FimoStay</p>
+                          <p className="mt-1 text-sm font-bold leading-tight text-fimo-navy md:text-base">Temukan tempat tinggal yang terasa tepat.</p>
+                        </div>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-fimo-navy text-white shadow-sm">
+                          <ArrowRightIcon className="h-4 w-4" />
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="relative z-30 mx-auto -mt-9 w-[calc(100%-40px)] max-w-5xl lg:-mt-10">
-                <div className="rounded-[22px] border border-slate-200/80 bg-white p-4 shadow-[0_16px_45px_rgba(15,23,42,0.12)] lg:p-5">
-                  <div className="mb-4 flex items-center justify-between gap-3 px-2">
-                    <div>
-                      <p className="text-sm font-medium text-fimo-navy lg:text-base">Cari Kos Impianmu</p>
-                      <p className="mt-0.5 text-[11px] text-slate-500 lg:text-xs">Masukkan lokasi, kampus, atau alamat tujuanmu</p>
+                {/* Search overlap — sengaja keluar sedikit dari hero seperti referensi */}
+                <div className="relative z-30 mx-auto -mb-8 mt-5 w-[calc(100%-28px)] max-w-6xl sm:-mb-8 sm:mt-6">
+                  <div className="rounded-[22px] bg-fimo-navy p-4 shadow-[0_22px_55px_rgba(15,23,42,0.20)] md:p-5 lg:p-6">
+                    <div className="mb-3 flex items-center justify-between gap-3 px-1 md:px-2">
+                      <div>
+                        <p className="text-sm font-semibold text-white md:text-base">Cari Kos Impianmu</p>
+                        <p className="mt-0.5 text-[10px] text-white/60 md:text-xs">Masukkan lokasi, kampus, atau alamat tujuanmu</p>
+                      </div>
+                      <div className="hidden shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-medium text-white sm:flex">
+                        <MagnifyingGlassIcon className="h-3.5 w-3.5 text-fimo-blue" />
+                        <span>Cari sekarang</span>
+                      </div>
                     </div>
-                    <div className="hidden shrink-0 items-center gap-1.5 rounded-full bg-fimo-blue/10 px-3 py-1.5 text-xs font-medium text-fimo-navy sm:flex">
-                      <MagnifyingGlassIcon className="h-3.5 w-3.5 text-fimo-blue" />
-                      <span>Cari sekarang</span>
+
+                    {/* Search container dibuat full-width dan padding-nya konsisten agar form benar-benar pas di dalam kotak putih. */}
+                    <div className="w-full rounded-[18px] border border-white/80 bg-white p-2.5 shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] md:p-3">
+                      <SearchForm />
                     </div>
-                  </div>
-                  <div className="rounded-2xl bg-slate-50 p-2">
-                    <SearchForm />
                   </div>
                 </div>
               </div>
@@ -141,14 +197,14 @@ export default async function HomePage() {
 
           {/* --- MOBILE: search form dibungkus card putih rounded, langsung di bawah judul --- */}
           <div className="px-4 sm:hidden">
-            <div className="rounded-2xl border border-slate-200/70 bg-white p-2 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+            <div className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
               <SearchForm />
             </div>
           </div>
         </section>
 
         {/* ============ DEKAT KAMPUS POPULER ============ */}
-        <section className="order-2 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
+        <section className="order-2 sm:order-2 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-16 lg:pt-20">
           {/* --- MOBILE: card putih, kategori jadi pill icon+label, geser ke kiri --- */}
           <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:hidden">
             <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-fimo-blue">Untuk mahasiswa</p>
@@ -188,42 +244,8 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ============ CTA BANNER ============ */}
-        <section className="order-3 sm:order-6 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20 sm:py-16 lg:py-24">
-          <div className="relative mx-4 overflow-hidden rounded-2xl bg-fimo-navy px-5 py-6 sm:mx-0 sm:rounded-[28px] sm:px-10 sm:py-12 lg:px-14">
-            <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-fimo-blue/20 blur-3xl sm:-right-20 sm:-top-20 sm:h-64 sm:w-64" />
-            <div className="absolute -bottom-16 left-1/3 h-48 w-48 rounded-full bg-white/5 blur-3xl sm:-bottom-20 sm:h-64 sm:w-64" />
-
-            {/* ilustrasi PNG di kanan, seperti referensi */}
-            <div className="pointer-events-none absolute -right-4 bottom-0 z-[5] h-32 w-32 opacity-95 sm:right-4 sm:h-44 sm:w-44 md:h-56 md:w-56">
-              <Image
-                src="/cta-illustration.webp"
-                alt="Ilustrasi pencarian kos"
-                fill
-                className="object-contain object-bottom"
-                sizes="(min-width: 768px) 220px, 128px"
-              />
-            </div>
-
-            <div className="relative z-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-8">
-              <div className="max-w-[65%] sm:max-w-2xl">
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-fimo-blue sm:text-xs sm:tracking-[0.18em]">Jangan buang waktu</p>
-                <h2 className="text-lg font-bold leading-tight text-white sm:text-3xl sm:text-4xl">
-                  Capek keliling cari kos?<br /><span className="text-fimo-blue">Biar FimoStay yang bantu.</span>
-                </h2>
-                <p className="mt-2 hidden text-white/65 sm:mt-4 sm:block sm:text-base sm:leading-6">
-                  Cari berdasarkan lokasi, kampus, jenis kos, dan kebutuhanmu. Temukan pilihan yang lebih relevan tanpa harus survey satu per satu.
-                </p>
-              </div>
-              <Link href="/kos" className="relative z-10 inline-flex w-fit shrink-0 items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-[11px] font-bold text-fimo-navy transition hover:-translate-y-0.5 hover:bg-gray-100 sm:px-6 sm:py-3.5 sm:text-sm">
-                Cari Kos Sekarang<ArrowRightIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </Link>
-            </div>
-          </div>
-        </section>
-
         {/* ============ REKOMENDASI KOS ============ */}
-        <section className="order-4 sm:order-3 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
+        <section className="order-3 sm:order-3 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-24 lg:pt-28">
           <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-none sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="mb-3 flex items-end justify-between sm:mb-5">
               <div>
@@ -242,8 +264,91 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* ============ CTA / ABOUT ============ */}
+        <section className="order-4 sm:order-4 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
+          {/* MOBILE: pertahankan CTA lama */}
+          <div className="relative mx-4 overflow-hidden rounded-2xl bg-fimo-navy px-5 py-6 sm:hidden">
+            <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-fimo-blue/20 blur-3xl" />
+            <div className="absolute -bottom-16 left-1/3 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
+            <div className="pointer-events-none absolute -right-4 bottom-0 z-[5] h-32 w-32 opacity-95">
+              <Image src="/cta-illustration.webp" alt="Ilustrasi pencarian kos" fill className="object-contain object-bottom" sizes="128px" />
+            </div>
+            <div className="relative z-10 flex flex-col justify-between gap-4">
+              <div className="max-w-[65%]">
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-fimo-blue">Jangan buang waktu</p>
+                <h2 className="text-lg font-bold leading-tight text-white">
+                  Capek keliling cari kos?<br /><span className="text-fimo-blue">Biar FimoStay yang bantu.</span>
+                </h2>
+              </div>
+              <Link href="/kos" className="relative z-10 inline-flex w-fit shrink-0 items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-[11px] font-bold text-fimo-navy">
+                Cari Kos Sekarang<ArrowRightIcon className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* DESKTOP + TABLET: About + badge seperti referensi */}
+          <div className="hidden overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_14px_45px_rgba(15,23,42,0.07)] sm:grid sm:grid-cols-2">
+            <div className="relative min-h-[310px] overflow-hidden md:min-h-[350px]">
+              <Image
+                src="/cta-illustration.webp"
+                alt="Ilustrasi FimoStay"
+                fill
+                className="object-cover object-center md:object-contain md:bg-slate-50"
+                sizes="(min-width: 640px) 50vw, 100vw"
+              />
+              <div className="absolute left-5 top-5 rounded-2xl bg-white/90 px-4 py-3 shadow-lg backdrop-blur-md md:left-7 md:top-7">
+                <p className="text-xl font-bold leading-none text-fimo-navy md:text-2xl">Lebih mudah.</p>
+                <p className="mt-1 text-[10px] font-medium text-slate-500 md:text-xs">Lebih relevan untuk kebutuhanmu.</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-center px-7 py-8 md:px-10 lg:px-12">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-fimo-blue md:text-xs">Tentang FimoStay</p>
+              <h2 className="mt-2 max-w-xl text-2xl font-bold leading-tight tracking-[-0.025em] text-fimo-navy md:text-3xl lg:text-[34px]">
+                Lebih dari sekadar mencari kos.
+              </h2>
+              <p className="mt-3 max-w-xl text-xs leading-6 text-slate-500 md:text-sm">
+                Kami membantu kamu menemukan pilihan kos berdasarkan lokasi, kampus, jenis kos, dan kebutuhanmu tanpa harus survey satu per satu.
+              </p>
+
+              <div className="mt-5 grid grid-cols-3 gap-2.5 md:gap-3">
+                <div className="rounded-2xl bg-slate-50 p-3 md:p-4">
+                  <ShieldCheckIcon className="h-5 w-5 text-fimo-navy" />
+                  <p className="mt-3 text-xs font-bold text-fimo-navy md:text-sm">Sudah dicek</p>
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">Lebih yakin saat memilih.</p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-3 md:p-4">
+                  <MapPinIcon className="h-5 w-5 text-fimo-navy" />
+                  <p className="mt-3 text-xs font-bold text-fimo-navy md:text-sm">Dekat tujuan</p>
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">Cari sesuai lokasi.</p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-3 md:p-4">
+                  <ArrowPathIcon className="h-5 w-5 text-fimo-navy" />
+                  <p className="mt-3 text-xs font-bold text-fimo-navy md:text-sm">Lebih fresh</p>
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">Data diperbarui rutin.</p>
+                </div>
+              </div>
+
+              <Link href="/rekomendasi/mulai" className="mt-5 inline-flex w-fit items-center gap-2 rounded-full bg-fimo-navy px-5 py-2.5 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:bg-fimo-navy/90">
+                Kenali FimoStay<ArrowRightIcon className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ============ QUICK BENEFITS / STATS BAR (desktop only) — dipindah tepat di bawah Tentang FimoStay ============ */}
+        <section className="order-5 hidden sm:order-5 sm:block sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-6 lg:pt-8">
+          <div className="overflow-hidden rounded-[24px] bg-fimo-navy px-4 py-4 shadow-[0_16px_35px_rgba(15,23,42,0.14)] md:px-6 md:py-5">
+            <div className="grid grid-cols-3 divide-x divide-white/10">
+              <BenefitStat icon={ShieldCheckIcon} title="Sudah Dicek" description="Sebelum dipublikasikan" />
+              <BenefitStat icon={ArrowPathIcon} title="Data Fresh" description="Diperbarui rutin" />
+              <BenefitStat icon={LifebuoyIcon} title="Bantuan Pilih" description="Rekomendasi sesuai kebutuhan" />
+            </div>
+          </div>
+        </section>
+
         {/* ============ PILIH JENIS KOS ============ */}
-        <section className="order-5 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
+        <section className="order-6 sm:order-6 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
           <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-none sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="mb-3 flex items-end justify-between sm:mb-5">
               <div>
@@ -272,14 +377,19 @@ export default async function HomePage() {
             </div>
 
             {/* --- DESKTOP: grid asli --- */}
-            <div className="hidden sm:grid sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+            <div className="hidden sm:grid sm:grid-cols-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
               {KATEGORI.map((k) => (
-                <Link key={k.value} href={`/kos?kategori=${encodeURIComponent(k.value)}`} className="group rounded-2xl border border-fimo-gray bg-white p-5 transition hover:-translate-y-1 hover:border-fimo-blue/30 hover:shadow-lg">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fimo-blue/10 text-fimo-navy">
+                <Link
+                  key={k.value}
+                  href={`/kos?kategori=${encodeURIComponent(k.value)}`}
+                  className="group relative overflow-hidden rounded-[20px] border border-slate-200 bg-white p-4 transition hover:-translate-y-1 hover:border-fimo-blue/30 hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] md:p-5"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fimo-navy text-white transition group-hover:bg-fimo-blue">
                     <MagnifyingGlassIcon className="h-5 w-5" />
                   </div>
-                  <p className="mt-4 text-base font-semibold text-gray-800 group-hover:text-fimo-navy">{k.label}</p>
-                  <p className="mt-1 text-xs text-gray-500">Lihat kos tersedia</p>
+                  <p className="mt-4 text-sm font-bold text-fimo-navy md:text-base">{k.label}</p>
+                  <p className="mt-1 text-[11px] text-slate-500 md:text-xs">Lihat kos tersedia</p>
+                  <ArrowRightIcon className="absolute right-4 top-5 h-4 w-4 text-slate-300 transition group-hover:translate-x-1 group-hover:text-fimo-blue" />
                 </Link>
               ))}
             </div>
@@ -287,7 +397,7 @@ export default async function HomePage() {
         </section>
 
 {/* ============ LOKASI POPULER ============ */}
-<section className="order-6 sm:order-4 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
+<section className="order-7 sm:order-7 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
   <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-none sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none">
     <div className="mb-3 sm:mb-5">
       <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-fimo-blue sm:mb-1 sm:text-xs sm:tracking-[0.18em]">Jelajahi lokasi</p>
@@ -332,16 +442,22 @@ export default async function HomePage() {
   </div>
 </section>
 
-        {/* ============ QUICK BENEFITS (desktop only) ============ */}
-        <section className="order-7 hidden sm:block sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pb-10 lg:pb-14">
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-5">
-            <BenefitCard icon={ShieldCheckIcon} title="Sudah Dicek Tim" description="Kos yang tampil telah melalui proses pengecekan sebelum dipublikasikan." />
-            <BenefitCard icon={ArrowPathIcon} title="Data Lebih Fresh" description="Informasi kos diperbarui secara rutin agar kamu tidak membuang waktu." />
-            <BenefitCard icon={LifebuoyIcon} title="Bingung Memilih?" description="Minta rekomendasi kos yang sesuai dengan kebutuhanmu." />
-          </div>
-        </section>
       </main>
       <PublicFooter />
+    </div>
+  )
+}
+
+function BenefitStat({ icon: Icon, title, description }: { icon: React.ComponentType<{ className?: string }>; title: string; description: string }) {
+  return (
+    <div className="flex items-center gap-2.5 px-2.5 md:gap-3 md:px-4">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white md:h-10 md:w-10">
+        <Icon className="h-4 w-4 md:h-5 md:w-5" />
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-[11px] font-bold text-white md:text-sm">{title}</p>
+        <p className="mt-0.5 truncate text-[9px] text-white/55 md:text-[11px]">{description}</p>
+      </div>
     </div>
   )
 }

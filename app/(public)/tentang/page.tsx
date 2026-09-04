@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { PublicHeader } from '@/components/public-header'
 import { PublicFooter } from '@/components/public-footer'
 import {
@@ -12,7 +13,72 @@ import {
   CheckCircleIcon,
 } from '@heroicons/react/24/outline'
 
+/* ========================================
+   REVEAL WRAPPER (scroll-triggered fade-up)
+======================================== */
+
+function Reveal({
+  children,
+  delay = 0,
+  className = '',
+}: {
+  children: React.ReactNode
+  delay?: number
+  className?: string
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const node = ref.current
+    if (!node) return
+
+    // Respect users who prefer reduced motion
+    const prefersReduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
+    if (prefersReduced) {
+      setVisible(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+    )
+
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      style={{ transitionDelay: visible ? `${delay}ms` : '0ms' }}
+      className={`
+        transform-gpu transition-all duration-700 ease-out
+        ${visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'}
+        ${className}
+      `}
+    >
+      {children}
+    </div>
+  )
+}
+
 export default function TentangPage() {
+  // Simple fade-in when the page first mounts
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(t)
+  }, [])
+
   return (
     <div className="min-h-screen bg-[#F8FAF9] text-gray-950">
       <PublicHeader />
@@ -35,16 +101,30 @@ export default function TentangPage() {
           />
 
           <div className="relative mx-auto max-w-6xl px-5 pb-14 pt-12 sm:px-6 sm:pb-18 sm:pt-16 lg:px-8 lg:pb-20 lg:pt-20">
-            <div className="mx-auto max-w-4xl text-center">
+            <div
+              className={`
+                mx-auto max-w-4xl text-center
+                transform-gpu transition-all duration-700 ease-out
+                ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}
+              `}
+            >
               {/* Badge */}
-              <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-fimo-navy/15 bg-fimo-navy/[0.04] px-3 py-1.5 text-[10px] font-bold tracking-wide text-fimo-navy sm:mb-6 sm:text-xs">
+              <div
+                style={{ transitionDelay: mounted ? '80ms' : '0ms' }}
+                className={`
+                  mb-5 inline-flex items-center gap-1.5 rounded-full border border-fimo-navy/15 bg-fimo-navy/[0.04] px-3 py-1.5 text-[10px] font-bold tracking-wide text-fimo-navy sm:mb-6 sm:text-xs
+                  transition-all duration-700 ease-out
+                  ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}
+                `}
+              >
                 <ShieldCheckIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 TENTANG FIMOSTAY
               </div>
 
               {/* Main heading */}
               <h1
-                className="
+                style={{ transitionDelay: mounted ? '160ms' : '0ms' }}
+                className={`
                   text-[30px]
                   font-bold
                   leading-[1.08]
@@ -52,19 +132,19 @@ export default function TentangPage() {
                   text-fimo-navy
                   sm:text-[42px]
                   lg:text-[56px]
-                "
+                  transition-all duration-700 ease-out
+                  ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}
+                `}
               >
                 Capek keliling cari kos,
                 <br className="hidden sm:block" />
-                <span className="text-gray-900">
-                  {' '}
-                  ternyata sudah penuh?
-                </span>
+                <span className="text-gray-900"> ternyata sudah penuh?</span>
               </h1>
 
               {/* Description */}
               <p
-                className="
+                style={{ transitionDelay: mounted ? '260ms' : '0ms' }}
+                className={`
                   mx-auto
                   mt-5
                   max-w-2xl
@@ -75,7 +155,9 @@ export default function TentangPage() {
                   sm:text-base
                   sm:leading-7
                   lg:text-lg
-                "
+                  transition-all duration-700 ease-out
+                  ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}
+                `}
               >
                 Itu masalah yang bikin FimoStay ada. Kami ingin membuat
                 pencarian kos terasa lebih sederhana dengan data yang
@@ -89,7 +171,7 @@ export default function TentangPage() {
             CORE VALUES
         ======================================== */}
         <section className="mx-auto max-w-6xl px-5 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-          <div className="mx-auto max-w-2xl text-center">
+          <Reveal className="mx-auto max-w-2xl text-center">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-fimo-navy sm:text-xs">
               Kenapa FimoStay?
             </p>
@@ -102,26 +184,32 @@ export default function TentangPage() {
               Kami fokus pada hal yang paling penting saat mencari tempat
               tinggal: informasi yang bisa dipercaya.
             </p>
-          </div>
+          </Reveal>
 
           <div className="mt-9 grid gap-4 sm:mt-12 sm:grid-cols-3 sm:gap-5">
-            <FeatureCard
-              icon={ShieldCheckIcon}
-              title="Dicek Langsung"
-              description="Setiap kos didatangi dan didokumentasikan tim kami, bukan sekadar mengandalkan foto kiriman owner."
-            />
+            <Reveal delay={0}>
+              <FeatureCard
+                icon={ShieldCheckIcon}
+                title="Dicek Langsung"
+                description="Setiap kos didatangi dan didokumentasikan tim kami, bukan sekadar mengandalkan foto kiriman owner."
+              />
+            </Reveal>
 
-            <FeatureCard
-              icon={ArrowPathIcon}
-              title="Selalu Diperbarui"
-              description="Kos yang tidak diperbarui tim kami dalam 7 hari otomatis kami sembunyikan dari pencarian."
-            />
+            <Reveal delay={120}>
+              <FeatureCard
+                icon={ArrowPathIcon}
+                title="Selalu Diperbarui"
+                description="Kos yang tidak diperbarui tim kami dalam 7 hari otomatis kami sembunyikan dari pencarian."
+              />
+            </Reveal>
 
-            <FeatureCard
-              icon={UserGroupIcon}
-              title="Dibantu Manusia"
-              description="Bukan cuma listing otomatis. Tim kami juga siap membantu mencarikan rekomendasi sesuai kebutuhanmu."
-            />
+            <Reveal delay={240}>
+              <FeatureCard
+                icon={UserGroupIcon}
+                title="Dibantu Manusia"
+                description="Bukan cuma listing otomatis. Tim kami juga siap membantu mencarikan rekomendasi sesuai kebutuhanmu."
+              />
+            </Reveal>
           </div>
         </section>
 
@@ -130,7 +218,7 @@ export default function TentangPage() {
         ======================================== */}
         <section className="border-y border-gray-200 bg-white">
           <div className="mx-auto max-w-5xl px-5 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-            <div className="max-w-2xl">
+            <Reveal className="max-w-2xl">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-fimo-navy sm:text-xs">
                 Sederhana saja
               </p>
@@ -143,30 +231,36 @@ export default function TentangPage() {
                 Dari menemukan kos sampai terhubung dengan owner, prosesnya
                 dibuat sesingkat mungkin.
               </p>
-            </div>
+            </Reveal>
 
             <div className="mt-10 sm:mt-12">
               <div className="grid gap-0 md:grid-cols-3 md:gap-5">
-                <StepCard
-                  number="01"
-                  icon={MagnifyingGlassIcon}
-                  title="Cari atau minta rekomendasi"
-                  description="Telusuri kos berdasarkan lokasi dan fasilitas, atau ceritakan kriteriamu kepada tim kami."
-                />
+                <Reveal delay={0}>
+                  <StepCard
+                    number="01"
+                    icon={MagnifyingGlassIcon}
+                    title="Cari atau minta rekomendasi"
+                    description="Telusuri kos berdasarkan lokasi dan fasilitas, atau ceritakan kriteriamu kepada tim kami."
+                  />
+                </Reveal>
 
-                <StepCard
-                  number="02"
-                  icon={CreditCardIcon}
-                  title="Bayar & verifikasi"
-                  description="Lakukan pembayaran dan konfirmasi melalui WhatsApp. Tim kami akan melakukan verifikasi."
-                />
+                <Reveal delay={120}>
+                  <StepCard
+                    number="02"
+                    icon={CreditCardIcon}
+                    title="Bayar & verifikasi"
+                    description="Lakukan pembayaran dan konfirmasi melalui WhatsApp. Tim kami akan melakukan verifikasi."
+                  />
+                </Reveal>
 
-                <StepCard
-                  number="03"
-                  icon={ChatBubbleLeftRightIcon}
-                  title="Terhubung dengan owner"
-                  description="Setelah terverifikasi, kamu bisa langsung menghubungi pemilik kos untuk survey atau booking."
-                />
+                <Reveal delay={240}>
+                  <StepCard
+                    number="03"
+                    icon={ChatBubbleLeftRightIcon}
+                    title="Terhubung dengan owner"
+                    description="Setelah terverifikasi, kamu bisa langsung menghubungi pemilik kos untuk survey atau booking."
+                  />
+                </Reveal>
               </div>
             </div>
           </div>
@@ -176,37 +270,39 @@ export default function TentangPage() {
             TRUST / PROMISE
         ======================================== */}
         <section className="mx-auto max-w-5xl px-5 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-          <div className="relative overflow-hidden rounded-3xl bg-fimo-navy px-6 py-8 text-white sm:px-10 sm:py-10 lg:px-12">
-            {/* Decorative circle */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-white/[0.05]"
-            />
+          <Reveal>
+            <div className="relative overflow-hidden rounded-3xl bg-fimo-navy px-6 py-8 text-white sm:px-10 sm:py-10 lg:px-12">
+              {/* Decorative circle */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-white/[0.05]"
+              />
 
-            <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="max-w-xl">
-                <div className="flex items-center gap-2">
-                  <CheckCircleIcon className="h-5 w-5 text-white/80" />
+              <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="max-w-xl">
+                  <div className="flex items-center gap-2">
+                    <CheckCircleIcon className="h-5 w-5 text-white/80" />
 
-                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-white/70">
-                    Komitmen FimoStay
+                    <p className="text-xs font-bold uppercase tracking-[0.15em] text-white/70">
+                      Komitmen FimoStay
+                    </p>
+                  </div>
+
+                  <h2 className="mt-3 text-xl font-bold tracking-tight sm:text-2xl">
+                    Lebih sedikit waktu buang-buang,
+                    <br className="hidden sm:block" />
+                    lebih banyak kos yang benar-benar bisa dipilih.
+                  </h2>
+
+                  <p className="mt-3 text-sm leading-6 text-white/70 sm:text-base">
+                    Karena menurut kami, mencari tempat tinggal seharusnya
+                    tidak perlu terasa seperti berburu informasi yang sudah
+                    kadaluarsa.
                   </p>
                 </div>
-
-                <h2 className="mt-3 text-xl font-bold tracking-tight sm:text-2xl">
-                  Lebih sedikit waktu buang-buang,
-                  <br className="hidden sm:block" />
-                  lebih banyak kos yang benar-benar bisa dipilih.
-                </h2>
-
-                <p className="mt-3 text-sm leading-6 text-white/70 sm:text-base">
-                  Karena menurut kami, mencari tempat tinggal seharusnya
-                  tidak perlu terasa seperti berburu informasi yang sudah
-                  kadaluarsa.
-                </p>
               </div>
             </div>
-          </div>
+          </Reveal>
         </section>
       </main>
 
@@ -280,9 +376,7 @@ function StepCard({
       <div className="absolute -left-[18px] top-0 flex h-9 w-9 items-center justify-center rounded-full border-4 border-white bg-fimo-navy text-white md:static md:mb-5 md:h-11 md:w-11 md:rounded-2xl md:border-0">
         <Icon className="hidden h-5 w-5 md:block" />
 
-        <span className="text-[10px] font-bold md:hidden">
-          {number}
-        </span>
+        <span className="text-[10px] font-bold md:hidden">{number}</span>
       </div>
 
       {/* Desktop connector */}
