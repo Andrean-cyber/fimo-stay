@@ -277,7 +277,7 @@ export default async function HomePage() {
           <div className="relative mx-4 overflow-hidden rounded-2xl bg-fimo-navy px-5 py-6 sm:hidden">
             <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-fimo-blue/20 blur-3xl" />
             <div className="absolute -bottom-16 left-1/3 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
-            <div className="pointer-events-none absolute -right-4 bottom-0 z-[5] h-32 w-32 opacity-95">
+            <div className="pointer-events-none absolute -right-4 bottom-0 z-[5] h-40 w-40 opacity-95">
               <Image src="/cta-illustration.webp" alt="Ilustrasi pencarian kos" fill className="object-contain object-bottom" sizes="128px" />
             </div>
             <div className="relative z-10 flex flex-col justify-between gap-4">
