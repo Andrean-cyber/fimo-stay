@@ -3,6 +3,8 @@ import { PublicHeader } from '@/components/public-header'
 import { PublicFooter } from '@/components/public-footer'
 import { KosCard } from '@/components/kos-card'
 import { SearchForm } from '@/app/(public)/kos/search-form'
+import { Reveal } from '@/components/reveal'
+import { HomeFaq } from '@/components/home-faq'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -205,6 +207,7 @@ export default async function HomePage() {
 
         {/* ============ DEKAT KAMPUS POPULER ============ */}
         <section className="order-2 sm:order-2 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-16 lg:pt-20">
+        <Reveal>
           {/* --- MOBILE: card putih, kategori jadi pill icon+label, geser ke kiri --- */}
           <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:hidden">
             <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-fimo-blue">Untuk mahasiswa</p>
@@ -242,10 +245,12 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
+          </Reveal>
         </section>
 
         {/* ============ REKOMENDASI KOS ============ */}
         <section className="order-3 sm:order-3 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-24 lg:pt-28">
+        <Reveal>
           <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-none sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="mb-3 flex items-end justify-between sm:mb-5">
               <div>
@@ -262,10 +267,12 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
+          </Reveal>
         </section>
 
         {/* ============ CTA / ABOUT ============ */}
         <section className="order-4 sm:order-4 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
+        <Reveal>
           {/* MOBILE: pertahankan CTA lama */}
           <div className="relative mx-4 overflow-hidden rounded-2xl bg-fimo-navy px-5 py-6 sm:hidden">
             <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-fimo-blue/20 blur-3xl" />
@@ -334,10 +341,12 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
+         </Reveal>
         </section>
 
         {/* ============ QUICK BENEFITS / STATS BAR (desktop only) — dipindah tepat di bawah Tentang FimoStay ============ */}
         <section className="order-5 hidden sm:order-5 sm:block sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-6 lg:pt-8">
+        <Reveal>
           <div className="overflow-hidden rounded-[24px] bg-fimo-navy px-4 py-4 shadow-[0_16px_35px_rgba(15,23,42,0.14)] md:px-6 md:py-5">
             <div className="grid grid-cols-3 divide-x divide-white/10">
               <BenefitStat icon={ShieldCheckIcon} title="Sudah Dicek" description="Sebelum dipublikasikan" />
@@ -345,10 +354,12 @@ export default async function HomePage() {
               <BenefitStat icon={LifebuoyIcon} title="Bantuan Pilih" description="Rekomendasi sesuai kebutuhan" />
             </div>
           </div>
+          </Reveal>
         </section>
 
         {/* ============ PILIH JENIS KOS ============ */}
         <section className="order-6 sm:order-6 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
+        <Reveal>
           <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-none sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="mb-3 flex items-end justify-between sm:mb-5">
               <div>
@@ -394,53 +405,65 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
+         </Reveal>
         </section>
 
-{/* ============ LOKASI POPULER ============ */}
-<section className="order-7 sm:order-7 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
-  <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-none sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none">
-    <div className="mb-3 sm:mb-5">
-      <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-fimo-blue sm:mb-1 sm:text-xs sm:tracking-[0.18em]">Jelajahi lokasi</p>
-      <h2 className="text-base font-bold text-fimo-navy sm:text-2xl sm:text-3xl">Lokasi Populer</h2>
-    </div>
-
-    {/* mobile: geser horizontal | sm+: grid seperti semula */}
-    <div
-      className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-6 [&::-webkit-scrollbar]:hidden"
-      style={{ scrollbarWidth: 'none' }}
-    >
-      {lokasiPopuler.map((l) => {
-        const imageUrl = getCityImage(l.display)
-        return (
-          <Link
-            key={l.display}
-            href={`/kos?city=${encodeURIComponent(l.display)}`}
-            className="group relative aspect-square w-[104px] shrink-0 overflow-hidden rounded-lg border border-fimo-gray transition hover:-translate-y-1 hover:shadow-lg sm:w-auto sm:shrink sm:rounded-2xl"
-          >
-            {imageUrl ? (
-              <Image
-                src={imageUrl}
-                alt={l.display}
-                fill
-                className="object-cover transition duration-300 group-hover:scale-105"
-                sizes="(min-width: 1024px) 16vw, (min-width: 640px) 33vw, 104px"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-fimo-blue/10">
-                <MapPinIcon className="h-5 w-5 text-fimo-blue/50 sm:h-9 sm:w-9" />
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 flex items-center gap-1 p-1.5 sm:p-3.5">
-              <MapPinIcon className="h-3 w-3 shrink-0 text-white sm:h-4 sm:w-4" />
-              <span className="truncate text-[10px] font-semibold text-white sm:text-sm">{l.display}</span>
+        {/* ============ LOKASI POPULER ============ */}
+        <section className="order-7 sm:order-7 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
+        <Reveal>
+          <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-none sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none">
+            <div className="mb-3 sm:mb-5">
+              <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-fimo-blue sm:mb-1 sm:text-xs sm:tracking-[0.18em]">Jelajahi lokasi</p>
+              <h2 className="text-base font-bold text-fimo-navy sm:text-2xl sm:text-3xl">Lokasi Populer</h2>
             </div>
-          </Link>
-        )
-      })}
-    </div>
-  </div>
-</section>
+
+            {/* mobile: geser horizontal | sm+: grid seperti semula */}
+            <div
+              className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-6 [&::-webkit-scrollbar]:hidden"
+              style={{ scrollbarWidth: 'none' }}
+            >
+              {lokasiPopuler.map((l) => {
+                const imageUrl = getCityImage(l.display)
+                return (
+                  <Link
+                    key={l.display}
+                    href={`/kos?city=${encodeURIComponent(l.display)}`}
+                    className="group relative aspect-square w-[104px] shrink-0 overflow-hidden rounded-lg border border-fimo-gray transition hover:-translate-y-1 hover:shadow-lg sm:w-auto sm:shrink sm:rounded-2xl"
+                  >
+                    {imageUrl ? (
+                      <Image
+                        src={imageUrl}
+                        alt={l.display}
+                        fill
+                        className="object-cover transition duration-300 group-hover:scale-105"
+                        sizes="(min-width: 1024px) 16vw, (min-width: 640px) 33vw, 104px"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-fimo-blue/10">
+                        <MapPinIcon className="h-5 w-5 text-fimo-blue/50 sm:h-9 sm:w-9" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 flex items-center gap-1 p-1.5 sm:p-3.5">
+                      <MapPinIcon className="h-3 w-3 shrink-0 text-white sm:h-4 sm:w-4" />
+                      <span className="truncate text-[10px] font-semibold text-white sm:text-sm">{l.display}</span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+          </Reveal>
+        </section>
+
+        {/* ============ FAQ ============ */}
+        <section className="order-8 sm:order-8 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-14 lg:pt-20">
+          <Reveal>
+            <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-none sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none">
+              <HomeFaq />
+            </div>
+          </Reveal>
+        </section>
 
       </main>
       <PublicFooter />
