@@ -9,22 +9,22 @@ export function PublicFooter() {
   return (
     <footer className="bg-white text-fimo-navy">
 
-
       {/* Main footer */}
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-12 lg:gap-6">
+      <div className="mx-auto max-w-6xl px-4 py-5 pb-24 sm:px-6 sm:py-10 sm:pb-10 lg:px-8 lg:py-12 lg:pb-12">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-8 lg:grid-cols-12 lg:gap-6">
+
           {/* Brand */}
           <div className="lg:col-span-5">
             <Link href="/" className="inline-flex items-center">
-              <img src="/lgfimostay-blue.webp" alt="FimoStay" className="h-8 w-auto" />
+              <img src="/lgfimostay-blue.webp" alt="FimoStay" className="h-6 w-auto sm:h-8" />
             </Link>
 
-            <p className="mt-3 max-w-md text-sm leading-5 text-gray-500">
+            <p className="mt-2 max-w-md text-[12px] leading-[1.55] text-gray-500 sm:mt-3 sm:text-sm sm:leading-5">
               Membantu kamu menemukan kos yang sesuai kebutuhan, dengan informasi yang lebih jelas dan data yang terus diperbarui.
             </p>
 
             {/* Social */}
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-3 flex items-center gap-2 sm:mt-4">
               <a href={`https://wa.me/${waNumber}?text=${waGeneralMessage}`} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp FimoStay" className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition-all duration-200 hover:border-fimo-navy hover:bg-fimo-navy hover:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
                   <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.33 4.95L2.05 22l5.28-1.38a9.9 9.9 0 0 0 4.71 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.87 9.87 0 0 0 12.04 2zm5.8 14.09c-.24.68-1.4 1.3-1.93 1.38-.49.08-1.11-.11-1.79-.11-.41-.13-.94-.3-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94s.72-2.09.98-2.37c.25-.28.54-.35.72-.35.18 0 .36 0 .52.01.16.01.39-.06.6.47.24.58.82 2 .89 2.14.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.3.6-.13.6.17.29.75 1.24 1.62 2.01 1.11.99 2.05 1.3 2.34 1.44.29.15.46.13.63-.08.18-.21.74-.86.94-1.16.2-.29.39-.24.66-.14.27.1 1.7.8 2 .94.29.13.49.22.56.35.07.13.07.75-.17 1.42z" />
@@ -49,28 +49,28 @@ export function PublicFooter() {
 
           {/* Informasi */}
           <div className="lg:col-span-2 lg:col-start-7">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Informasi</h3>
-            <ul className="mt-4 space-y-2.5">
-              <li><Link href="/tentang" className="text-sm text-gray-600 transition-colors hover:text-fimo-navy">Tentang Kami</Link></li>
-              <li><Link href="/syarat" className="text-sm text-gray-600 transition-colors hover:text-fimo-navy">Syarat & Ketentuan</Link></li>
-              <li><Link href="/kebijakan-privasi" className="text-sm text-gray-600 transition-colors hover:text-fimo-navy">Kebijakan Privasi</Link></li>
+            <h3 className="text-[9px] font-semibold uppercase tracking-[0.16em] text-gray-400 sm:text-[11px]">Informasi</h3>
+            <ul className="mt-2.5 space-y-2 sm:mt-4 sm:space-y-2.5">
+              <li><Link href="/tentang" className="text-[12px] text-gray-600 transition-colors hover:text-fimo-navy sm:text-sm">Tentang Kami</Link></li>
+              <li><Link href="/syarat" className="text-[12px] text-gray-600 transition-colors hover:text-fimo-navy sm:text-sm">Syarat & Ketentuan</Link></li>
+              <li><Link href="/kebijakan-privasi" className="text-[12px] text-gray-600 transition-colors hover:text-fimo-navy sm:text-sm">Kebijakan Privasi</Link></li>
             </ul>
           </div>
 
           {/* Bantuan */}
           <div className="lg:col-span-2">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Bantuan</h3>
-            <ul className="mt-4 space-y-2.5">
-              <li><Link href="/kontak" className="text-sm text-gray-600 transition-colors hover:text-fimo-navy">Hubungi Kami</Link></li>
-              <li><Link href="/faq" className="text-sm text-gray-600 transition-colors hover:text-fimo-navy">Pertanyaan Umum</Link></li>
+            <h3 className="text-[9px] font-semibold uppercase tracking-[0.16em] text-gray-400 sm:text-[11px]">Bantuan</h3>
+            <ul className="mt-2.5 space-y-2 sm:mt-4 sm:space-y-2.5">
+              <li><Link href="/kontak" className="text-[12px] text-gray-600 transition-colors hover:text-fimo-navy sm:text-sm">Hubungi Kami</Link></li>
+              <li><Link href="/faq" className="text-[12px] text-gray-600 transition-colors hover:text-fimo-navy sm:text-sm">Pertanyaan Umum</Link></li>
             </ul>
           </div>
 
           {/* Pemilik Kos */}
           <div className="sm:col-span-2 lg:col-span-2">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Untuk Pemilik</h3>
-            <p className="mt-4 text-sm leading-5 text-gray-500">Ingin kosmu ditemukan calon penghuni yang tepat?</p>
-            <a href={`https://wa.me/${waNumber}?text=${waDaftarKosMessage}`} target="_blank" rel="noopener noreferrer" className="group mt-3 inline-flex items-center gap-2 text-sm font-semibold text-fimo-navy">
+            <h3 className="text-[9px] font-semibold uppercase tracking-[0.16em] text-gray-400 sm:text-[11px]">Untuk Pemilik</h3>
+            <p className="mt-2.5 text-[12px] leading-[1.55] text-gray-500 sm:mt-4 sm:text-sm sm:leading-5">Ingin kosmu ditemukan calon penghuni yang tepat?</p>
+            <a href={`https://wa.me/${waNumber}?text=${waDaftarKosMessage}`} target="_blank" rel="noopener noreferrer" className="group mt-2 inline-flex items-center gap-2 text-[12px] font-semibold text-fimo-navy sm:mt-3 sm:text-sm">
               Daftarkan Kos
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5">
                 <path d="M4.5 10H15.5M15.5 10L10.5 5M15.5 10L10.5 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
@@ -80,9 +80,9 @@ export function PublicFooter() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-8 border-t border-gray-100 pt-5 sm:mt-10 sm:flex sm:items-center sm:justify-between sm:pt-6">
-          <p className="text-xs text-gray-400 sm:text-sm">© {currentYear} FimoStay. All Rights Reserved.</p>
-          <p className="mt-1.5 text-xs text-gray-400 sm:mt-0 sm:text-sm">Cari kos sekarang lebih mudah</p>
+        <div className="mt-5 border-t border-gray-100 pt-4 sm:mt-10 sm:flex sm:items-center sm:justify-between sm:pt-6">
+          <p className="text-[10px] text-gray-400 sm:text-sm">© {currentYear} FimoStay. All Rights Reserved.</p>
+          <p className="mt-1 text-[10px] text-gray-400 sm:mt-0 sm:text-sm">Cari kos sekarang lebih mudah</p>
         </div>
       </div>
     </footer>
