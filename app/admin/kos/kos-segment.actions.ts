@@ -3,14 +3,29 @@
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
 import { syncKosToIndex } from '@/lib/meilisearch'
+import { recomputeKosPriceCache } from '@/lib/kos-price-cache'
 import { revalidatePath } from 'next/cache'
 import { segmentSchema, roomTypeSchema } from '@/lib/validations/kos'
 
+const KOS_INDEX_INCLUDE = {
+  segments: { include: { roomTypes: true, kosType: true } },
+  nearby: true,
+  media: { where: { isCover: true }, take: 1 },
+} as const
+
 async function touchAndSync(kosId: string, adminId: string) {
-  const kos = await prisma.kos.update({
-    where: { id: kosId },
-    data: { lastUpdatedAt: new Date(), updatedById: adminId },
-    include: { segments: { include: { roomTypes: true } } },
+  const kos = await prisma.$transaction(async (tx) => {
+    // Harga bisa berubah lewat create/update/delete room type di halaman
+    // ini — recompute dulu di dalam transaksi yang sama sebelum dibaca
+    // ulang, supaya priceMinCache/priceMaxCache yang di-sync ke index
+    // selalu yang terbaru, bukan nilai lama.
+    await recomputeKosPriceCache(kosId, tx)
+
+    return tx.kos.update({
+      where: { id: kosId },
+      data: { lastUpdatedAt: new Date(), updatedById: adminId },
+      include: KOS_INDEX_INCLUDE,
+    })
   })
   await syncKosToIndex(kos)
   revalidatePath(`/admin/kos/${kosId}/edit`)

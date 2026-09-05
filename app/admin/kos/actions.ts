@@ -4,7 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/utils/auth/require-admin'
 import { kosSchema, segmentsPayloadSchema, nearbyPayloadSchema } from '@/lib/validations/kos'
 import { slugify } from '@/lib/slugify'
-import { syncKosToIndex, kosIndex } from '@/lib/meilisearch'
+import { syncKosToIndex, kosIndex, resyncKos } from '@/lib/meilisearch'
+import { invalidateKosDetailCache } from '@/lib/kos-detail-cache'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { FormActionState } from '@/lib/action-state'
@@ -321,6 +322,7 @@ export async function unhideKosManual(kosId: string) {
 export async function attachKosMedia(kosId: string, url: string, isCover = false) {
   await requireAdmin()
   await prisma.kosMedia.create({ data: { kosId, url, isCover } })
+  await resyncKos(prisma, kosId)
   revalidatePath(`/admin/kos/${kosId}/edit`)
 }
 
@@ -333,7 +335,10 @@ export async function deleteKos(kosId: string): Promise<{ error?: string }> {
   if (transactionCount > 0 || recommendationCount > 0) {
     return { error: 'Kos ini sudah pernah dipakai di transaksi/rekomendasi, tidak bisa dihapus permanen. Gunakan "Sembunyikan Manual" saja.' }
   }
+
+  const kos = await prisma.kos.findUniqueOrThrow({ where: { id: kosId }, select: { slug: true } })
   await kosIndex.deleteDocument(kosId).catch(() => {})
+  await invalidateKosDetailCache(kos.slug)
   await prisma.kos.delete({ where: { id: kosId } })
   revalidatePath('/admin/kos')
   redirect('/admin/kos')
@@ -345,8 +350,8 @@ export async function deleteKosMedia(mediaId: string) {
   if (!media) return
 
   await deleteFromR2(media.url)
-
   await prisma.kosMedia.delete({ where: { id: mediaId } })
+  await resyncKos(prisma, media.kosId)
   revalidatePath(`/admin/kos/${media.kosId}/edit`)
 }
 
