@@ -21,7 +21,7 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline'
 import type { ComponentType, SVGProps } from 'react'
-import { prisma } from '@/lib/prisma'
+import { getKosDetailCached } from '@/lib/kos-detail-cache'
 import { PublicHeader } from '@/components/public-header'
 import { SelfSearchForm } from './self-search-form'
 import { PhotoGallery } from './photo-gallery'
@@ -66,23 +66,13 @@ export default async function KosDetailPage({
 }) {
   const { slug } = await params
 
-  const kos = await prisma.kos.findUnique({
-    where: { slug },
-    include: {
-      media: { orderBy: { order: 'asc' } },
-      segments: {
-        include: {
-          kosType: true,
-          roomTypes: { where: { isActive: true }, orderBy: { order: 'asc' } },
-        },
-      },
-      nearby: { where: { isActive: true }, orderBy: { order: 'asc' } },
-    },
-  })
-
-  // sengaja cek status manual di sini — meskipun Prisma bypass RLS,
-  // kos yang tidak ACTIVE tetap tidak boleh terlihat publik
-  if (!kos || kos.status !== 'ACTIVE') notFound()
+  // Cek Redis dulu — kalau kos ini sedang trending/di halaman depan dan
+  // diakses banyak pengunjung bersamaan, Supabase TIDAK perlu jalankan
+  // query join berat (media + segments + roomTypes + nearby) berulang
+  // kali. Status ACTIVE sudah dicek di dalam getKosDetailCached — kalau
+  // kos tidak ACTIVE, fungsi ini return null (tidak pernah di-cache).
+  const kos = await getKosDetailCached(slug)
+  if (!kos) notFound()
 
   const allRoomTypes = kos.segments.flatMap((s) =>
     s.roomTypes.map((rt) => ({ ...rt, kosTypeName: s.kosType.name, segmentName: s.name }))
@@ -93,7 +83,10 @@ export default async function KosDetailPage({
   const cheapestId = allRoomTypes.length > 0
     ? allRoomTypes.reduce((a, b) => (a.priceMonthly <= b.priceMonthly ? a : b)).id
     : null
-  const updatedDaysAgo = Math.floor((Date.now() - kos.lastUpdatedAt.getTime()) / 86400000)
+  // lastUpdatedAt sudah berupa epoch ms (bukan Date) di payload cache —
+  // dihitung ulang tiap request supaya "X hari lalu" selalu akurat
+  // terhadap waktu sekarang, tidak ikut basi di dalam cache.
+  const updatedDaysAgo = Math.floor((Date.now() - kos.lastUpdatedAt) / 86400000)
 
   return (
     <div className="min-h-screen bg-white">
@@ -176,9 +169,6 @@ export default async function KosDetailPage({
                                 {rt.availableRooms != null && (
                                   <p className="mt-0.5 text-xs text-gray-400 md:text-sm">{rt.availableRooms} kamar tersedia</p>
                                 )}
-                                {/* FIX: fasilitas kamar sebelumnya tidak pernah dirender.
-                                    Ditambah label & icon supaya jelas ini fasilitas kamar,
-                                    bukan fasilitas umum kos di bawah. */}
                                 {rt.facilities.length > 0 && (
                                   <div className="mt-2">
                                     <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-gray-400 md:text-[11px]">

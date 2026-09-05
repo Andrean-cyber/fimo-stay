@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma'
 import { PublicHeader } from '@/components/public-header'
 import { SearchForm } from './search-form'
 import { FilterPanel } from './filter-panel'
@@ -6,14 +5,100 @@ import { EmptyState } from '@/components/empty-state'
 import { SearchX } from 'lucide-react'
 import { KosCard } from '@/components/kos-card'
 import { Pagination } from '@/components/pagination'
-import { toPublicUrl } from '@/lib/r2'
-import { KAMPUS_POPULER } from '@/lib/campuses'
-import type { Prisma } from '@prisma/client'
 import { PublicFooter } from '@/components/public-footer'
+import { KAMPUS_POPULER } from '@/lib/campuses'
+import { kosIndex, type KosDocument } from '@/lib/meilisearch'
+import { redis } from '@/lib/redis'
+import { getSearchVersion, getKosTypes } from '@/lib/kos-cache'
 
 const PAGE_SIZE = 20
+const SEARCH_TTL = 45 // detik
 
-export default async function KosSearchPage({ searchParams }: { searchParams: Promise<{ q?: string; kategori?: string; priceMin?: string; priceMax?: string; kampus?: string; city?: string; page?: string }> }) {
+type KosListItem = {
+  id: string
+  slug: string
+  name: string
+  city: string
+  district: string | null
+  facilities: string[]
+  priceMin: number
+  priceMax: number
+  roomType: string | null
+  imageUrl: string | null
+  nearbyText: string | null
+  updatedDaysAgo: number
+}
+
+// Meilisearch filter string pakai tanda kutip literal — value dari user
+// (city, kategori, kampus) wajib di-escape supaya tidak merusak sintaks filter
+// atau jadi celah injection.
+function escapeMeiliValue(value: string) {
+  return value.replace(/"/g, '\\"')
+}
+
+function buildMeiliFilter({
+  kategori, priceMinNum, priceMaxNum, kampus, city,
+}: {
+  kategori: string
+  priceMinNum: number | null
+  priceMaxNum: number | null
+  kampus: string
+  city: string
+}) {
+  const filters: string[] = ['status = "ACTIVE"']
+
+  if (city) filters.push(`city = "${escapeMeiliValue(city)}"`)
+  if (kategori) filters.push(`kosTypeIds = "${escapeMeiliValue(kategori)}"`)
+
+  // range overlap, setara logic Prisma sebelumnya:
+  // priceMaxCache >= priceMin DAN priceMinCache <= priceMax
+  if (priceMinNum != null) filters.push(`priceMax >= ${priceMinNum}`)
+  if (priceMaxNum != null) filters.push(`priceMin <= ${priceMaxNum}`)
+
+  if (kampus) {
+    const aliases = KAMPUS_POPULER.find((k) => k.label === kampus)?.aliases ?? [kampus]
+    const campusOr = aliases.map((alias) => `campusNames = "${escapeMeiliValue(alias)}"`).join(' OR ')
+    filters.push(`(${campusOr})`)
+  }
+
+  return filters.join(' AND ')
+}
+
+// Nama diganti jadi searchKosResults supaya tidak bentrok dengan
+// searchKos() yang sudah diekspor dari lib/meilisearch.ts
+async function searchKosResults({
+  q, kategori, priceMinNum, priceMaxNum, kampus, city, page,
+}: {
+  q: string
+  kategori: string
+  priceMinNum: number | null
+  priceMaxNum: number | null
+  kampus: string
+  city: string
+  page: number
+}) {
+  const filter = buildMeiliFilter({ kategori, priceMinNum, priceMaxNum, kampus, city })
+
+  const result = await kosIndex.search<KosDocument>(q, {
+    filter,
+    sort: ['lastUpdatedAt:desc'],
+    offset: (page - 1) * PAGE_SIZE,
+    limit: PAGE_SIZE,
+  })
+
+  return {
+    hits: result.hits,
+    // Meilisearch pakai estimasi kecuali exhaustiveNbHits diaktifkan;
+    // cukup akurat untuk pagination di skala kos-mu sekarang
+    totalItems: result.estimatedTotalHits,
+  }
+}
+
+export default async function KosSearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; kategori?: string; priceMin?: string; priceMax?: string; kampus?: string; city?: string; page?: string }>
+}) {
   const { q = '', kategori = '', priceMin = '', priceMax = '', kampus = '', city = '', page = '1' } = await searchParams
   const activeFilterCount = [kategori, priceMin, priceMax, kampus, city].filter(Boolean).length
   const isFiltered = Boolean(q) || activeFilterCount > 0
@@ -21,82 +106,44 @@ export default async function KosSearchPage({ searchParams }: { searchParams: Pr
   const priceMaxNum = priceMax ? Number(priceMax) : null
   const currentPage = Math.max(1, Number(page) || 1)
 
-  const where: Prisma.KosWhereInput = {
-    status: 'ACTIVE',
-    // kos tanpa roomType aktif tidak punya cache harga sama sekali —
-    // singkirkan dari listing publik, sama seperti perilaku lama
-    // (allPrices.length === 0 → return null).
-    priceMinCache: { not: null },
-    ...(city ? { city: { equals: city, mode: 'insensitive' } } : {}),
-    ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { city: { contains: q, mode: 'insensitive' } }, { district: { contains: q, mode: 'insensitive' } }] } : {}),
-    ...(kategori ? { segments: { some: { kosTypeId: kategori } } } : {}),
-    ...(kampus ? { nearby: { some: { OR: (KAMPUS_POPULER.find((k) => k.label === kampus)?.aliases ?? [kampus]).map((alias) => ({ name: { contains: alias, mode: 'insensitive' as const } })) } } } : {}),
-    // range overlap: kos ikut ditampilkan kalau rentang harganya
-    // bersinggungan dengan rentang yang dicari user
-    ...(priceMinNum != null ? { priceMaxCache: { gte: priceMinNum } } : {}),
-    ...(priceMaxNum != null ? { priceMinCache: { lte: priceMaxNum } } : {}),
+  const version = await getSearchVersion()
+  const cacheKey = `search:v${version}:${JSON.stringify({ q, kategori, priceMin, priceMax, kampus, city, page: currentPage })}`
+
+  type CachedPayload = {
+    kosList: KosListItem[]
+    totalItems: number
+    totalPages: number
+    safePage: number
   }
 
-  const [kosTypes, totalItems] = await Promise.all([
-    prisma.kosType.findMany({
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true },
-    }),
-    prisma.kos.count({ where }),
-  ])
+  let payload = await redis.get<CachedPayload>(cacheKey)
 
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE))
-  const safePage = Math.min(currentPage, totalPages)
+  if (!payload) {
+    const { hits, totalItems } = await searchKosResults({ q, kategori, priceMinNum, priceMaxNum, kampus, city, page: currentPage })
+    const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE))
+    const safePage = Math.min(currentPage, totalPages)
 
-  const kosListRaw = await prisma.kos.findMany({
-    where,
-    orderBy: { lastUpdatedAt: 'desc' },
-    skip: (safePage - 1) * PAGE_SIZE,
-    take: PAGE_SIZE,
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      city: true,
-      district: true,
-      facilities: true,
-      priceMinCache: true,
-      priceMaxCache: true,
-      lastUpdatedAt: true,
-      segments: {
-        take: 1,
-        select: { kosType: { select: { name: true } } },
-      },
-      media: {
-        orderBy: [{ isCover: 'desc' }, { order: 'asc' }],
-        take: 1,
-        select: { url: true },
-      },
-      nearby: {
-        where: { isActive: true },
-        orderBy: { order: 'asc' },
-        take: 1,
-        select: { name: true, distanceText: true },
-      },
-    },
-  })
+    const kosList: KosListItem[] = hits.map((k) => ({
+      id: k.id,
+      slug: k.slug,
+      name: k.name,
+      city: k.city,
+      district: k.district,
+      facilities: k.facilities,
+      priceMin: k.priceMin,
+      priceMax: k.priceMax,
+      roomType: k.kosTypeNames[0] ?? null,
+      imageUrl: k.imageUrl,
+      nearbyText: k.nearbyText,
+      updatedDaysAgo: Math.floor((Date.now() - k.lastUpdatedAt) / 86400000),
+    }))
 
-  const now = Date.now()
+    payload = { kosList, totalItems, totalPages, safePage }
+    await redis.set(cacheKey, payload, { ex: SEARCH_TTL })
+  }
 
-  const kosList = kosListRaw.map((k) => ({
-    id: k.id,
-    slug: k.slug,
-    name: k.name,
-    city: k.city,
-    district: k.district,
-    facilities: k.facilities,
-    priceMin: k.priceMinCache!,
-    priceMax: k.priceMaxCache!,
-    roomType: k.segments[0]?.kosType.name ?? null,
-    imageUrl: k.media[0]?.url ? toPublicUrl(k.media[0].url) : null,
-    nearbyText: k.nearby[0] ? `${k.nearby[0].distanceText} ke ${k.nearby[0].name}` : null,
-    updatedDaysAgo: Math.floor((now - k.lastUpdatedAt.getTime()) / 86400000),
-  }))
+  const { kosList, totalItems, totalPages, safePage } = payload
+  const kosTypes = await getKosTypes()
 
   return (
     <div className="min-h-screen bg-white">

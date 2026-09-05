@@ -1,9 +1,9 @@
 // ============================================================
 // FimoStay — scripts/backfill-meilisearch.mts
-// Index semua data Kos (status ACTIVE) dari database ke Meilisearch.
+// Index ulang SEMUA data Kos dari database ke Meilisearch.
 //
 // Cara pakai:
-//   npm run backfill:search
+//   npx tsx scripts/backfill-meilisearch.mts
 //
 // Butuh env var:
 //   DIRECT_URL / DATABASE_URL  -> koneksi database (lewat Prisma)
@@ -12,16 +12,25 @@
 //                                 saat menjalankan script ini, karena butuh
 //                                 akses tulis (createIndex, addDocuments, dst)
 //
-// Catatan:
-//   Settings index (searchable/filterable/sortable attributes) SEKARANG
-//   diambil dari satu sumber saja: setupKosIndex() di @/lib/search.
-//   Jangan duplikasi updateSettings() di file ini lagi — supaya app
-//   runtime (syncKosToIndex) dan backfill script selalu konsisten.
+// Catatan penting:
+//   Script ini SENGAJA TIDAK bikin mapping dokumen sendiri. Semua
+//   mapping (field apa yang masuk index, dari mana asalnya) sudah
+//   didefinisikan satu-satunya di syncKosToIndex() @/lib/meilisearch.
+//   Backfill di sini hanya query semua kos dengan relasi lengkap
+//   (persis seperti resyncKos()) lalu panggil syncKosToIndex() untuk
+//   tiap kos. Ini supaya backfill dan sync runtime harian TIDAK PERNAH
+//   drift satu sama lain — kalau field search berubah, cukup ubah
+//   syncKosToIndex(), backfill otomatis ikut benar.
+//
+//   Kos dengan status != 'ACTIVE' atau belum punya priceMinCache/
+//   priceMaxCache akan otomatis di-delete dari index oleh
+//   syncKosToIndex() sendiri (bukan di-skip di sini) — supaya kos yang
+//   baru saja jadi nonaktif juga ikut terbersihkan dari index lama.
 // ============================================================
 
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
-import { setupKosIndex, kosIndex } from '@/lib/search'
+import { setupKosIndex, syncKosToIndex } from '@/lib/meilisearch'
 
 const prisma = new PrismaClient()
 
@@ -35,124 +44,74 @@ if (!MEILISEARCH_HOST || !MEILISEARCH_API_KEY) {
   process.exit(1)
 }
 
-// Ukuran batch dokumen yang dikirim per request ke Meilisearch.
-// Kecil karena VPS masih terbatas RAM-nya — naikkan pelan-pelan
-// kalau nanti resource VPS sudah di-upgrade.
-const BATCH_SIZE = 50
+// Jeda antar dokumen (ms) supaya Meilisearch & Redis (bumpSearchVersion
+// dipanggil tiap syncKosToIndex) tidak dibanjiri request sekaligus —
+// VPS masih terbatas resource-nya.
+const DELAY_MS = 50
 
-// Jeda antar batch (ms) supaya Meilisearch sempat "napas" di RAM terbatas.
-const BATCH_DELAY_MS = 500
-
-type KosDocument = {
-  id: string
-  slug: string
-  name: string
-  description: string | null
-  address: string
-  city: string
-  latitude: number | null
-  longitude: number | null
-  facilities: string[]
-  coverImageUrl: string | null
-  kosTypes: string[]
-  roomTypes: string[]
-  priceMin: number | null
-  priceMax: number | null
-  totalAvailableRooms: number
-}
-
-function chunk<T>(arr: T[], size: number): T[][] {
-  const result: T[][] = []
-  for (let i = 0; i < arr.length; i += size) {
-    result.push(arr.slice(i, i + size))
-  }
-  return result
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 async function main() {
-  console.log('🔎 Mengambil data kos aktif dari database...')
+  console.log('⚙️  Memastikan index & settings sesuai (single source: lib/meilisearch.ts)...')
+  await setupKosIndex()
+
+  console.log('🔎 Mengambil semua data kos dari database (termasuk yang nonaktif, supaya ikut ke-cleanup dari index)...')
 
   const kosList = await prisma.kos.findMany({
-    where: { status: 'ACTIVE' },
     include: {
-      media: {
-        orderBy: [{ isCover: 'desc' }, { order: 'asc' }],
-        take: 1,
-      },
-      segments: {
-        include: {
-          kosType: true,
-          roomTypes: {
-            where: { isActive: true },
-          },
-        },
-      },
+      media: { orderBy: { order: 'asc' } },
+      nearby: { orderBy: { order: 'asc' } },
+      segments: { include: { kosType: true, roomTypes: true } },
     },
   })
 
-  console.log(`📦 Ditemukan ${kosList.length} kos aktif.`)
+  console.log(`📦 Ditemukan ${kosList.length} kos total.`)
 
-  const documents: KosDocument[] = kosList.map((kos) => {
-    const allRoomTypes = kos.segments.flatMap((seg) => seg.roomTypes)
-    const prices = allRoomTypes.map((rt) => rt.priceMonthly)
+  let indexed = 0
+  let skippedInactiveOrNoPrice = 0
+  let failed = 0
 
-    return {
-      id: kos.id,
-      slug: kos.slug,
-      name: kos.name,
-      description: kos.description,
-      address: kos.address,
-      city: kos.city,
-      latitude: kos.latitude,
-      longitude: kos.longitude,
-      facilities: kos.facilities,
-      coverImageUrl: kos.media[0]?.url ?? null,
+  for (let i = 0; i < kosList.length; i++) {
+    const kos = kosList[i]
+    process.stdout.write(`  → [${i + 1}/${kosList.length}] ${kos.slug}... `)
 
-      kosTypes: [...new Set(kos.segments.map((seg) => seg.kosType.name))],
-      roomTypes: [...new Set(allRoomTypes.map((rt) => rt.name))],
-      priceMin: prices.length > 0 ? Math.min(...prices) : null,
-      priceMax: prices.length > 0 ? Math.max(...prices) : null,
-      totalAvailableRooms: allRoomTypes.reduce(
-        (sum, rt) => sum + (rt.availableRooms ?? 0),
-        0
-      ),
-    }
-  })
+    try {
+      await syncKosToIndex(kos)
 
-  console.log('⚙️  Memastikan index & settings sesuai (single source: lib/search.ts)...')
-  await setupKosIndex()
-
-  const batches = chunk(documents, BATCH_SIZE)
-  console.log(
-    `🚀 Mengirim ${documents.length} dokumen dalam ${batches.length} batch (${BATCH_SIZE}/batch)...`
-  )
-
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i]
-    console.log(`  → Batch ${i + 1}/${batches.length} (${batch.length} dokumen)...`)
-
-    const task = await kosIndex.addDocuments(batch)
-    const finishedTask = await kosIndex.client.tasks.waitForTask(task.taskUid)
-
-    if (finishedTask.status !== 'succeeded') {
-      throw new Error(
-        `Batch ${i + 1} gagal dengan status "${finishedTask.status}": ${JSON.stringify(finishedTask.error)}`
-      )
+      if (kos.status !== 'ACTIVE' || kos.priceMinCache == null || kos.priceMaxCache == null) {
+        skippedInactiveOrNoPrice++
+        console.log('dihapus dari index (nonaktif / belum ada harga aktif)')
+      } else {
+        indexed++
+        console.log('OK')
+      }
+    } catch (err) {
+      failed++
+      console.log('GAGAL')
+      console.error(`    ⚠️  Error pada kos "${kos.slug}" (${kos.id}):`, err)
     }
 
-    if (i < batches.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS))
+    if (i < kosList.length - 1) {
+      await delay(DELAY_MS)
     }
   }
 
-  console.log(
-    `🎉 Selesai! ${documents.length} kos berhasil di-index ke Meilisearch dalam ${batches.length} batch.`
-  )
+  console.log('')
+  console.log('🎉 Backfill selesai.')
+  console.log(`   - Berhasil di-index: ${indexed}`)
+  console.log(`   - Dihapus/di-skip (nonaktif / tanpa harga): ${skippedInactiveOrNoPrice}`)
+  console.log(`   - Gagal: ${failed}`)
+
+  if (failed > 0) {
+    process.exitCode = 1
+  }
 }
 
 main()
   .catch((err) => {
-    console.error('❌ Backfill gagal:', err)
+    console.error('❌ Backfill gagal total:', err)
     process.exit(1)
   })
   .finally(async () => {
