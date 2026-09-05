@@ -17,7 +17,6 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
   const [error, setError] = useState<string | null>(null)
   const [turnstileToken, setTurnstileToken] = useState('')
 
-  // Semua input ditrack di state supaya tombol submit tahu kapan form BENAR-BENAR lengkap.
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [selectedKosTypes, setSelectedKosTypes] = useState<string[]>([])
@@ -66,7 +65,10 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
   }
 
   return (
-    <form action={handleSubmit} className="space-y-6 rounded-2xl border border-fimo-gray bg-white p-5 shadow-sm md:p-6">
+    <form
+      action={handleSubmit}
+      className="space-y-6 rounded-2xl border border-fimo-gray bg-white p-5 pb-[calc(2rem+env(safe-area-inset-bottom))] shadow-sm md:p-6 md:pb-6"
+    >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Nama Lengkap</label>
@@ -214,10 +216,13 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
       <button
         type="submit"
         disabled={submitting || !isFormComplete}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-fimo-navy/90 disabled:cursor-not-allowed disabled:opacity-50 md:py-3 md:text-base"
+        className="flex w-full flex-col items-center justify-center gap-0.5 rounded-xl bg-fimo-navy px-4 py-2.5 text-center text-sm font-semibold leading-snug text-white transition-colors hover:bg-fimo-navy/90 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-row sm:gap-2 md:py-3 md:text-base"
       >
-        {submitting && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
-        {submitting ? 'Memproses...' : 'Lanjutkan — Rp100.000 (3 rekomendasi kos)'}
+        <span className="flex items-center gap-2">
+          {submitting && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
+          {submitting ? 'Memproses...' : 'Lanjutkan — Rp100.000'}
+        </span>
+        {!submitting && <span className="text-xs font-normal opacity-90 sm:text-sm">(3 rekomendasi kos)</span>}
       </button>
     </form>
   )

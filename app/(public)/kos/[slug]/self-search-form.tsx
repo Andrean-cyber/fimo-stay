@@ -26,9 +26,12 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
   }
 
   return (
-    <form action={handleSubmit} className="space-y-3">
+    <form
+      action={handleSubmit}
+      className="space-y-3 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-3"
+    >
       <p className="text-sm text-gray-600 md:text-base">
-      Isi nomor HP kamu, tim kami akan bantu proses koneksinya ke pemilik kos setelah pembayaran dikonfirmasi.
+        Isi nomor HP kamu, tim kami akan bantu proses koneksinya ke pemilik kos setelah pembayaran dikonfirmasi.
       </p>
 
       <div className="relative">
@@ -56,8 +59,8 @@ export function SelfSearchForm({ kosId }: { kosId: string }) {
         {submitting ? 'Memproses...' : `Proses Sekarang — Rp${(40000).toLocaleString('id-ID')}`}
       </button>
 
-      <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 md:text-sm">
-        <ShieldCheckIcon className="h-3.5 w-3.5" />
+      <p className="flex items-center justify-center gap-1.5 text-center text-xs text-gray-400 md:text-sm">
+        <ShieldCheckIcon className="h-3.5 w-3.5 shrink-0" />
         Pembayaran diverifikasi manual oleh tim kami, prosesnya biasanya kurang dari 1x24 jam.
       </p>
     </form>
