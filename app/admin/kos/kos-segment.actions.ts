@@ -10,7 +10,7 @@ import { segmentSchema, roomTypeSchema } from '@/lib/validations/kos'
 const KOS_INDEX_INCLUDE = {
   segments: { include: { roomTypes: true, kosType: true } },
   nearby: true,
-  media: { where: { isCover: true }, take: 1 },
+  media: { orderBy: { order: 'asc' } },
 } as const
 
 async function touchAndSync(kosId: string, adminId: string) {
@@ -29,6 +29,7 @@ async function touchAndSync(kosId: string, adminId: string) {
   })
   await syncKosToIndex(kos)
   revalidatePath(`/admin/kos/${kosId}/edit`)
+  revalidatePath('/') // ← tambahkan
 }
 
 export async function createSegment(kosId: string, input: unknown) {

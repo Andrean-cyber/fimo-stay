@@ -16,7 +16,7 @@ import { countKosNeedConfirmation } from '@/lib/kos-confirmation'
 const KOS_INDEX_INCLUDE = {
   segments: { include: { roomTypes: true, kosType: true } },
   nearby: true,
-  media: { where: { isCover: true }, take: 1 },
+  media: { orderBy: { order: 'asc' } },
 } as const
 
 // Hitung ulang harga min/max dari payload segments yang sudah tervalidasi.
@@ -292,6 +292,7 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
   await syncKosToIndex(kos)
 
   revalidatePath('/admin/kos')
+  revalidatePath('/') // ← tambahkan
   redirect('/admin/kos')
 }
 
@@ -317,6 +318,7 @@ export async function unhideKosManual(kosId: string) {
   })
   revalidatePath('/admin/kos')
   revalidatePath(`/admin/kos/${kosId}/edit`)
+  revalidatePath('/') // ← tambahkan
 }
 
 export async function attachKosMedia(kosId: string, url: string, isCover = false) {
@@ -324,6 +326,7 @@ export async function attachKosMedia(kosId: string, url: string, isCover = false
   await prisma.kosMedia.create({ data: { kosId, url, isCover } })
   await resyncKos(prisma, kosId)
   revalidatePath(`/admin/kos/${kosId}/edit`)
+  revalidatePath('/') // ← tambahkan
 }
 
 export async function deleteKos(kosId: string): Promise<{ error?: string }> {
@@ -368,6 +371,7 @@ export async function confirmKosAvailability(kosId: string) {
   })
   revalidatePath('/admin/kos')
   revalidatePath('/admin/kos/konfirmasi')
+  revalidatePath('/') // ← tambahkan
 }
 
 export async function confirmKosAvailabilityBulk(kosIds: string[]) {
@@ -400,6 +404,7 @@ export async function confirmKosAvailabilityBulk(kosIds: string[]) {
 
   revalidatePath('/admin/kos')
   revalidatePath('/admin/kos/konfirmasi')
+  revalidatePath('/') // ← tambahkan
 }
 
 export async function getKosNeedConfirmationCount() {
