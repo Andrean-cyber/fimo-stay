@@ -19,3 +19,9 @@ export const transactionRatelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(5, '1 h'),
   prefix: 'ratelimit:transaction',
 })
+
+export const loginRatelimit = new Ratelimit({
+  redis, // instance yang sama dengan transactionRatelimit
+  limiter: Ratelimit.slidingWindow(5, '15 m'), // 5 percobaan / 15 menit
+  prefix: 'ratelimit:login',
+})

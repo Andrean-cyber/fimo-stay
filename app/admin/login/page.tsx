@@ -2,6 +2,8 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { PasswordInput } from './password-input'
+import { loginRatelimit } from '@/lib/redis'
+import { headers } from 'next/headers'
 
 export default async function LoginPage({
   searchParams,
@@ -14,16 +16,30 @@ export default async function LoginPage({
     'use server'
     const email = formData.get('email') as string
     const password = formData.get('password') as string
-
+  
+    const hdrs = await headers()
+    const ip = hdrs.get('x-forwarded-for')?.split(',')[0] ?? 'unknown'
+  
+    // Limit per kombinasi IP + email — supaya bot yang coba banyak email
+    // dari 1 IP, ATAU 1 email dicoba dari banyak IP, sama-sama kena batas
+    const [ipLimit, emailLimit] = await Promise.all([
+      loginRatelimit.limit(`ip:${ip}`),
+      loginRatelimit.limit(`email:${email.toLowerCase()}`),
+    ])
+  
+    if (!ipLimit.success || !emailLimit.success) {
+      return redirect('/admin/login?message=Terlalu banyak percobaan, coba lagi dalam beberapa menit')
+    }
+  
     const supabase = await createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-
+  
     if (error) {
       return redirect('/admin/login?message=Email atau Password salah')
     }
     return redirect('/admin')
   }
-
+  
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md space-y-6 rounded-2xl bg-white p-6 shadow-sm sm:p-8 lg:max-w-lg lg:p-10">
