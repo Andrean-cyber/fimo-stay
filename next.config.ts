@@ -7,10 +7,8 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'photos.fimostay.com',
-      },
+      { protocol: 'https', hostname: 'photos.fimostay.com' },
+      { protocol: 'https', hostname: '*.r2.dev' }, // jaga-jaga kalau ada URL lama
     ],
   },
   output: 'standalone',

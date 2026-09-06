@@ -17,10 +17,10 @@
 // GraduationCap di UI. Taruh file logo (PNG/SVG, disarankan persegi,
 // background transparan) di public/logos/ lalu isi path-nya di sini.
 export const KAMPUS_POPULER: { label: string; aliases: string[]; logoUrl?: string }[] = [
-  { label: 'UB', aliases: ['UB', 'Universitas Brawijaya', 'Brawijaya'], logoUrl: 'kampus/ub.webp' },
-  { label: 'ITS', aliases: ['ITS', 'Institut Teknologi Sepuluh Nopember'], logoUrl: 'kampus/its.webp' },
-  { label: 'ITB', aliases: ['ITB', 'Institut Teknologi Bandung'], logoUrl: 'kampus/itb.webp' },
-  { label: 'UGM', aliases: ['UGM', 'Universitas Gadjah Mada'], logoUrl: 'kampus/ugm.webp' },
-  { label: 'UI', aliases: ['UI', 'Universitas Indonesia'], logoUrl: 'kampus/ui.webp' },
-  { label: 'Undip', aliases: ['Undip', 'Universitas Diponegoro'], logoUrl: 'kampus/undip.webp' },
+  { label: 'UB', aliases: ['UB', 'Universitas Brawijaya', 'Brawijaya'], logoUrl: '/kampus/ub.webp' },
+  { label: 'ITS', aliases: ['ITS', 'Institut Teknologi Sepuluh Nopember'], logoUrl: '/kampus/its.webp' },
+  { label: 'ITB', aliases: ['ITB', 'Institut Teknologi Bandung'], logoUrl: '/kampus/itb.webp' },
+  { label: 'UGM', aliases: ['UGM', 'Universitas Gadjah Mada'], logoUrl: '/kampus/ugm.webp' },
+  { label: 'UI', aliases: ['UI', 'Universitas Indonesia'], logoUrl: '/kampus/ui.webp' },
+  { label: 'Undip', aliases: ['Undip', 'Universitas Diponegoro'], logoUrl: '/kampus/undip.webp' },
 ]

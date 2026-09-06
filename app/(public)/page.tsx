@@ -45,9 +45,10 @@ export default async function HomePage() {
     prisma.kosType.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true } }),
   ])
 
-  const KATEGORI: { label: string; value: string; filter: Prisma.KosWhereInput }[] = kosTypes.map((kt) => ({
+  const KATEGORI: { label: string; value: string; initials: string; filter: Prisma.KosWhereInput }[] = kosTypes.map((kt) => ({
     label: `Kos ${kt.name}`,
     value: kt.id,
+    initials: `K${kt.name.trim().charAt(0).toUpperCase()}`,
     filter: { segments: { some: { kosTypeId: kt.id } } },
   }))
 
@@ -380,7 +381,7 @@ export default async function HomePage() {
                   className="flex w-[84px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border border-slate-100 bg-slate-50/70 px-2 py-3 text-center shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition active:scale-[0.96] active:bg-slate-100"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-fimo-blue/10 text-fimo-navy">
-                    <MagnifyingGlassIcon className="h-4.5 w-4.5" />
+                    <span className="text-xs font-extrabold tracking-tight">{k.initials}</span>
                   </div>
                   <span className="line-clamp-2 text-[10.5px] font-semibold leading-tight text-gray-700">{k.label}</span>
                 </Link>
@@ -396,7 +397,7 @@ export default async function HomePage() {
                   className="group relative overflow-hidden rounded-[20px] border border-slate-200 bg-white p-4 transition hover:-translate-y-1 hover:border-fimo-blue/30 hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] md:p-5"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fimo-navy text-white transition group-hover:bg-fimo-blue">
-                    <MagnifyingGlassIcon className="h-5 w-5" />
+                    <span className="text-sm font-extrabold tracking-tight">{k.initials}</span>
                   </div>
                   <p className="mt-4 text-sm font-bold text-fimo-navy md:text-base">{k.label}</p>
                   <p className="mt-1 text-[11px] text-slate-500 md:text-xs">Lihat kos tersedia</p>
