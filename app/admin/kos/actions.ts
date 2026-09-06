@@ -12,6 +12,7 @@ import type { FormActionState } from '@/lib/action-state'
 import { normalizeCityName } from '@/lib/constants'
 import { toPublicUrl, deleteFromR2 } from '@/lib/r2'
 import { countKosNeedConfirmation } from '@/lib/kos-confirmation'
+import { redis, KOS_CITY_COUNTS_CACHE_KEY } from '@/lib/redis'
 
 const KOS_INDEX_INCLUDE = {
   segments: { include: { roomTypes: true, kosType: true } },
@@ -19,10 +20,15 @@ const KOS_INDEX_INCLUDE = {
   media: { orderBy: { order: 'asc' } },
 } as const
 
+async function invalidateCityCountsCache() {
+  try {
+    await redis.del(KOS_CITY_COUNTS_CACHE_KEY)
+  } catch {
+    // cache gagal dihapus bukan fatal, TTL akan expire sendiri
+  }
+}
+
 // Hitung ulang harga min/max dari payload segments yang sudah tervalidasi.
-// Dipakai di createKos & updateKos supaya priceMinCache/priceMaxCache di
-// tabel Kos selalu sinkron dengan harga roomType terbaru — tanpa perlu
-// query aggregate terpisah, karena datanya sudah ada di tangan.
 function computePriceCache(segments: ReturnType<typeof segmentsPayloadSchema.parse>) {
   const allPrices = segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
   if (allPrices.length === 0) {
@@ -170,6 +176,7 @@ export async function createKos(_prevState: FormActionState, formData: FormData)
   })
 
   await syncKosToIndex(kos)
+  await invalidateCityCountsCache()
 
   revalidatePath('/admin/kos')
   redirect(`/admin/kos/${kos.id}/edit`)
@@ -200,12 +207,9 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
     return { error: `Kos "${parsed.data.name}" di kota ${parsed.data.city} sudah terdaftar.` }
   }
 
-  // Ambil status lama dulu — supaya edit biasa (misal benerin typo)
-  // tidak diam-diam mengaktifkan kembali kos yang sengaja disembunyikan
-  // manual (HIDDEN_MANUAL). Kos itu cuma boleh aktif lagi lewat aksi
-  // eksplisit "Aktifkan Kembali" (unhideKosManual), bukan efek samping simpan form.
-  const currentKos = await prisma.kos.findUniqueOrThrow({ where: { id: kosId }, select: { status: true } })
+  const currentKos = await prisma.kos.findUniqueOrThrow({ where: { id: kosId }, select: { status: true, city: true } })
   const nextStatus = currentKos.status === 'HIDDEN_MANUAL' ? 'HIDDEN_MANUAL' : 'ACTIVE'
+  const cityChanged = currentKos.city !== parsed.data.city
 
   const kos = await prisma.$transaction(async (tx) => {
     const existingSegments = await tx.kosSegment.findMany({ where: { kosId }, select: { id: true } })
@@ -290,9 +294,12 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
   })
 
   await syncKosToIndex(kos)
+  if (cityChanged) {
+    await invalidateCityCountsCache()
+  }
 
   revalidatePath('/admin/kos')
-  revalidatePath('/') // ← tambahkan
+  revalidatePath('/')
   redirect('/admin/kos')
 }
 
@@ -300,6 +307,7 @@ export async function hideKosManual(kosId: string) {
   const admin = await requireAdmin()
   const kos = await prisma.kos.update({ where: { id: kosId }, data: { status: 'HIDDEN_MANUAL' }, include: KOS_INDEX_INCLUDE })
   await syncKosToIndex(kos)
+  await invalidateCityCountsCache()
   await prisma.auditLog.create({ data: { entityType: 'kos', entityId: kosId, action: 'hide', adminId: admin.id, kosId } })
   revalidatePath('/admin/kos')
   revalidatePath(`/admin/kos/${kosId}/edit`)
@@ -313,12 +321,13 @@ export async function unhideKosManual(kosId: string) {
     include: KOS_INDEX_INCLUDE,
   })
   await syncKosToIndex(kos)
+  await invalidateCityCountsCache()
   await prisma.auditLog.create({
     data: { entityType: 'kos', entityId: kosId, action: 'unhide', adminId: admin.id, kosId },
   })
   revalidatePath('/admin/kos')
   revalidatePath(`/admin/kos/${kosId}/edit`)
-  revalidatePath('/') // ← tambahkan
+  revalidatePath('/')
 }
 
 export async function attachKosMedia(kosId: string, url: string, isCover = false) {
@@ -326,7 +335,7 @@ export async function attachKosMedia(kosId: string, url: string, isCover = false
   await prisma.kosMedia.create({ data: { kosId, url, isCover } })
   await resyncKos(prisma, kosId)
   revalidatePath(`/admin/kos/${kosId}/edit`)
-  revalidatePath('/') // ← tambahkan
+  revalidatePath('/')
 }
 
 export async function deleteKos(kosId: string): Promise<{ error?: string }> {
@@ -343,6 +352,7 @@ export async function deleteKos(kosId: string): Promise<{ error?: string }> {
   await kosIndex.deleteDocument(kosId).catch(() => {})
   await invalidateKosDetailCache(kos.slug)
   await prisma.kos.delete({ where: { id: kosId } })
+  await invalidateCityCountsCache()
   revalidatePath('/admin/kos')
   redirect('/admin/kos')
 }
@@ -371,7 +381,7 @@ export async function confirmKosAvailability(kosId: string) {
   })
   revalidatePath('/admin/kos')
   revalidatePath('/admin/kos/konfirmasi')
-  revalidatePath('/') // ← tambahkan
+  revalidatePath('/')
 }
 
 export async function confirmKosAvailabilityBulk(kosIds: string[]) {
@@ -404,7 +414,7 @@ export async function confirmKosAvailabilityBulk(kosIds: string[]) {
 
   revalidatePath('/admin/kos')
   revalidatePath('/admin/kos/konfirmasi')
-  revalidatePath('/') // ← tambahkan
+  revalidatePath('/')
 }
 
 export async function getKosNeedConfirmationCount() {

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { invalidateKosTypesCache } from '@/lib/kos-form-options-cache'
 
 export async function getKosTypes() {
   return prisma.kosType.findMany({
@@ -20,6 +21,7 @@ export async function createKosType(name: string) {
   if (existing) return { error: "Jenis kos ini sudah ada" }
 
   await prisma.kosType.create({ data: { name: trimmed } })
+  await invalidateKosTypesCache()
   revalidatePath("/admin/pengaturan/jenis-kos")
   return { success: true }
 }
@@ -34,6 +36,7 @@ export async function renameKosType(id: string, name: string) {
   if (existing) return { error: "Jenis kos ini sudah ada" }
 
   await prisma.kosType.update({ where: { id }, data: { name: trimmed } })
+  await invalidateKosTypesCache()
   revalidatePath("/admin/pengaturan/jenis-kos")
   return { success: true }
 }
@@ -44,6 +47,7 @@ export async function deleteKosType(id: string) {
     return { error: `Jenis kos masih dipakai di ${usageCount} segment, tidak bisa dihapus` }
   }
   await prisma.kosType.delete({ where: { id } })
+  await invalidateKosTypesCache()
   revalidatePath("/admin/pengaturan/jenis-kos")
   return { success: true }
 }

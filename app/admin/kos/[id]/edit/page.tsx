@@ -6,6 +6,7 @@ import { KosForm } from '../../kos-form'
 import { UploadFoto } from '../upload-foto'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import { DeleteFotoButton } from './delete-foto-button'
+import { getCachedKosTypes, getCachedOwners } from '@/lib/kos-form-options-cache'
 import { toPublicUrl } from '@/lib/r2'
 
 export default async function EditKosPage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,8 +22,8 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
         media: true,
       },
     }),
-    prisma.kosType.findMany({ orderBy: { name: 'asc' } }),
-    prisma.owner.findMany({ orderBy: { name: 'asc' } }),
+    getCachedKosTypes(),
+    getCachedOwners(),
   ])
 
   if (!kos) notFound()

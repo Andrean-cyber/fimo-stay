@@ -250,7 +250,7 @@ export default async function HomePage() {
 
         {/* ============ REKOMENDASI KOS ============ */}
         <section className="order-3 sm:order-3 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-24 lg:pt-28">
-        <Reveal>
+       
           <div className="rounded-2xl border border-slate-200/70 bg-white p-4 mx-4 shadow-[0_8px_24px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-none sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="mb-3 flex items-end justify-between sm:mb-5">
               <div>
@@ -267,7 +267,7 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
-          </Reveal>
+
         </section>
 
         {/* ============ CTA / ABOUT ============ */}

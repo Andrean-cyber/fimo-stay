@@ -6,6 +6,7 @@ import { ownerSchema } from '@/lib/validations/owner'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { FormActionState } from '@/lib/action-state'
+import { invalidateOwnersCache } from '@/lib/kos-form-options-cache'
 
 function parseForm(formData: FormData) {
   return ownerSchema.safeParse({
@@ -27,6 +28,7 @@ export async function createOwner(_prevState: FormActionState, formData: FormDat
   }
 
   await prisma.owner.create({ data: parsed.data })
+  await invalidateOwnersCache()
   revalidatePath('/admin/owners')
   redirect('/admin/owners')
 }
@@ -42,6 +44,7 @@ export async function updateOwner(ownerId: string, _prevState: FormActionState, 
   }
 
   await prisma.owner.update({ where: { id: ownerId }, data: parsed.data })
+  await invalidateOwnersCache()
   revalidatePath('/admin/owners')
   redirect('/admin/owners')
 }
@@ -53,6 +56,7 @@ export async function deleteOwner(ownerId: string): Promise<{ error?: string }> 
     return { error: `Owner ini masih punya ${kosCount} kos terdaftar. Pindahkan/hapus kos-nya dulu sebelum menghapus owner ini.` }
   }
   await prisma.owner.delete({ where: { id: ownerId } })
+  await invalidateOwnersCache()
   revalidatePath('/admin/owners')
   redirect('/admin/owners')
 }

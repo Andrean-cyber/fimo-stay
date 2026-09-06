@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
-import { PlusIcon, TagIcon } from "@heroicons/react/24/outline"
+import Link from "next/link"
+import { PlusIcon, TagIcon, ChevronLeftIcon } from "@heroicons/react/24/outline"
 import {
   getKosTypes,
   createKosType,
@@ -78,6 +79,14 @@ export default function JenisKosPage() {
 
   return (
     <div className="mx-auto max-w-xl p-4 sm:p-6 lg:max-w-2xl lg:p-8">
+      <Link
+        href="/admin/kos"
+        className="mb-2 flex items-center gap-1 text-sm text-gray-500 hover:text-[#10367D]"
+      >
+        <ChevronLeftIcon className="h-4 w-4" />
+        Kembali ke Daftar Kos
+      </Link>
+
       <h1 className="mb-1 text-lg font-bold text-[#10367D] sm:text-xl lg:text-2xl">Jenis Kos</h1>
       <p className="mb-4 text-xs text-gray-500 sm:text-sm">
         Kelola daftar jenis kos yang bisa dipilih saat menambahkan kos.

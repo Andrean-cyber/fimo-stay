@@ -25,3 +25,7 @@ export const loginRatelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(5, '15 m'), // 5 percobaan / 15 menit
   prefix: 'ratelimit:login',
 })
+
+// Cache hitungan kos per kota di halaman admin/kos (folder view)
+export const KOS_CITY_COUNTS_CACHE_KEY = 'admin:kos:city-counts'
+export const KOS_CITY_COUNTS_CACHE_TTL = 60 // detik
