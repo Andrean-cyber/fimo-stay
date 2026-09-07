@@ -9,6 +9,7 @@ import {
   renameKosType,
   deleteKosType,
 } from "./jenis-kos.actions"
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button"
 
 type KosType = {
   id: string
@@ -60,19 +61,6 @@ export default function JenisKosPage() {
         return
       }
       setEditingId(null)
-      loadKosTypes()
-    })
-  }
-
-  function handleDelete(id: string) {
-    if (!confirm("Hapus jenis kos ini?")) return
-    setError(null)
-    startTransition(async () => {
-      const result = await deleteKosType(id)
-      if (result.error) {
-        setError(result.error)
-        return
-      }
       loadKosTypes()
     })
   }
@@ -178,13 +166,19 @@ export default function JenisKosPage() {
                     >
                       Ubah
                     </button>
-                    <button
-                      onClick={() => handleDelete(kt.id)}
-                      disabled={isPending}
-                      className="text-sm font-medium text-red-500 disabled:opacity-50 lg:text-[15px]"
-                    >
-                      Hapus
-                    </button>
+                    <ConfirmDeleteButton
+                      itemName={kt.name}
+                      extraWarning={
+                        kt._count.segments > 0
+                          ? `Jenis kos ini masih dipakai di ${kt._count.segments} segment.`
+                          : undefined
+                      }
+                      action={async () => {
+                        const result = await deleteKosType(kt.id)
+                        if (!result.error) loadKosTypes()
+                        return result
+                      }}
+                    />
                   </>
                 )}
               </div>

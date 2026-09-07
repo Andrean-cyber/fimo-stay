@@ -22,7 +22,11 @@ export async function createKosType(name: string) {
 
   await prisma.kosType.create({ data: { name: trimmed } })
   await invalidateKosTypesCache()
+
   revalidatePath("/admin/pengaturan/jenis-kos")
+  revalidatePath("/")
+  revalidatePath("/kos")
+
   return { success: true }
 }
 
@@ -37,7 +41,11 @@ export async function renameKosType(id: string, name: string) {
 
   await prisma.kosType.update({ where: { id }, data: { name: trimmed } })
   await invalidateKosTypesCache()
+
   revalidatePath("/admin/pengaturan/jenis-kos")
+  revalidatePath("/")
+  revalidatePath("/kos")
+
   return { success: true }
 }
 
@@ -46,8 +54,13 @@ export async function deleteKosType(id: string) {
   if (usageCount > 0) {
     return { error: `Jenis kos masih dipakai di ${usageCount} segment, tidak bisa dihapus` }
   }
+
   await prisma.kosType.delete({ where: { id } })
   await invalidateKosTypesCache()
+
   revalidatePath("/admin/pengaturan/jenis-kos")
+  revalidatePath("/")
+  revalidatePath("/kos")
+
   return { success: true }
 }
