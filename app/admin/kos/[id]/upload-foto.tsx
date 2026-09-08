@@ -3,10 +3,11 @@
 import { useRef, useState } from 'react'
 import { attachKosMedia } from '../actions'
 import { compressImage } from '@/lib/compress-image'
+import { addWatermark } from '@/lib/watermark-image'
 import { ArrowUpTrayIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export function UploadFoto({ kosId }: { kosId: string }) {
-  const [status, setStatus] = useState<'idle' | 'compressing' | 'uploading'>('idle')
+  const [status, setStatus] = useState<'idle' | 'compressing' | 'watermarking' | 'uploading'>('idle')
   const inputRef = useRef<HTMLInputElement>(null)
   const uploading = status !== 'idle'
 
@@ -15,10 +16,11 @@ export function UploadFoto({ kosId }: { kosId: string }) {
     if (!rawFile) return
 
     try {
-      // Compress & resize dulu di browser sebelum dikirim — mengurangi ukuran
-      // upload signifikan (foto kamera HP bisa 4-8MB, hasil compress biasanya <500KB)
       setStatus('compressing')
-      const file = await compressImage(rawFile, { maxWidth: 1600, quality: 0.8 })
+      const compressed = await compressImage(rawFile, { maxWidth: 1600, quality: 0.8 })
+
+      setStatus('watermarking')
+      const file = await addWatermark(compressed, { opacity: 0.5 })
 
       setStatus('uploading')
       const res = await fetch('/api/admin/r2-upload-url', {
@@ -36,7 +38,13 @@ export function UploadFoto({ kosId }: { kosId: string }) {
   }
 
   const label =
-    status === 'compressing' ? 'Mengompres foto...' : status === 'uploading' ? 'Mengunggah...' : 'Unggah Foto'
+    status === 'compressing'
+      ? 'Mengompres foto...'
+      : status === 'watermarking'
+      ? 'Menambahkan watermark...'
+      : status === 'uploading'
+      ? 'Mengunggah...'
+      : 'Unggah Foto'
 
   return (
     <label

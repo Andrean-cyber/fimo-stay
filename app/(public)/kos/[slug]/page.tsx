@@ -4,22 +4,33 @@ import {
   ArrowLeftIcon,
   MapPinIcon,
   ShieldCheckIcon,
-  CloudIcon,
-  MoonIcon,
-  ArchiveBoxIcon,
-  BookOpenIcon,
-  HomeModernIcon,
-  WifiIcon,
-  CubeIcon,
-  BeakerIcon,
-  TruckIcon,
-  RocketLaunchIcon,
-  ArrowPathIcon,
-  CameraIcon,
-  LockClosedIcon,
-  SparklesIcon,
-  ClockIcon,
 } from '@heroicons/react/24/outline'
+import {
+  Car,
+  Toilet,
+  CookingPot,
+  Wifi,
+  Cctv,
+  Shield,
+  ShowerHead,
+  Droplet,
+  AirVent,
+  Refrigerator,
+  Shirt,
+  BookOpen,
+  Tv,
+  Zap,
+  WashingMachine,
+  PawPrint,
+  Dumbbell,
+  Users,
+  Coffee,
+  ChartArea,
+  Store,
+  ChevronsUpDown,
+  Volleyball,
+  Sparkles,
+} from 'lucide-react'
 import type { ComponentType, SVGProps } from 'react'
 import { getKosDetailCached } from '@/lib/kos-detail-cache'
 import { PublicHeader } from '@/components/public-header'
@@ -28,35 +39,49 @@ import { PhotoGallery } from './photo-gallery'
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>
 
-// Pemetaan nama fasilitas (bebas teks dari admin) ke icon yang masuk akal.
-// Dicocokkan pakai keyword, case-insensitive, supaya tetap jalan walau
-// nama fasilitas ditulis agak beda-beda oleh admin.
+// Pemetaan nama fasilitas (bebas teks dari admin) ke icon lucide-react yang
+// masuk akal. Dicocokkan pakai keyword, case-insensitive, supaya tetap jalan
+// walau nama fasilitas ditulis agak beda-beda oleh admin.
+//
+// Fasilitas yang sifatnya opsional/free (free listrik, free laundry, pet
+// friendly, gym area, bisa berdua, cafe, communal area, mart, lift, area
+// olahraga) cukup diisi admin di teks fasilitas — kalau tidak diisi, otomatis
+// tidak muncul di halaman publik (list fasilitas hanya me-render apa yang ada).
 const FACILITY_ICON_RULES: { keywords: string[]; icon: HeroIcon }[] = [
-  { keywords: ['ac'], icon: CloudIcon },
-  { keywords: ['kasur', 'bed'], icon: MoonIcon },
-  { keywords: ['lemari', 'wardrobe', 'closet'], icon: ArchiveBoxIcon },
-  { keywords: ['meja belajar', 'meja'], icon: BookOpenIcon },
-  { keywords: ['kamar mandi', 'mandi', 'toilet', 'wc'], icon: HomeModernIcon },
-  { keywords: ['wifi', 'internet'], icon: WifiIcon },
-  { keywords: ['kulkas', 'fridge'], icon: CubeIcon },
-  { keywords: ['dispenser', 'air'], icon: BeakerIcon },
-  { keywords: ['parkir mobil', 'mobil'], icon: TruckIcon },
-  { keywords: ['parkir motor', 'motor'], icon: RocketLaunchIcon },
-  { keywords: ['jemuran', 'laundry', 'cuci'], icon: ArrowPathIcon },
-  { keywords: ['cctv', 'kamera'], icon: CameraIcon },
-  { keywords: ['security', 'satpam', 'kunci'], icon: LockClosedIcon },
+  // Fasilitas umum
+  { keywords: ['parkir', 'parkiran'], icon: Car },
+  { keywords: ['mandi', 'km dalam', 'km luar', 'toilet', 'wc'], icon: Toilet },
+  { keywords: ['dapur'], icon: CookingPot },
+  { keywords: ['wifi', 'internet'], icon: Wifi },
+  { keywords: ['cctv', 'kamera'], icon: Cctv },
+  { keywords: ['security', 'satpam'], icon: Shield },
+  { keywords: ['water heater', 'pemanas air'], icon: ShowerHead },
+  { keywords: ['dispenser'], icon: Droplet },
+
+  // Fasilitas kamar
+  { keywords: ['ac'], icon: AirVent },
+  { keywords: ['kulkas', 'fridge'], icon: Refrigerator },
+  { keywords: ['lemari', 'wardrobe', 'closet'], icon: Shirt },
+  { keywords: ['meja'], icon: BookOpen },
+  { keywords: ['tv', 'televisi'], icon: Tv },
+
+  // Fasilitas tambahan/free (opsional, tampil hanya kalau diisi admin)
+  { keywords: ['free listrik', 'listrik'], icon: Zap },
+  { keywords: ['free laundry', 'laundry'], icon: WashingMachine },
+  { keywords: ['pet friendly', 'pet'], icon: PawPrint },
+  { keywords: ['gym'], icon: Dumbbell },
+  { keywords: ['bisa berdua', 'berdua'], icon: Users },
+  { keywords: ['cafe', 'kafe'], icon: Coffee },
+  { keywords: ['communal area', 'communal'], icon: ChartArea },
+  { keywords: ['mart'], icon: Store },
+  { keywords: ['lift', 'elevator'], icon: ChevronsUpDown },
+  { keywords: ['area olahraga', 'olahraga'], icon: Volleyball },
 ]
 
 function getFacilityIcon(name: string): HeroIcon {
   const lower = name.toLowerCase()
   const match = FACILITY_ICON_RULES.find((rule) => rule.keywords.some((kw) => lower.includes(kw)))
-  return match?.icon ?? SparklesIcon
-}
-
-function formatUpdatedText(days: number) {
-  if (days <= 0) return 'Diperbarui hari ini'
-  if (days === 1) return 'Diperbarui kemarin'
-  return `Diperbarui ${days} hari lalu`
+  return match?.icon ?? Sparkles
 }
 
 export default async function KosDetailPage({
@@ -83,10 +108,6 @@ export default async function KosDetailPage({
   const cheapestId = allRoomTypes.length > 0
     ? allRoomTypes.reduce((a, b) => (a.priceMonthly <= b.priceMonthly ? a : b)).id
     : null
-  // lastUpdatedAt sudah berupa epoch ms (bukan Date) di payload cache —
-  // dihitung ulang tiap request supaya "X hari lalu" selalu akurat
-  // terhadap waktu sekarang, tidak ikut basi di dalam cache.
-  const updatedDaysAgo = Math.floor((Date.now() - kos.lastUpdatedAt) / 86400000)
 
   return (
     <div className="min-h-screen bg-white">
@@ -111,10 +132,6 @@ export default async function KosDetailPage({
               <MapPinIcon className="h-4 w-4 shrink-0" />
               {kos.district ? `${kos.district}, ${kos.city}` : kos.city}
             </p>
-            <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-400 md:text-sm">
-              <ClockIcon className="h-3.5 w-3.5 shrink-0" />
-              {formatUpdatedText(updatedDaysAgo)}
-            </p>
 
             {/* Harga: tampil di sini juga untuk mobile (sidebar tersembunyi di mobile) */}
             {allPrices.length > 0 && (
@@ -129,6 +146,7 @@ export default async function KosDetailPage({
             {kos.description && (
               <>
                 <div className="my-6 h-px bg-fimo-gray" />
+                <h2 className="mb-3 text-base font-semibold text-gray-900 md:text-lg">Tentang Kos Ini</h2>
                 <p className="whitespace-pre-line text-sm leading-relaxed text-gray-700 md:text-base">
                   {kos.description}
                 </p>

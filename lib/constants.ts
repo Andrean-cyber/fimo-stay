@@ -1,10 +1,35 @@
+// Fasilitas umum kos. Yang wajib/pokok ada di awal, sisanya opsional/free —
+// kalau admin tidak centang, otomatis tidak muncul di halaman publik.
 export const FACILITIES = [
-  'AC', 'WiFi', 'Kamar Mandi Dalam', 'Kamar Mandi Luar', 'Dispenser', 'Kulkas',
-  'Dapur Bersama', 'Parkir Motor', 'Parkir Mobil', 'Jemuran', 'CCTV', 'Security 24 Jam',
+  'Parkir',
+  'Kamar Mandi Dalam',
+  'Kamar Mandi Luar',
+  'Dapur',
+  'WiFi',
+  'CCTV',
+  'Security',
+  'Water Heater',
+  'Dispenser',
+  // Opsional / free — hanya tampil di publik kalau diisi admin
+  'Free Listrik',
+  'Free Laundry',
+  'Pet Friendly',
+  'Gym Area',
+  'Bisa Berdua',
+  'Cafe',
+  'Communal Area',
+  'Mart',
+  'Lift',
+  'Area Olahraga',
 ]
 
+// Fasilitas kamar
 export const ROOM_FACILITIES = [
-  'AC', 'Kasur', 'Lemari', 'Meja Belajar', 'Kamar Mandi Dalam',
+  'AC',
+  'Kulkas',
+  'Lemari',
+  'Meja Belajar',
+  'TV',
 ]
 
 export const WHATSAPP_NUMBER = '6289666783030' // GANTI dengan nomor WA official FimoStay, format 62xxx tanpa +

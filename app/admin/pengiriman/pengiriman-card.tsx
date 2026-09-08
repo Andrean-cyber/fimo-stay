@@ -1,10 +1,26 @@
-import { ChatBubbleLeftRightIcon, CheckIcon, MapPinIcon } from '@heroicons/react/24/outline'
+'use client'
+
+import { useState, useTransition } from 'react'
+import { ChatBubbleLeftRightIcon, CheckIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon } from '@heroicons/react/24/outline'
 import { markTransactionSent } from './actions'
 import type { PengirimanCardData } from './queue-helpers'
 
 export function PengirimanCard({
   transactionId, badgeLabel, badgeClass, refCode, phone, subtitle, message, waLink,
 }: PengirimanCardData) {
+  const [isPending, startTransition] = useTransition()
+  const [justSent, setJustSent] = useState(false)
+
+  function handleMarkSent() {
+    startTransition(async () => {
+      await markTransactionSent(transactionId)
+      setJustSent(true)
+    })
+  }
+
+  const isDone = isPending || justSent
+
   return (
     <div className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-5">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -28,7 +44,7 @@ export function PengirimanCard({
       </details>
 
       <div className="mt-4 flex flex-wrap gap-2">
-       <a 
+        <a
           href={waLink}
           target="_blank"
           rel="noopener noreferrer"
@@ -37,15 +53,20 @@ export function PengirimanCard({
           <ChatBubbleLeftRightIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
           Buka WhatsApp
         </a>
-        <form action={markTransactionSent.bind(null, transactionId)}>
-          <button
-            type="submit"
-            className="flex items-center gap-1.5 rounded-xl border border-fimo-gray px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-fimo-gray/40 lg:px-5 lg:py-2.5 lg:text-[15px]"
-          >
-            <CheckIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
-            Tandai Terkirim
-          </button>
-        </form>
+
+        <button
+          type="button"
+          onClick={handleMarkSent}
+          disabled={isDone}
+          className={`flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-medium transition-colors lg:px-5 lg:py-2.5 lg:text-[15px] ${
+            justSent
+              ? 'border-green-600 bg-green-50 text-green-700'
+              : 'border-fimo-gray text-gray-600 hover:bg-fimo-gray/40'
+          } disabled:opacity-70`}
+        >
+          <CheckIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+          {isPending ? 'Menandai...' : justSent ? 'Terkirim ✓' : 'Tandai Terkirim'}
+        </button>
       </div>
     </div>
   )

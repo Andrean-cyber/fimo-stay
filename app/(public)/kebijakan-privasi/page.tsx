@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { PublicHeader } from '@/components/public-header'
 import { PublicFooter } from '@/components/public-footer'
 import { LegalPageLayout } from '@/components/legal-page-layout'
+import Link from 'next/link'
 import {
   CircleStackIcon,
   EyeIcon,
@@ -375,29 +376,32 @@ export default function KebijakanPrivasiPage() {
                   memperbarui, atau meminta penghapusan data.
                 </p>
 
-                <button
-                  type="button"
-                  className="
-                    mt-4
-                    rounded-xl
-                    bg-white
-                    px-4
-                    py-2.5
-                    text-xs
-                    font-bold
-                    text-fimo-navy
-                    transition-transform
-                    hover:-translate-y-0.5
-                    focus-visible:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-white
-                    focus-visible:ring-offset-2
-                    focus-visible:ring-offset-fimo-navy
-                    sm:text-sm
-                  "
-                >
-                  Hubungi FimoStay
-                </button>
+                <Link
+  href="/kontak"
+  className="
+    mt-4
+    inline-flex
+    items-center
+    justify-center
+    rounded-xl
+    bg-white
+    px-4
+    py-2.5
+    text-xs
+    font-bold
+    text-fimo-navy
+    transition-transform
+    hover:-translate-y-0.5
+    focus-visible:outline-none
+    focus-visible:ring-2
+    focus-visible:ring-white
+    focus-visible:ring-offset-2
+    focus-visible:ring-offset-fimo-navy
+    sm:text-sm
+  "
+>
+  Hubungi FimoStay
+</Link>
               </div>
             </section>
           </Reveal>
