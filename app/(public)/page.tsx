@@ -5,6 +5,7 @@ import { KosCard } from '@/components/kos-card'
 import { SearchForm } from '@/app/(public)/kos/search-form'
 import { Reveal } from '@/components/reveal'
 import { HomeFaq } from '@/components/home-faq'
+import { BannerCarousel } from '@/components/banner-carousel'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -81,11 +82,17 @@ export default async function HomePage() {
     <div className="min-h-screen bg-slate-50 sm:bg-white">
       <PublicHeader />
       <main className="flex flex-col gap-5 pb-4 sm:gap-0 sm:pb-0">
-
+      <BannerCarousel />
         {/* ============ HERO ============ */}
         <section className="order-1 sm:order-1">
+          {/* --- MOBILE: search form dibungkus card putih rounded, langsung di bawah judul --- */}
+          <div className="px-4 sm:hidden">
+          <div className="rounded-2xl border border-slate-200/70 bg-white p-3 ">
+              <SearchForm />
+            </div>
+          </div>
           {/* --- MOBILE: tanpa foto, tanpa avatar/notif, langsung judul --- */}
-          <div className="bg-white px-5 pb-6 pt-8 sm:hidden">
+          <div className="bg-white px-5 pb-6 pt-5 sm:hidden">
             <h1 className="font-display text-[28px] font-bold leading-[1.15] tracking-[-0.02em] text-fimo-navy">
               Temukan Kos yang Nyaman,
               <br />
@@ -198,12 +205,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* --- MOBILE: search form dibungkus card putih rounded, langsung di bawah judul --- */}
-          <div className="px-4 sm:hidden">
-            <div className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
-              <SearchForm />
-            </div>
-          </div>
+          
         </section>
 
         {/* ============ DEKAT KAMPUS POPULER ============ */}
