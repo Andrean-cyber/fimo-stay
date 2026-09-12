@@ -86,11 +86,7 @@ export default async function HomePage() {
         {/* ============ HERO ============ */}
         <section className="order-1 sm:order-1">
           {/* --- MOBILE: search form dibungkus card putih rounded, langsung di bawah judul --- */}
-          <div className="px-4 sm:hidden">
-          <div className="rounded-2xl border border-slate-200/70 bg-white p-3 ">
-              <SearchForm />
-            </div>
-          </div>
+
           {/* --- MOBILE: tanpa foto, tanpa avatar/notif, langsung judul --- */}
           <div className="bg-white px-5 pb-6 pt-5 sm:hidden">
             <h1 className="font-display text-[28px] font-bold leading-[1.15] tracking-[-0.02em] text-fimo-navy">
@@ -101,6 +97,11 @@ export default async function HomePage() {
             <p className="mt-3 text-[13px] leading-[1.6] text-slate-500">
               Cari kos yang masih tersedia, lokasi yang sesuai, dan harga yang cocok dengan kebutuhanmu.
             </p>
+          </div>
+          <div className="px-4 sm:hidden">
+            <div className="rounded-2xl border border-slate-200/70 bg-white p-3 ">
+              <SearchForm />
+            </div>
           </div>
 
           {/* --- DESKTOP + TABLET: split hero seperti referensi --- */}
