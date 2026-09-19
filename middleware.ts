@@ -26,13 +26,24 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const isAccessingAdmin = request.nextUrl.pathname.startsWith('/admin')
-  const isAccessingLogin = request.nextUrl.pathname.startsWith('/admin/login')
 
-  if (isAccessingAdmin && !isAccessingLogin && !user) {
+  // Halaman di bawah /admin yang harus tetap bisa diakses tanpa login —
+  // memang dirancang untuk orang yang belum/tidak bisa login:
+  // - /admin/login            : halaman login itu sendiri
+  // - /admin/forgot-password  : minta link reset password
+  // ('/set-password' sengaja tidak dimasukkan sini karena route-nya
+  //  di app/(public)/set-password, jadi URL-nya '/set-password', bukan
+  //  '/admin/set-password' — di luar cakupan matcher middleware ini)
+  const publicAdminPaths = ['/admin/login', '/admin/forgot-password']
+  const isPublicAdminPath = publicAdminPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path)
+  )
+
+  if (isAccessingAdmin && !isPublicAdminPath && !user) {
     return NextResponse.redirect(new URL('/admin/login', request.url))
   }
 
-  if (isAccessingLogin && user) {
+  if (request.nextUrl.pathname.startsWith('/admin/login') && user) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 

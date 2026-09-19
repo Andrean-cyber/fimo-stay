@@ -210,6 +210,10 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
   const currentKos = await prisma.kos.findUniqueOrThrow({ where: { id: kosId }, select: { status: true, city: true } })
   const nextStatus = currentKos.status === 'HIDDEN_MANUAL' ? 'HIDDEN_MANUAL' : 'ACTIVE'
   const cityChanged = currentKos.city !== parsed.data.city
+  // Status juga bisa berubah tanpa kota berubah, misal HIDDEN_STALE -> ACTIVE
+  // saat admin edit kos yang sudah stale. Ini mengubah staleCount per kota,
+  // jadi harus ikut menginvalidasi cache juga.
+  const statusChanged = currentKos.status !== nextStatus
 
   const kos = await prisma.$transaction(async (tx) => {
     const existingSegments = await tx.kosSegment.findMany({ where: { kosId }, select: { id: true } })
@@ -294,7 +298,7 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
   })
 
   await syncKosToIndex(kos)
-  if (cityChanged) {
+  if (cityChanged || statusChanged) {
     await invalidateCityCountsCache()
   }
 
@@ -376,6 +380,7 @@ export async function confirmKosAvailability(kosId: string) {
     include: KOS_INDEX_INCLUDE,
   })
   await syncKosToIndex(kos)
+  await invalidateCityCountsCache()
   await prisma.auditLog.create({
     data: { entityType: 'kos', entityId: kosId, action: 'confirm_availability', adminId: admin.id, kosId },
   })
@@ -411,6 +416,8 @@ export async function confirmKosAvailabilityBulk(kosIds: string[]) {
       syncKosToIndex({ ...kos, status: 'ACTIVE', lastUpdatedAt: new Date(), updatedById: admin.id })
     )
   )
+
+  await invalidateCityCountsCache()
 
   revalidatePath('/admin/kos')
   revalidatePath('/admin/kos/konfirmasi')

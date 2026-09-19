@@ -11,6 +11,13 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
+// Ambil NEXT_PUBLIC_SITE_URL tanpa trailing slash, supaya redirectTo tidak
+// jadi double slash (contoh: "https://fimostay.com/" + "/set-password"
+// akan jadi "https://fimostay.com//set-password" kalau tidak di-strip).
+function getSiteUrl() {
+  return process.env.NEXT_PUBLIC_SITE_URL!.replace(/\/+$/, '')
+}
+
 // Cari user di Supabase Auth berdasarkan email. Dipakai untuk mendeteksi
 // akun "yatim" — user yang ada di Supabase Auth tapi tidak (lagi) punya
 // baris di tabel adminProfile, biasanya sisa dari penghapusan admin yang
@@ -58,7 +65,7 @@ export async function inviteAdmin(_prevState: FormActionState, formData: FormDat
   const adminClient = createAdminClient()
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
     data: { full_name: fullName },
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/set-password`,
+    redirectTo: `${getSiteUrl()}/set-password`,
   })
 
   if (error) {

@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
 import { PasswordInput } from './password-input'
 import { loginRatelimit } from '@/lib/redis'
@@ -82,6 +83,14 @@ export default async function LoginPage({
               Password
             </label>
             <PasswordInput />
+            <div className="mt-1.5 text-right">
+              <Link
+                href="/admin/forgot-password"
+                className="text-xs font-medium text-fimo-navy hover:text-fimo-blue lg:text-[13px]"
+              >
+                Lupa Password?
+              </Link>
+            </div>
           </div>
 
           <button
