@@ -26,6 +26,7 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
   const [budgetDigits, setBudgetDigits] = useState('')
   const [moveInDate, setMoveInDate] = useState('')
   const [notes, setNotes] = useState('')
+  const [agreed, setAgreed] = useState(false)
 
   const budgetDisplay = budgetDigits ? new Intl.NumberFormat('id-ID').format(Number(budgetDigits)) : ''
 
@@ -48,11 +49,16 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
     budgetDigits !== '' &&
     moveInDate !== '' &&
     notes.trim() !== '' &&
-    turnstileToken !== ''
+    turnstileToken !== '' &&
+    agreed
 
   async function handleSubmit(formData: FormData) {
     if (!turnstileToken) {
       setError('Verifikasi keamanan belum selesai, tunggu sebentar.')
+      return
+    }
+    if (!agreed) {
+      setError('Kamu perlu menyetujui ketentuan terlebih dahulu.')
       return
     }
     setSubmitting(true)
@@ -205,6 +211,25 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
       </div>
 
       <TurnstileWidget onVerify={setTurnstileToken} />
+
+      <div className="rounded-xl bg-fimo-gray/40 p-3 text-xs leading-relaxed text-gray-600 md:text-sm">
+        <p className="font-medium text-gray-800">Ketentuan:</p>
+        <ul className="mt-1 list-disc space-y-1 pl-4">
+          <li>Biaya Rp100.000 digunakan untuk mendapatkan 3 rekomendasi kos sesuai kriteria yang kamu isi.</li>
+          <li>Pembayaran diverifikasi manual oleh tim kami, prosesnya biasanya kurang dari 1x24 jam.</li>
+          <li>Jika rekomendasi yang diberikan tidak sesuai kriteria yang kamu isi, dana akan direfund 100%.</li>
+        </ul>
+      </div>
+
+      <label className="flex items-start gap-2 text-xs text-gray-600 md:text-sm">
+        <input
+          type="checkbox"
+          checked={agreed}
+          onChange={(e) => setAgreed(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-fimo-gray text-fimo-navy focus:ring-fimo-navy"
+        />
+        Saya sudah membaca dan menyetujui ketentuan di atas
+      </label>
 
       {error && (
         <p className="flex items-center gap-1.5 text-sm text-red-500">

@@ -21,11 +21,19 @@ import type { Prisma } from '@prisma/client'
 import { toPublicUrl } from '@/lib/r2'
 import { KAMPUS_POPULER } from '@/lib/campuses'
 import { getCityImage } from '@/lib/city-images'
+import { kosIndex } from '@/lib/meilisearch'
 
 const AVATAR_COUNT = 5
 
+// Sama seperti di halaman /kos — value kampus (alias) dipakai sebagai string
+// literal di filter Meilisearch, jadi wajib di-escape supaya tidak merusak
+// sintaks filter.
+function escapeMeiliValue(value: string) {
+  return value.replace(/"/g, '\\"')
+}
+
 export default async function HomePage() {
-  const [kosRekomendasiRaw, cityGroups, kosTypes] = await Promise.all([
+  const [kosRekomendasiRaw, cityGroups, kosTypes, campusCounts] = await Promise.all([
     prisma.kos.findMany({
       where: { status: 'ACTIVE' },
       orderBy: { lastUpdatedAt: 'desc' },
@@ -44,7 +52,23 @@ export default async function HomePage() {
       _count: { _all: true },
     }),
     prisma.kosType.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true } }),
+    // Kampus dicocokkan lewat Meilisearch (field campusNames, dengan alias),
+    // bukan Prisma — jadi hitung ketersediaannya lewat filter yang sama
+    // persis dengan yang dipakai halaman pencarian /kos. limit: 0 supaya
+    // cuma butuh estimatedTotalHits, tidak perlu ambil dokumennya.
+    Promise.all(
+      KAMPUS_POPULER.map((k) => {
+        const campusOr = k.aliases.map((alias) => `campusNames = "${escapeMeiliValue(alias)}"`).join(' OR ')
+        return kosIndex
+          .search('', { filter: `status = "ACTIVE" AND (${campusOr})`, limit: 0 })
+          .then((r) => r.estimatedTotalHits)
+      })
+    ),
   ])
+
+  // Kampus yang sudah tidak punya kos ACTIVE (dihapus/dikosongkan admin)
+  // otomatis tidak ditampilkan, sama seperti perilaku kota di bawah.
+  const kampusPopulerAktif = KAMPUS_POPULER.filter((_, i) => campusCounts[i] > 0)
 
   const KATEGORI: { label: string; value: string; initials: string; filter: Prisma.KosWhereInput }[] = kosTypes.map((kt) => ({
     label: `Kos ${kt.name}`,
@@ -210,6 +234,7 @@ export default async function HomePage() {
         </section>
 
         {/* ============ DEKAT KAMPUS POPULER ============ */}
+        {kampusPopulerAktif.length > 0 && (
         <section className="order-2 sm:order-2 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-16 lg:pt-20">
         <Reveal>
           {/* --- MOBILE: card putih, kategori jadi pill icon+label, geser ke kiri --- */}
@@ -217,7 +242,7 @@ export default async function HomePage() {
             <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-fimo-blue">Untuk mahasiswa</p>
             <h2 className="mb-3 text-base font-bold text-fimo-navy">Dekat Kampus Populer</h2>
             <div className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-1 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
-              {KAMPUS_POPULER.map((k) => (
+              {kampusPopulerAktif.map((k) => (
                 <Link
                   key={k.label}
                   href={`/kos?kampus=${encodeURIComponent(k.label)}`}
@@ -239,7 +264,7 @@ export default async function HomePage() {
               <h2 className="text-2xl font-bold text-fimo-navy sm:text-3xl">Dekat Kampus Populer</h2>
             </div>
             <div className="grid grid-cols-3 gap-3 lg:grid-cols-5">
-              {KAMPUS_POPULER.map((k) => (
+              {kampusPopulerAktif.map((k) => (
                 <Link key={k.label} href={`/kos?kampus=${encodeURIComponent(k.label)}`} className="group flex items-center gap-3 rounded-2xl border border-fimo-gray bg-white p-4 transition hover:-translate-y-1 hover:border-fimo-blue/30 hover:shadow-md">
                   <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-fimo-navy/5 text-fimo-navy transition group-hover:bg-fimo-blue/10">
                     {k.logoUrl ? <Image src={k.logoUrl} alt={k.label} fill className="object-contain p-1.5" sizes="40px" /> : <AcademicCapIcon className="h-5 w-5" />}
@@ -251,6 +276,7 @@ export default async function HomePage() {
           </div>
           </Reveal>
         </section>
+        )}
 
         {/* ============ REKOMENDASI KOS ============ */}
         <section className="order-3 sm:order-3 sm:mx-auto sm:w-full sm:max-w-6xl sm:px-6 sm:pt-24 lg:pt-28">
