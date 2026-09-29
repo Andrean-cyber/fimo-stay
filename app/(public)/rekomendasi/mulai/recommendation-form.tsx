@@ -215,9 +215,13 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
       <div className="rounded-xl bg-fimo-gray/40 p-3 text-xs leading-relaxed text-gray-600 md:text-sm">
         <p className="font-medium text-gray-800">Ketentuan:</p>
         <ul className="mt-1 list-disc space-y-1 pl-4">
-          <li>Biaya Rp100.000 digunakan untuk mendapatkan 3 rekomendasi kos sesuai kriteria yang kamu isi.</li>
-          <li>Pembayaran diverifikasi manual oleh tim kami, prosesnya biasanya kurang dari 1x24 jam.</li>
-          <li>Jika rekomendasi yang diberikan tidak sesuai kriteria yang kamu isi, dana akan direfund 100%.</li>
+          <li>Biaya layanan Rp90.000 untuk mencarikan 3 rekomendasi kos yang paling cocok dengan kriteria yang kamu isi.</li>
+          <li>Pembayaran akan diverifikasi tim kami, proses biasanya kurang dari 1x24 jam.</li>
+          <li>Jika rekomendasi yang diberikan tidak sesuai kriteria yang kamu isi, dana akan direfund 100% atau diganti dengan rekomendasi kos lain.</li>
+          <li className="text-red-600">
+            <strong>Waspada Terhadap Penipuan!</strong> Jangan transfer DP / uang sewa
+            sebelum melakukan survey lokasi.
+          </li>
         </ul>
       </div>
 
@@ -245,7 +249,7 @@ export function RecommendationForm({ kosTypes }: { kosTypes: string[] }) {
       >
         <span className="flex items-center gap-2">
           {submitting && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
-          {submitting ? 'Memproses...' : 'Lanjutkan — Rp100.000'}
+          {submitting ? 'Memproses...' : 'Proses Sekarang'}
         </span>
         {!submitting && <span className="text-xs font-normal opacity-90 sm:text-sm">(3 rekomendasi kos)</span>}
       </button>

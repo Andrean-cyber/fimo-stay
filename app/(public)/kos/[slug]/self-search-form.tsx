@@ -105,9 +105,13 @@ export function SelfSearchForm({
       <div className="rounded-lg bg-fimo-gray/30 p-3 text-xs leading-relaxed text-gray-600 md:text-sm">
         <p className="font-medium text-gray-800">Ketentuan:</p>
         <ul className="mt-1 list-disc space-y-1 pl-4">
-          <li>Biaya Rp40.000 digunakan untuk membuka kontak owner kos ini.</li>
-          <li>Pembayaran diverifikasi manual oleh tim kami, prosesnya biasanya kurang dari 1x24 jam.</li>
-          <li>Jika kamar pada kos ini ternyata sudah penuh, dana akan direfund 100%.</li>
+          <li>Biaya layanan Rp30.000 digunakan untuk verifikasi dan akses informasi lengkap serta kontak owner kos ini.</li>
+          <li>Pembayaran diverifikasi manual oleh tim kami, proses biasanya kurang dari 1x24 jam.</li>
+          <li>Jika kamar pada kos ini ternyata sudah penuh, dana akan direfund 100% atau diganti dengan kos lain.</li>
+          <li className="text-red-600">
+            <strong>Waspada Terhadap Penipuan!</strong> Jangan transfer DP / uang sewa
+            sebelum melakukan survey lokasi.
+          </li>
         </ul>
       </div>
 
@@ -128,7 +132,7 @@ export function SelfSearchForm({
         disabled={submitting || !turnstileToken || !agreed}
         className="w-full rounded-lg bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-fimo-navy/90 disabled:opacity-50 disabled:hover:bg-fimo-navy md:text-base"
       >
-        {submitting ? 'Memproses...' : `Proses Sekarang — Rp${(40000).toLocaleString('id-ID')}`}
+        {submitting ? 'Memproses...' : `Proses Sekarang`}
       </button>
 
       <p className="flex items-center justify-center gap-1.5 text-center text-xs text-gray-400 md:text-sm">
