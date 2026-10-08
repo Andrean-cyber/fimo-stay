@@ -23,6 +23,8 @@ import { KAMPUS_POPULER } from '@/lib/campuses'
 import { getCityImage } from '@/lib/city-images'
 import { kosIndex } from '@/lib/meilisearch'
 
+export const dynamic = 'force-dynamic'
+
 const AVATAR_COUNT = 5
 
 // Sama seperti di halaman /kos — value kampus (alias) dipakai sebagai string
