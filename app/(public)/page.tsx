@@ -53,7 +53,11 @@ export default async function HomePage() {
       where: { status: 'ACTIVE' },
       _count: { _all: true },
     }),
-    prisma.kosType.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true } }),
+    prisma.kosType.findMany({
+      where: { segments: { some: { kos: { status: 'ACTIVE' } } } },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true },
+    }),
     // Kampus dicocokkan lewat Meilisearch (field campusNames, dengan alias),
     // bukan Prisma — jadi hitung ketersediaannya lewat filter yang sama
     // persis dengan yang dipakai halaman pencarian /kos. limit: 0 supaya
