@@ -20,7 +20,6 @@ export const FACILITIES = [
   'Communal Area',
   'Mart',
   'Lift',
-  'Area Olahraga',
 ]
 
 // Fasilitas kamar
@@ -30,6 +29,9 @@ export const ROOM_FACILITIES = [
   'Lemari',
   'Meja Belajar',
   'TV',
+  'Balkon',
+  'Dapur Pribadi',
+  'Ventilasi Udara',
 ]
 
 export const WHATSAPP_NUMBER = '6289666783030' // GANTI dengan nomor WA official FimoStay, format 62xxx tanpa +
