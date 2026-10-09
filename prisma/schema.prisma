@@ -12,8 +12,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")      // connection pooler (pgbouncer), dipakai runtime
-  directUrl = env("DIRECT_URL")        // direct connection, dipakai untuk migration
+  url       = env("DATABASE_URL") // connection pooler (pgbouncer), dipakai runtime
+  directUrl = env("DIRECT_URL")   // direct connection, dipakai untuk migration
 }
 
 // ------------------------------------------------------------
@@ -49,14 +49,14 @@ enum TransactionStatus {
 model AdminProfile {
   id        String    @id // sama dengan auth.users.id di Supabase Auth
   fullName  String
-  email     String    @db.VarChar(255) @unique
+  email     String    @unique @db.VarChar(255)
   role      AdminRole @default(STAFF)
   createdAt DateTime  @default(now())
 
-  updatedKos           Kos[]           @relation("KosUpdatedBy")
-  verifiedTransactions Transaction[]   @relation("TransactionVerifiedBy")
+  updatedKos           Kos[]         @relation("KosUpdatedBy")
+  verifiedTransactions Transaction[] @relation("TransactionVerifiedBy")
+  sentTransactions     Transaction[] @relation("TransactionSentBy")
   auditLogs            AuditLog[]
-  sentTransactions Transaction[] @relation("TransactionSentBy")
 
   @@map("admin_profiles")
 }
@@ -68,7 +68,7 @@ model AdminProfile {
 model Owner {
   id        String   @id @default(uuid())
   name      String
-  phone     String   @unique          // ← tambahkan @unique
+  phone     String   @unique
   address   String?
   notes     String?
   createdAt DateTime @default(now())
@@ -80,24 +80,28 @@ model Owner {
 }
 
 model Kos {
-  id           String    @id @default(uuid())
-  slug         String    @unique
-  name         String
-  description  String?
-  city         String
-  district     String?
-  address      String
-  latitude     Float?
-  longitude    Float?
-  facilities   String[]  @default([])
-  status       KosStatus @default(ACTIVE)
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  name        String
+  description String?
+  city        String
+  district    String?
+  address     String
+  latitude    Float?
+  longitude   Float?
+  facilities  String[]  @default([])
+  status      KosStatus @default(ACTIVE)
 
-  // Cache harga — hasil agregasi MIN/MAX dari KosRoomType.priceMonthly
-  // (yang isActive: true). Di-recompute lewat recomputeKosPriceCache()
-  // setiap kali ada create/update/delete pada KosRoomType/KosSegment
-  // milik kos ini. Nullable karena kos tanpa roomType aktif memang
-  // tidak punya harga — kos begini otomatis tersingkir dari listing
-  // publik lewat filter `priceMinCache: { not: null }`.
+  // Cache harga — hasil agregasi dari KosRoomType (yang isActive: true):
+  //   priceMinCache = MIN(priceMonthly)
+  //   priceMaxCache = MAX(COALESCE(priceMaxMonthly, priceMonthly))
+  // Jadi kos dengan harga pas (mis. 500rb) punya min == max, sedangkan
+  // kos dengan rentang (mis. 900rb–1,2jt) punya min < max.
+  // Di-recompute lewat recomputeKosPriceCache() setiap kali ada
+  // create/update/delete pada KosRoomType/KosSegment milik kos ini.
+  // Nullable karena kos tanpa roomType aktif memang tidak punya harga —
+  // kos begini otomatis tersingkir dari listing publik lewat filter
+  // `priceMinCache: { not: null }`.
   priceMinCache Int?
   priceMaxCache Int?
 
@@ -108,24 +112,24 @@ model Kos {
   segments KosSegment[]
   nearby   KosNearby[]
 
-  lastUpdatedAt DateTime @default(now())
+  lastUpdatedAt DateTime      @default(now())
   updatedById   String?
   updatedBy     AdminProfile? @relation("KosUpdatedBy", fields: [updatedById], references: [id])
 
-  selfSearchTransactions Transaction[]         @relation("TransactionTargetKos")
+  selfSearchTransactions Transaction[]        @relation("TransactionTargetKos")
   recommendationItems    RecommendationItem[]
   auditLogs              AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([name, city])
   @@index([status])
   @@index([city])
   @@index([lastUpdatedAt])
   @@index([priceMinCache])
   @@index([priceMaxCache])
-  @@index([status, priceMinCache, priceMaxCache]) // composite — cocok untuk query listing publik (where status + range harga sekaligus)
-  @@unique([name, city])
+  @@index([status, priceMinCache, priceMaxCache]) // composite — query listing publik (status + range harga)
   @@map("kos")
 }
 
@@ -192,6 +196,12 @@ model KosSegment {
 // TIPE KAMAR — bebas per kos/segment, TANPA master (admin bisa
 // bikin nama custom, edit, hapus kapan saja). Harga & availability
 // nempel di sini, bukan di Kos.
+//
+// Harga:
+//   - harga pas   → isi priceMonthly saja, priceMaxMonthly = null
+//   - harga rentang → priceMonthly = terendah, priceMaxMonthly = tertinggi
+// Aturan priceMaxMonthly >= priceMonthly divalidasi di server action
+// dan (opsional) CHECK constraint lewat migration SQL.
 // ------------------------------------------------------------
 
 model KosRoomType {
@@ -200,14 +210,15 @@ model KosRoomType {
   segmentId String
   segment   KosSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
 
-  name           String   // bebas: "Standard", "Deluxe", "VIP", "Kamar Belakang", dst
-  priceMonthly   Int      // dalam rupiah
-  totalRooms     Int?
-  availableRooms Int?
-  description    String?
-  facilities     String[] @default([])
-  isActive       Boolean  @default(true)
-  order          Int      @default(0)
+  name            String   // bebas: "Standard", "Deluxe", "VIP", "Kamar Belakang", dst
+  priceMonthly    Int      // rupiah — harga terendah (atau harga pas kalau priceMaxMonthly null)
+  priceMaxMonthly Int?     // rupiah — harga tertinggi; null = harga pas
+  totalRooms      Int?
+  availableRooms  Int?
+  description     String?
+  facilities      String[] @default([])
+  isActive        Boolean  @default(true)
+  order           Int      @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -261,10 +272,10 @@ model Searcher {
 // ------------------------------------------------------------
 
 model Transaction {
-  id     String             @id @default(uuid())
+  id     String            @id @default(uuid())
   type   TransactionType
-  amount Int                // 30000 atau 900000
-  status TransactionStatus  @default(PENDING)
+  amount Int               // 30000 (SELF_SEARCH) atau 90000 (RECOMMENDATION)
+  status TransactionStatus @default(PENDING)
 
   proofUrl String? // bukti transfer, path di R2
 
@@ -276,8 +287,8 @@ model Transaction {
   targetKos   Kos?    @relation("TransactionTargetKos", fields: [targetKosId], references: [id])
 
   // dipakai kalau type = RECOMMENDATION
-  preferenceNotes Json? // budget, lokasi, tipe kamar, dst (bebas teks/JSON)
-  recommendationToken  String? @unique // dipakai di URL /rekomendasi/[token]
+  preferenceNotes     Json?   // budget, lokasi, tipe kamar, dst (bebas teks/JSON)
+  recommendationToken String? @unique // dipakai di URL /rekomendasi/[token]
 
   verifiedById String?
   verifiedBy   AdminProfile? @relation("TransactionVerifiedBy", fields: [verifiedById], references: [id])
@@ -294,6 +305,8 @@ model Transaction {
 
   @@index([status])
   @@index([type])
+  @@index([searcherId])
+  @@index([targetKosId])
   @@map("transactions")
 }
 
@@ -307,6 +320,7 @@ model RecommendationItem {
   createdAt     DateTime    @default(now())
 
   @@unique([transactionId, kosId])
+  @@index([kosId])
   @@map("recommendation_items")
 }
 
@@ -315,14 +329,14 @@ model RecommendationItem {
 // ------------------------------------------------------------
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  entityType String   // "kos" | "owner" | "transaction" | "kos_segment" | "kos_room_type"
+  id         String @id @default(uuid())
+  entityType String // "kos" | "owner" | "transaction" | "kos_segment" | "kos_room_type"
   entityId   String
-  action     String   // "create" | "update" | "hide" | "verify" | "reject" | "delete"
-  changes    Json?    // simpan diff sebelum/sesudah kalau perlu
+  action     String // "create" | "update" | "hide" | "verify" | "reject" | "delete"
+  changes    Json?  // simpan diff sebelum/sesudah kalau perlu
 
   kosId String?
-  kos   Kos?   @relation(fields: [kosId], references: [id])
+  kos   Kos?    @relation(fields: [kosId], references: [id])
 
   transactionId String?
   transaction   Transaction? @relation(fields: [transactionId], references: [id])
@@ -333,5 +347,8 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([entityType, entityId])
+  @@index([kosId])
+  @@index([transactionId])
+  @@index([adminId])
   @@map("audit_logs")
 }

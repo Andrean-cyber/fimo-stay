@@ -22,6 +22,7 @@ type RoomTypeDraft = {
   id?: string
   name: string
   priceMonthly: string
+  priceMaxMonthly: string
   totalRooms: string
   availableRooms: string
   description: string
@@ -60,6 +61,7 @@ type KosDefaults = {
       id: string
       name: string
       priceMonthly: number
+      priceMaxMonthly?: number | null
       totalRooms?: number | null
       availableRooms?: number | null
       description?: string | null
@@ -79,7 +81,16 @@ function newKey() {
 }
 
 function emptyRoomType(): RoomTypeDraft {
-  return { key: newKey(), name: '', priceMonthly: '', totalRooms: '', availableRooms: '', description: '', facilities: [] }
+  return {
+    key: newKey(),
+    name: '',
+    priceMonthly: '',
+    priceMaxMonthly: '',
+    totalRooms: '',
+    availableRooms: '',
+    description: '',
+    facilities: [],
+  }
 }
 
 function emptySegment(defaultKosTypeId: string): SegmentDraft {
@@ -113,12 +124,18 @@ function segmentsFromDefaults(defaults: KosDefaults | undefined, defaultKosTypeI
       id: rt.id,
       name: rt.name,
       priceMonthly: String(rt.priceMonthly),
+      priceMaxMonthly: rt.priceMaxMonthly != null ? String(rt.priceMaxMonthly) : '',
       totalRooms: rt.totalRooms != null ? String(rt.totalRooms) : '',
       availableRooms: rt.availableRooms != null ? String(rt.availableRooms) : '',
       description: rt.description ?? '',
       facilities: rt.facilities ?? [],
     })),
   }))
+}
+
+function isPriceRangeInvalid(rt: RoomTypeDraft) {
+  if (!rt.priceMaxMonthly || !rt.priceMonthly) return false
+  return Number(rt.priceMaxMonthly) < Number(rt.priceMonthly)
 }
 
 export function KosForm({
@@ -146,6 +163,8 @@ export function KosForm({
   const generalError = typeof state?.error === 'string' ? state.error : null
   const fieldErrors = typeof state?.error === 'object' ? state.error : null
 
+  const hasInvalidPrice = segments.some((s) => s.roomTypes.some(isPriceRangeInvalid))
+
   const addSegment = () => setSegments((prev) => [...prev, emptySegment(kosTypes[0]?.id ?? '')])
   const removeSegment = (key: string) => setSegments((prev) => (prev.length > 1 ? prev.filter((s) => s.key !== key) : prev))
   const updateSegment = (key: string, patch: Partial<SegmentDraft>) =>
@@ -172,7 +191,12 @@ export function KosForm({
               ...s,
               roomTypes: s.roomTypes.map((r) =>
                 r.key === roomKey
-                  ? { ...r, facilities: r.facilities.includes(facility) ? r.facilities.filter((f) => f !== facility) : [...r.facilities, facility] }
+                  ? {
+                      ...r,
+                      facilities: r.facilities.includes(facility)
+                        ? r.facilities.filter((f) => f !== facility)
+                        : [...r.facilities, facility],
+                    }
                   : r
               ),
             }
@@ -195,6 +219,7 @@ export function KosForm({
         id: r.id,
         name: r.name,
         priceMonthly: r.priceMonthly,
+        priceMaxMonthly: r.priceMaxMonthly || undefined,
         totalRooms: r.totalRooms || undefined,
         availableRooms: r.availableRooms || undefined,
         description: r.description || undefined,
@@ -240,14 +265,14 @@ export function KosForm({
         </Field>
 
         <Field label="Fasilitas umum kos" optional>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {FACILITIES.map((f) => (
-            <label key={f} className={checkboxItemClass}>
-              <input type="checkbox" name="facilities" value={f} defaultChecked={defaults?.facilities?.includes(f)} className={checkboxInputClass} />
-              <span className="line-clamp-2 leading-snug">{f}</span>
-            </label>
-          ))}
-</div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {FACILITIES.map((f) => (
+              <label key={f} className={checkboxItemClass}>
+                <input type="checkbox" name="facilities" value={f} defaultChecked={defaults?.facilities?.includes(f)} className={checkboxInputClass} />
+                <span className="line-clamp-2 leading-snug">{f}</span>
+              </label>
+            ))}
+          </div>
         </Field>
 
         <Field label="Owner">
@@ -297,61 +322,74 @@ export function KosForm({
               <div className="space-y-3">
                 {segment.roomTypes.map((rt) => (
                   <div key={rt.key} className="space-y-3 rounded-lg bg-fimo-gray/20 p-3">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                    <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-4">
-                      <Field label="Nama tipe kamar">
-                        <input value={rt.name} onChange={(e) => updateRoomType(segment.key, rt.key, { name: e.target.value })} placeholder="cth. Standard" required className={inputClass} />
-                      </Field>
-                      <Field label="Harga/bulan">
-                        <input type="number" value={rt.priceMonthly} onChange={(e) => updateRoomType(segment.key, rt.key, { priceMonthly: e.target.value })} required className={inputClass} />
-                      </Field>
-                      <Field label="Total kamar" optional>
-                        <input type="number" value={rt.totalRooms} onChange={(e) => updateRoomType(segment.key, rt.key, { totalRooms: e.target.value })} className={inputClass} />
-                      </Field>
-                      <Field label="Kamar tersedia" optional>
-                        <input type="number" value={rt.availableRooms} onChange={(e) => updateRoomType(segment.key, rt.key, { availableRooms: e.target.value })} className={inputClass} />
-                      </Field>
-                    </div>
-                    {segment.roomTypes.length > 1 && (
-                      <div className="flex justify-end sm:block sm:shrink-0">
-                        <FieldLabelSpacer />
-                        <button
-                          type="button"
-                          onClick={() => removeRoomType(segment.key, rt.key)}
-                          className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 lg:w-11`}
-                          aria-label="Hapus tipe kamar"
-                        >
-                          <TrashIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                
-                  <Field label="Deskripsi kamar" optional>
-                    <textarea
-                      value={rt.description}
-                      onChange={(e) => updateRoomType(segment.key, rt.key, { description: e.target.value })}
-                      rows={2}
-                      className={`${inputClass} resize-none`}
-                    />
-                  </Field>
-                
-                  <Field label="Fasilitas kamar" optional>
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                      {ROOM_FACILITIES.map((f) => (
-                        <label key={f} className={checkboxItemClass}>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                      <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                        <Field label="Nama tipe kamar">
+                          <input value={rt.name} onChange={(e) => updateRoomType(segment.key, rt.key, { name: e.target.value })} placeholder="cth. Standard" required className={inputClass} />
+                        </Field>
+                        <Field label="Harga/bulan (terendah)">
+                          <input type="number" min={0} value={rt.priceMonthly} onChange={(e) => updateRoomType(segment.key, rt.key, { priceMonthly: e.target.value })} placeholder="cth. 900000" required className={inputClass} />
+                        </Field>
+                        <Field label="Harga maks" optional>
                           <input
-                            type="checkbox"
-                            checked={rt.facilities.includes(f)}
-                            onChange={() => toggleFacility(segment.key, rt.key, f)}
-                            className={checkboxInputClass}
+                            type="number"
+                            min={0}
+                            value={rt.priceMaxMonthly}
+                            onChange={(e) => updateRoomType(segment.key, rt.key, { priceMaxMonthly: e.target.value })}
+                            placeholder="kosongkan jika harga pas"
+                            className={`${inputClass} ${isPriceRangeInvalid(rt) ? 'border-red-400' : ''}`}
                           />
-                          <span className="line-clamp-2 leading-snug">{f}</span>
-                        </label>
-                      ))}
+                          {isPriceRangeInvalid(rt) && (
+                            <p className="mt-1 text-xs text-red-500">Harga maks harus ≥ harga terendah</p>
+                          )}
+                        </Field>
+                        <Field label="Total kamar" optional>
+                          <input type="number" min={0} value={rt.totalRooms} onChange={(e) => updateRoomType(segment.key, rt.key, { totalRooms: e.target.value })} className={inputClass} />
+                        </Field>
+                        <Field label="Kamar tersedia" optional>
+                          <input type="number" min={0} value={rt.availableRooms} onChange={(e) => updateRoomType(segment.key, rt.key, { availableRooms: e.target.value })} className={inputClass} />
+                        </Field>
+                      </div>
+                      {segment.roomTypes.length > 1 && (
+                        <div className="flex justify-end sm:block sm:shrink-0">
+                          <FieldLabelSpacer />
+                          <button
+                            type="button"
+                            onClick={() => removeRoomType(segment.key, rt.key)}
+                            className={`flex ${actionButtonHeightClass} w-10 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 lg:w-11`}
+                            aria-label="Hapus tipe kamar"
+                          >
+                            <TrashIcon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </Field>
-                </div>
+
+                    <Field label="Deskripsi kamar" optional>
+                      <textarea
+                        value={rt.description}
+                        onChange={(e) => updateRoomType(segment.key, rt.key, { description: e.target.value })}
+                        rows={2}
+                        className={`${inputClass} resize-none`}
+                      />
+                    </Field>
+
+                    <Field label="Fasilitas kamar" optional>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {ROOM_FACILITIES.map((f) => (
+                          <label key={f} className={checkboxItemClass}>
+                            <input
+                              type="checkbox"
+                              checked={rt.facilities.includes(f)}
+                              onChange={() => toggleFacility(segment.key, rt.key, f)}
+                              className={checkboxInputClass}
+                            />
+                            <span className="line-clamp-2 leading-snug">{f}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </Field>
+                  </div>
                 ))}
                 <button type="button" onClick={() => addRoomType(segment.key)} className="flex items-center gap-1 text-xs font-medium text-fimo-navy hover:underline sm:text-xs lg:text-sm">
                   <PlusIcon className="h-3.5 w-3.5 lg:h-4 lg:w-4" /> Tambah Tipe Kamar
@@ -416,7 +454,11 @@ export function KosForm({
           ))}
         </div>
 
-        <button type="submit" disabled={isPending} className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white hover:bg-fimo-navy/90 disabled:opacity-50 sm:w-auto lg:px-5 lg:py-3 lg:text-[15px]">
+        <button
+          type="submit"
+          disabled={isPending || hasInvalidPrice}
+          className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white hover:bg-fimo-navy/90 disabled:opacity-50 sm:w-auto lg:px-5 lg:py-3 lg:text-[15px]"
+        >
           {isPending ? 'Menyimpan...' : submitLabel}
         </button>
       </form>

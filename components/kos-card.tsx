@@ -9,14 +9,16 @@ type KosCardProps = {
   name: string
   city: string
   district?: string | null
-  priceMonthly: number
-  priceMax?: number
+  priceMonthly: number // harga terendah (priceMinCache)
+  priceMax?: number | null // harga tertinggi (priceMaxCache)
   roomType?: string | null
   facilities?: string[]
   imageUrl?: string | null
   nearbyText?: string | null
   updatedDaysAgo?: number
 }
+
+const formatRp = (n: number) => `Rp${n.toLocaleString('id-ID')}`
 
 export function KosCard({
   slug,
@@ -30,7 +32,7 @@ export function KosCard({
   imageUrl,
   nearbyText,
 }: KosCardProps) {
-  const showRange = priceMax != null && priceMax !== priceMonthly
+  const hasRange = priceMax != null && priceMax > priceMonthly
   const locationText = district ? `${district}, ${city}` : city
 
   return (
@@ -70,9 +72,8 @@ export function KosCard({
         )}
 
         <p className="mt-1 text-xs text-gray-500 sm:text-sm">
-          mulai dari{' '}
           <span className="text-sm font-bold text-gray-900 sm:text-base">
-            Rp{priceMonthly.toLocaleString('id-ID')}
+            {hasRange ? `${formatRp(priceMonthly)} – ${formatRp(priceMax)}` : formatRp(priceMonthly)}
           </span>{' '}
           /bulan
         </p>

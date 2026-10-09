@@ -29,14 +29,16 @@ async function invalidateCityCountsCache() {
 }
 
 // Hitung ulang harga min/max dari payload segments yang sudah tervalidasi.
+//   min = harga terendah di semua tipe kamar (priceMonthly)
+//   max = harga tertinggi di semua tipe kamar (priceMaxMonthly, atau priceMonthly kalau harga pas)
 function computePriceCache(segments: ReturnType<typeof segmentsPayloadSchema.parse>) {
-  const allPrices = segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
-  if (allPrices.length === 0) {
+  const roomTypes = segments.flatMap((s) => s.roomTypes)
+  if (roomTypes.length === 0) {
     return { priceMinCache: null, priceMaxCache: null }
   }
   return {
-    priceMinCache: Math.min(...allPrices),
-    priceMaxCache: Math.max(...allPrices),
+    priceMinCache: Math.min(...roomTypes.map((rt) => rt.priceMonthly)),
+    priceMaxCache: Math.max(...roomTypes.map((rt) => rt.priceMaxMonthly ?? rt.priceMonthly)),
   }
 }
 
@@ -147,6 +149,7 @@ export async function createKos(_prevState: FormActionState, formData: FormData)
               create: segment.roomTypes.map((rt, rtOrder) => ({
                 name: rt.name,
                 priceMonthly: rt.priceMonthly,
+                priceMaxMonthly: rt.priceMaxMonthly ?? null,
                 totalRooms: rt.totalRooms,
                 availableRooms: rt.availableRooms,
                 description: rt.description,
@@ -245,6 +248,9 @@ export async function updateKos(kosId: string, _prevState: FormActionState, form
         const roomTypeData = {
           name: rt.name,
           priceMonthly: rt.priceMonthly,
+          // null eksplisit (bukan undefined) supaya harga maks lama terhapus
+          // saat admin mengosongkan field -> kembali jadi harga pas.
+          priceMaxMonthly: rt.priceMaxMonthly ?? null,
           totalRooms: rt.totalRooms,
           availableRooms: rt.availableRooms,
           description: rt.description,

@@ -10,15 +10,23 @@ export const kosSchema = z.object({
   ownerId: z.string().uuid('Pilih owner'),
 })
 
-export const roomTypeSchema = z.object({
-  id: z.string().uuid().optional(), // ada kalau edit room type existing, kosong kalau baru
-  name: z.string().min(1, 'Nama tipe kamar wajib diisi'),
-  priceMonthly: z.coerce.number().int().positive('Harga harus lebih dari 0'),
-  totalRooms: z.coerce.number().int().nonnegative().optional(),
-  availableRooms: z.coerce.number().int().nonnegative().optional(),
-  description: z.string().optional(),
-  facilities: z.array(z.string()).default([]),
-})
+export const roomTypeSchema = z
+  .object({
+    id: z.string().uuid().optional(), // ada kalau edit room type existing, kosong kalau baru
+    name: z.string().min(1, 'Nama tipe kamar wajib diisi'),
+    // harga terendah (atau harga pas kalau priceMaxMonthly kosong)
+    priceMonthly: z.coerce.number().int().positive('Harga harus lebih dari 0'),
+    // harga tertinggi; kosong/undefined = harga pas
+    priceMaxMonthly: z.coerce.number().int().positive('Harga maks harus lebih dari 0').optional(),
+    totalRooms: z.coerce.number().int().nonnegative().optional(),
+    availableRooms: z.coerce.number().int().nonnegative().optional(),
+    description: z.string().optional(),
+    facilities: z.array(z.string()).default([]),
+  })
+  .refine((rt) => rt.priceMaxMonthly == null || rt.priceMaxMonthly >= rt.priceMonthly, {
+    message: 'Harga maks harus ≥ harga terendah',
+    path: ['priceMaxMonthly'],
+  })
 
 export const segmentSchema = z.object({
   id: z.string().uuid().optional(), // ada kalau edit segment existing
@@ -39,3 +47,5 @@ export const segmentsPayloadSchema = z.array(segmentSchema).min(1, 'Minimal 1 se
 export type SegmentPayload = z.infer<typeof segmentsPayloadSchema>
 
 export const nearbyPayloadSchema = z.array(nearbySchema)
+
+export type NearbyPayload = z.infer<typeof nearbyPayloadSchema>
