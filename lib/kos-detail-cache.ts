@@ -7,14 +7,19 @@ import { redis } from '@/lib/redis'
 // dipanggil setiap kali kos di-update.
 const KOS_DETAIL_TTL = 3600 // 1 jam
 
+// Naikkan versi (v2 -> v3, dst) setiap kali bentuk CachedKosDetail berubah,
+// supaya cache lama dengan bentuk data lama otomatis tidak terpakai.
+const CACHE_VERSION = 'v2'
+
 function kosDetailCacheKey(slug: string) {
-  return `kos:detail:${slug}`
+  return `kos:detail:${CACHE_VERSION}:${slug}`
 }
 
 export type CachedRoomType = {
   id: string
   name: string
-  priceMonthly: number
+  priceMonthly: number // harga terendah (atau harga pas kalau priceMaxMonthly null)
+  priceMaxMonthly: number | null // harga tertinggi; null = harga pas
   description: string | null
   availableRooms: number | null
   isActive: boolean
@@ -99,6 +104,7 @@ async function fetchKosDetailFromDb(slug: string): Promise<CachedKosDetail | nul
         id: rt.id,
         name: rt.name,
         priceMonthly: rt.priceMonthly,
+        priceMaxMonthly: rt.priceMaxMonthly,
         description: rt.description,
         availableRooms: rt.availableRooms,
         isActive: rt.isActive,

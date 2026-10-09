@@ -43,7 +43,13 @@ export default async function HomePage() {
       select: {
         id: true, slug: true, name: true, city: true, district: true, facilities: true,
         lastUpdatedAt: true,
-        segments: { select: { kosType: { select: { name: true } }, roomTypes: { where: { isActive: true }, select: { priceMonthly: true } } } },
+        segments: {
+          select: {
+            kosType: { select: { name: true } },
+            // priceMaxMonthly wajib ikut di-select supaya rentang harga bisa dihitung
+            roomTypes: { where: { isActive: true }, select: { priceMonthly: true, priceMaxMonthly: true } },
+          },
+        },
         media: { orderBy: [{ isCover: 'desc' }, { order: 'asc' }], take: 1, select: { url: true } },
         nearby: { where: { isActive: true }, orderBy: { order: 'asc' }, take: 1, select: { name: true, distanceText: true } },
       },
@@ -86,11 +92,15 @@ export default async function HomePage() {
   const now = Date.now()
 
   const kosRekomendasi = kosRekomendasiRaw.map((k) => {
-    const allPrices = k.segments.flatMap((s) => s.roomTypes.map((rt) => rt.priceMonthly))
+    const roomTypes = k.segments.flatMap((s) => s.roomTypes)
+    // harga terendah = MIN(priceMonthly); harga tertinggi = MAX(priceMaxMonthly ?? priceMonthly)
+    const mins = roomTypes.map((rt) => rt.priceMonthly)
+    const maxes = roomTypes.map((rt) => rt.priceMaxMonthly ?? rt.priceMonthly)
     const nearby = k.nearby[0]
     return {
       id: k.id, slug: k.slug, name: k.name, city: k.city, district: k.district, facilities: k.facilities,
-      priceMonthly: allPrices.length > 0 ? Math.min(...allPrices) : 0,
+      priceMonthly: mins.length > 0 ? Math.min(...mins) : 0,
+      priceMax: maxes.length > 0 ? Math.max(...maxes) : null,
       roomType: k.segments[0]?.kosType.name ?? null,
       imageUrl: k.media[0]?.url ? toPublicUrl(k.media[0].url) : null,
       nearbyText: nearby ? `${nearby.distanceText} ke ${nearby.name}` : null,
@@ -299,7 +309,20 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
               {kosRekomendasi.map((k) => (
-                <KosCard key={k.id} slug={k.slug} name={k.name} city={k.city} district={k.district} priceMonthly={k.priceMonthly} roomType={k.roomType} facilities={k.facilities} imageUrl={k.imageUrl} nearbyText={k.nearbyText} updatedDaysAgo={k.updatedDaysAgo} />
+                <KosCard
+                  key={k.id}
+                  slug={k.slug}
+                  name={k.name}
+                  city={k.city}
+                  district={k.district}
+                  priceMonthly={k.priceMonthly}
+                  priceMax={k.priceMax}
+                  roomType={k.roomType}
+                  facilities={k.facilities}
+                  imageUrl={k.imageUrl}
+                  nearbyText={k.nearbyText}
+                  updatedDaysAgo={k.updatedDaysAgo}
+                />
               ))}
             </div>
           </div>

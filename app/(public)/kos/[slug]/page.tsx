@@ -39,6 +39,13 @@ import { PhotoGallery } from './photo-gallery'
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>
 
+const formatRp = (n: number) => `Rp${n.toLocaleString('id-ID')}`
+
+// Tampilkan rentang "Rp900.000 – Rp1.200.000" kalau max > min,
+// selain itu cukup satu harga.
+const formatRange = (min: number, max: number) =>
+  max > min ? `${formatRp(min)} – ${formatRp(max)}` : formatRp(min)
+
 // Pemetaan nama fasilitas (bebas teks dari admin) ke icon lucide-react yang
 // masuk akal. Dicocokkan pakai keyword, case-insensitive, supaya tetap jalan
 // walau nama fasilitas ditulis agak beda-beda oleh admin.
@@ -99,13 +106,19 @@ export default async function KosDetailPage({
   const kos = await getKosDetailCached(slug)
   if (!kos) notFound()
 
+  // Hanya tipe kamar aktif yang dihitung untuk harga.
   const allRoomTypes = kos.segments.flatMap((s) =>
-    s.roomTypes.map((rt) => ({ ...rt, kosTypeName: s.kosType.name, segmentName: s.name }))
+    s.roomTypes
+      .filter((rt) => rt.isActive)
+      .map((rt) => ({ ...rt, kosTypeName: s.kosType.name, segmentName: s.name }))
   )
-  const allPrices = allRoomTypes.map((rt) => rt.priceMonthly)
-  const priceMin = allPrices.length > 0 ? Math.min(...allPrices) : 0
-  const priceMax = allPrices.length > 0 ? Math.max(...allPrices) : 0
-  const cheapestId = allRoomTypes.length > 0
+  const hasPrice = allRoomTypes.length > 0
+  // harga terendah = MIN(priceMonthly); tertinggi = MAX(priceMaxMonthly ?? priceMonthly)
+  const priceMin = hasPrice ? Math.min(...allRoomTypes.map((rt) => rt.priceMonthly)) : 0
+  const priceMax = hasPrice
+    ? Math.max(...allRoomTypes.map((rt) => rt.priceMaxMonthly ?? rt.priceMonthly))
+    : 0
+  const cheapestId = hasPrice
     ? allRoomTypes.reduce((a, b) => (a.priceMonthly <= b.priceMonthly ? a : b)).id
     : null
 
@@ -134,11 +147,9 @@ export default async function KosDetailPage({
             </p>
 
             {/* Harga: tampil di sini juga untuk mobile (sidebar tersembunyi di mobile) */}
-            {allPrices.length > 0 && (
+            {hasPrice && (
               <p className="mt-4 text-xl font-bold text-fimo-navy lg:hidden">
-                {priceMin === priceMax
-                  ? `Rp${priceMin.toLocaleString('id-ID')}`
-                  : `Mulai Rp${priceMin.toLocaleString('id-ID')}`}
+                {formatRange(priceMin, priceMax)}
                 <span className="text-sm font-normal text-gray-500"> / bulan</span>
               </p>
             )}
@@ -175,7 +186,7 @@ export default async function KosDetailPage({
                               <div className="min-w-0">
                                 <div className="flex items-center gap-2">
                                   <p className="truncate text-sm font-medium text-gray-800 md:text-base">{rt.name}</p>
-                                  {rt.id === cheapestId && priceMin !== priceMax && (
+                                  {rt.id === cheapestId && allRoomTypes.length > 1 && priceMin !== priceMax && (
                                     <span className="shrink-0 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-green-700 md:text-[11px]">
                                       Termurah
                                     </span>
@@ -209,9 +220,9 @@ export default async function KosDetailPage({
                                   </div>
                                 )}
                               </div>
-                              <p className="shrink-0 text-sm font-semibold text-fimo-navy md:text-base">
-                                Rp{rt.priceMonthly.toLocaleString('id-ID')}
-                                <span className="block text-right text-[11px] font-normal text-gray-400 md:text-xs">/bln</span>
+                              <p className="shrink-0 text-right text-sm font-semibold text-fimo-navy md:text-base">
+                                {formatRange(rt.priceMonthly, rt.priceMaxMonthly ?? rt.priceMonthly)}
+                                <span className="block text-[11px] font-normal text-gray-400 md:text-xs">/bln</span>
                               </p>
                             </div>
                           ))}
@@ -277,11 +288,9 @@ export default async function KosDetailPage({
           <aside className="hidden lg:col-span-1 lg:block">
             <div className="sticky top-24 space-y-4">
               <div className="rounded-2xl border border-fimo-gray bg-white p-5 shadow-sm">
-                {allPrices.length > 0 && (
-                  <p className="text-3xl font-bold text-fimo-navy">
-                    {priceMin === priceMax
-                      ? `Rp${priceMin.toLocaleString('id-ID')}`
-                      : `Mulai Rp${priceMin.toLocaleString('id-ID')}`}
+                {hasPrice && (
+                  <p className="text-2xl font-bold text-fimo-navy xl:text-3xl">
+                    {formatRange(priceMin, priceMax)}
                     <span className="block text-base font-normal text-gray-500">per bulan</span>
                   </p>
                 )}
