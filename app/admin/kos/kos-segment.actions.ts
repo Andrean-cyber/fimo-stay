@@ -94,7 +94,11 @@ export async function updateRoomType(roomTypeId: string, input: unknown) {
   const parsed = roomTypeSchema.omit({ id: true }).safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Data tidak valid.' }
 
-  const roomType = await prisma.kosRoomType.update({ where: { id: roomTypeId }, data: parsed.data, include: { segment: true } })
+  const roomType = await prisma.kosRoomType.update({
+    where: { id: roomTypeId },
+    data: { ...parsed.data, priceMaxMonthly: parsed.data.priceMaxMonthly ?? null },
+    include: { segment: true },
+  })
   await prisma.auditLog.create({ data: { entityType: 'kos_room_type', entityId: roomTypeId, action: 'update', adminId: admin.id, kosId: roomType.segment.kosId } })
   await touchAndSync(roomType.segment.kosId, admin.id)
   return {}
