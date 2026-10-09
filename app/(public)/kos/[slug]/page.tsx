@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import type { ComponentType, SVGProps } from 'react'
 import { getKosDetailCached } from '@/lib/kos-detail-cache'
+import { formatRpShort } from '@/lib/format-price'
 import { PublicHeader } from '@/components/public-header'
 import { SelfSearchForm } from './self-search-form'
 import { PhotoGallery } from './photo-gallery'
@@ -41,10 +42,49 @@ type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>
 
 const formatRp = (n: number) => `Rp${n.toLocaleString('id-ID')}`
 
-// Tampilkan rentang "Rp900.000 – Rp1.200.000" kalau max > min,
-// selain itu cukup satu harga.
-const formatRange = (min: number, max: number) =>
-  max > min ? `${formatRp(min)} – ${formatRp(max)}` : formatRp(min)
+// Tampilkan harga atau rentang harga. Tiap harga dibuat tidak boleh
+// terputus di tengah (whitespace-nowrap), dan tanda "–" dilekatkan ke harga
+// kedua. Kalau tempat sempit, baris pindah rapi:
+//   Rp900.000
+//   – Rp1.200.000
+function PriceRange({ min, max }: { min: number; max: number }) {
+  if (max <= min) return <span className="whitespace-nowrap">{formatRp(min)}</span>
+  return (
+    <>
+      <span className="whitespace-nowrap">{formatRp(min)}</span>{' '}
+      <span className="whitespace-nowrap">– {formatRp(max)}</span>
+    </>
+  )
+}
+
+// Versi responsif: format singkat ("Rp900rb – 1,2jt") di layar kecil, format
+// lengkap ("Rp900.000 – Rp1.200.000") mulai breakpoint yang dipilih.
+// Class Tailwind ditulis statis supaya tidak ter-purge.
+const RESPONSIVE_CLASSES = {
+  sm: { short: 'sm:hidden', full: 'hidden sm:inline' },
+  md: { short: 'md:hidden', full: 'hidden md:inline' },
+} as const
+
+function PriceRangeResponsive({
+  min,
+  max,
+  breakpoint = 'sm',
+}: {
+  min: number
+  max: number
+  breakpoint?: keyof typeof RESPONSIVE_CLASSES
+}) {
+  const cls = RESPONSIVE_CLASSES[breakpoint]
+  const shortText = max > min ? `Rp${formatRpShort(min)} – ${formatRpShort(max)}` : `Rp${formatRpShort(min)}`
+  return (
+    <>
+      <span className={`whitespace-nowrap ${cls.short}`}>{shortText}</span>
+      <span className={cls.full}>
+        <PriceRange min={min} max={max} />
+      </span>
+    </>
+  )
+}
 
 // Pemetaan nama fasilitas (bebas teks dari admin) ke icon lucide-react yang
 // masuk akal. Dicocokkan pakai keyword, case-insensitive, supaya tetap jalan
@@ -148,9 +188,9 @@ export default async function KosDetailPage({
 
             {/* Harga: tampil di sini juga untuk mobile (sidebar tersembunyi di mobile) */}
             {hasPrice && (
-              <p className="mt-4 text-xl font-bold text-fimo-navy lg:hidden">
-                {formatRange(priceMin, priceMax)}
-                <span className="text-sm font-normal text-gray-500"> / bulan</span>
+              <p className="mt-4 text-xl font-bold leading-snug text-fimo-navy lg:hidden">
+                <PriceRangeResponsive min={priceMin} max={priceMax} breakpoint="sm" />
+                <span className="whitespace-nowrap text-sm font-normal text-gray-500"> / bulan</span>
               </p>
             )}
 
@@ -220,8 +260,12 @@ export default async function KosDetailPage({
                                   </div>
                                 )}
                               </div>
-                              <p className="shrink-0 text-right text-sm font-semibold text-fimo-navy md:text-base">
-                                {formatRange(rt.priceMonthly, rt.priceMaxMonthly ?? rt.priceMonthly)}
+                              <p className="shrink-0 text-right text-sm font-semibold leading-snug text-fimo-navy md:text-base">
+                                <PriceRangeResponsive
+                                  min={rt.priceMonthly}
+                                  max={rt.priceMaxMonthly ?? rt.priceMonthly}
+                                  breakpoint="md"
+                                />
                                 <span className="block text-[11px] font-normal text-gray-400 md:text-xs">/bln</span>
                               </p>
                             </div>
@@ -289,10 +333,12 @@ export default async function KosDetailPage({
             <div className="sticky top-24 space-y-4">
               <div className="rounded-2xl border border-fimo-gray bg-white p-5 shadow-sm">
                 {hasPrice && (
-                  <p className="text-2xl font-bold text-fimo-navy xl:text-3xl">
-                    {formatRange(priceMin, priceMax)}
-                    <span className="block text-base font-normal text-gray-500">per bulan</span>
-                  </p>
+                  <div>
+                    <p className="text-xl font-bold leading-snug text-fimo-navy xl:text-2xl">
+                      <PriceRange min={priceMin} max={priceMax} />
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500">per bulan</p>
+                  </div>
                 )}
 
                 <div className="my-4 h-px bg-fimo-gray" />

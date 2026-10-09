@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPinIcon, MapIcon } from '@heroicons/react/24/outline'
+import { formatRpShort } from '@/lib/format-price'
 
 type KosCardProps = {
   slug: string
@@ -73,9 +74,11 @@ export function KosCard({
 
         <p className="mt-1 text-xs text-gray-500 sm:text-sm">
           <span className="text-sm font-bold text-gray-900 sm:text-base">
-            {hasRange ? `${formatRp(priceMonthly)} – ${formatRp(priceMax)}` : formatRp(priceMonthly)}
+            {hasRange
+              ? `Rp${formatRpShort(priceMonthly)} – ${formatRpShort(priceMax!)}`
+              : formatRp(priceMonthly)}
           </span>{' '}
-          /bulan
+          <span className="whitespace-nowrap">/bulan</span>
         </p>
 
         {(roomType || facilities.length > 0) && (
