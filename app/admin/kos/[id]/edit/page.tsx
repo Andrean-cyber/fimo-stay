@@ -6,24 +6,24 @@ import { KosForm } from '../../kos-form'
 import { UploadFoto } from '../upload-foto'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import { DeleteFotoButton } from './delete-foto-button'
-import { getCachedKosTypes, getCachedOwners } from '@/lib/kos-form-options-cache'
+import { getCachedKosTypes } from '@/lib/kos-form-options-cache'
 import { toPublicUrl } from '@/lib/r2'
 
 export default async function EditKosPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
   const { id } = await params
 
-  const [kos, kosTypes, owners] = await Promise.all([
+  const [kos, kosTypes] = await Promise.all([
     prisma.kos.findUnique({
       where: { id },
       include: {
+        owner: { select: { name: true } },
         segments: { include: { roomTypes: { orderBy: { order: 'asc' } } }, orderBy: { order: 'asc' } },
         nearby: { orderBy: { order: 'asc' } },
         media: true,
       },
     }),
     getCachedKosTypes(),
-    getCachedOwners(),
   ])
 
   if (!kos) notFound()
@@ -37,7 +37,12 @@ export default async function EditKosPage({ params }: { params: Promise<{ id: st
         <p className="mt-1 text-xs text-gray-500 sm:text-sm">Perbarui detail {kos.name}.</p>
       </div>
 
-      <KosForm action={updateKos.bind(null, kos.id)} owners={owners} kosTypes={kosTypes} defaults={kos} submitLabel="Simpan Perubahan" />
+      <KosForm
+        action={updateKos.bind(null, kos.id)}
+        kosTypes={kosTypes}
+        defaults={{ ...kos, ownerName: kos.owner?.name }}
+        submitLabel="Simpan Perubahan"
+      />
 
       <div className="rounded-2xl border border-fimo-gray bg-white p-4 shadow-sm sm:p-6 lg:p-8">
         <h2 className="mb-4 text-sm font-semibold text-gray-900 sm:text-base">Foto Kos</h2>

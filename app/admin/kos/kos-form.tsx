@@ -14,7 +14,7 @@ import {
 } from './kos-field'
 import type { FormActionState } from '@/lib/action-state'
 
-type Owner = { id: string; name: string }
+type OwnerOption = { id: string; name: string }
 type KosTypeOption = { id: string; name: string }
 
 type RoomTypeDraft = {
@@ -53,6 +53,7 @@ type KosDefaults = {
   city?: string
   facilities?: string[]
   ownerId?: string
+  ownerName?: string
   segments?: {
     id: string
     kosTypeId: string
@@ -138,21 +139,91 @@ function isPriceRangeInvalid(rt: RoomTypeDraft) {
   return Number(rt.priceMaxMonthly) < Number(rt.priceMonthly)
 }
 
+function OwnerCombobox({
+  ownerId,
+  onChange,
+  initialName,
+}: {
+  ownerId: string
+  onChange: (id: string) => void
+  initialName?: string
+}) {
+  const [query, setQuery] = useState(initialName ?? '')
+  const [results, setResults] = useState<OwnerOption[]>([])
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/admin/owners?q=${encodeURIComponent(query)}`)
+        if (!cancelled && res.ok) setResults(await res.json())
+      } catch {
+        if (!cancelled) setResults([])
+      }
+    }, 300)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
+  }, [query, open])
+
+  return (
+    <div className="relative">
+      <input type="hidden" name="ownerId" value={ownerId} />
+      <input
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value)
+          onChange('')
+          setOpen(true)
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        placeholder="Ketik nama owner..."
+        autoComplete="off"
+        className={inputClass}
+      />
+      {open && (
+        <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-fimo-gray bg-white shadow-lg">
+          {results.length === 0 && <li className="px-3 py-2 text-sm text-gray-400">Tidak ditemukan</li>}
+          {results.map((o) => (
+            <li
+              key={o.id}
+              onMouseDown={() => {
+                onChange(o.id)
+                setQuery(o.name)
+                setOpen(false)
+              }}
+              className="cursor-pointer px-3 py-2 text-sm hover:bg-fimo-gray/30"
+            >
+              {o.name}
+            </li>
+          ))}
+        </ul>
+      )}
+      {!ownerId && query && !open && (
+        <p className="mt-1 text-xs text-red-500">Pilih owner dari daftar hasil pencarian.</p>
+      )}
+    </div>
+  )
+}
+
 export function KosForm({
   action,
-  owners,
   kosTypes,
   defaults,
   submitLabel,
 }: {
   action: (state: FormActionState, formData: FormData) => Promise<FormActionState>
-  owners: Owner[]
   kosTypes: KosTypeOption[]
   defaults?: KosDefaults
   submitLabel: string
 }) {
   const [state, formAction, isPending] = useActionState(action, undefined)
   const [modalOpen, setModalOpen] = useState(false)
+  const [ownerId, setOwnerId] = useState(defaults?.ownerId ?? '')
   const [segments, setSegments] = useState<SegmentDraft[]>(() => segmentsFromDefaults(defaults, kosTypes[0]?.id ?? ''))
   const [nearby, setNearby] = useState<NearbyDraft[]>(() => nearbyFromDefaults(defaults))
 
@@ -276,10 +347,7 @@ export function KosForm({
         </Field>
 
         <Field label="Owner">
-          <select name="ownerId" defaultValue={defaults?.ownerId ?? ''} required className={inputClass}>
-            <option value="" disabled>Pilih owner</option>
-            {owners.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-          </select>
+          <OwnerCombobox ownerId={ownerId} onChange={setOwnerId} initialName={defaults?.ownerName} />
         </Field>
 
         <div className="space-y-4 border-t border-fimo-gray pt-4">
@@ -456,7 +524,7 @@ export function KosForm({
 
         <button
           type="submit"
-          disabled={isPending || hasInvalidPrice}
+          disabled={isPending || hasInvalidPrice || !ownerId}
           className="w-full rounded-xl bg-fimo-navy px-4 py-2.5 text-sm font-medium text-white hover:bg-fimo-navy/90 disabled:opacity-50 sm:w-auto lg:px-5 lg:py-3 lg:text-[15px]"
         >
           {isPending ? 'Menyimpan...' : submitLabel}

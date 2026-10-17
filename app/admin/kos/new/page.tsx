@@ -5,12 +5,7 @@ import { KosForm } from '../kos-form'
 
 export default async function NewKosPage() {
   await requireAdmin()
-  const [kosTypes, owners] = await Promise.all([
-    prisma.kosType.findMany({ orderBy: { name: 'asc' } }),
-    prisma.owner.findMany({ orderBy: { name: 'asc' } }),
-  ])
-
-  // <KosForm action={createKos} owners={owners} kosTypes={kosTypes} submitLabel="Simpan Kos" />
+  const kosTypes = await prisma.kosType.findMany({ orderBy: { name: 'asc' } })
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -20,7 +15,7 @@ export default async function NewKosPage() {
           Isi detail kos yang akan ditampilkan ke pencari.
         </p>
       </div>
-      <KosForm action={createKos} owners={owners} kosTypes={kosTypes} submitLabel="Simpan Kos" />
+      <KosForm action={createKos} kosTypes={kosTypes} submitLabel="Simpan Kos" />
     </div>
   )
 }
