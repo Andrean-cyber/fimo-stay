@@ -53,7 +53,7 @@ export function buildWhatsAppLink(transactionId: string, label: string, amount: 
 export const PAYMENT_INFO = {
   bank: 'BCA',
   accountNumber: '3660614469',
-  accountName: 'Yeni Arfinah',
+  accountName: 'Y*** A******',
 }
 
 export function buildOwnerWhatsAppLink(phone: string, kosName: string) {
